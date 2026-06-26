@@ -24,6 +24,7 @@ export default function MultiLayerParallax() {
 
     // Same movement feature as handleMouseMove but for mobile touchscreen
     const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        e.preventDefault();
         const touch = e.touches[0];
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
         const x = (100 - touch.clientX - left) / width * 100;
