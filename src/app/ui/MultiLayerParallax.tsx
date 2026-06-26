@@ -1,5 +1,6 @@
 'use client'
 
+import { RecordWithTtl } from "dns";
 import React, { useState } from "react";
 
 export default function MultiLayerParallax() {
@@ -21,10 +22,20 @@ export default function MultiLayerParallax() {
         setMousePos({ x, y })
     };
 
+    // Same movement feature as handleMouseMove but for mobile touchscreen
+    const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        const touch = e.touches[0];
+        const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+        const x = (touch.clientX - left) / width * 100;
+        const y = (touch.clientY - top) / height * 100;
+        setMousePos({ x, y })
+    };
+
 
     return (
         <div
         onMouseMove={handleMouseMove}
+        onTouchMove={handleTouchMove}
         className="w-full h-dvh overflow-hidden relative grid place-items-center"
         >
             {/* Background — z-0, slow shift */}
