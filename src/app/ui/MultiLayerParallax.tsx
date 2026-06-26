@@ -25,8 +25,8 @@ export default function MultiLayerParallax() {
     const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
         const touch = e.touches[0];
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-        const x = (touch.clientX - left) / width * 100;
-        const y = (touch.clientY - top) / height * 100;
+        const x = 100 - (touch.clientX - left) / width * 100;
+        const y = 100 - (touch.clientY - top) / height * 100;
         setMousePos({ x, y })
     };
 
