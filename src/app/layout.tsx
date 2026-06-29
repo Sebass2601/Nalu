@@ -33,7 +33,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}
-        <div className={`${cinzel.className} fixed bottom-0 left-0 z-50 w-full h-16 bg-[#0a1628]/70 backdrop-blur-md border-t border-yellow-200`}>
+        <div className={`${cinzel.className} fixed top-0 left-0 z-50 w-full h-16 bg-[#0a1628]/70 backdrop-blur-md border-b border-yellow-200`}>
             <div className="grid h-full max-w-lg grid-cols-4 mx-auto">
                 <Link href="/" className="text-yellow-200 hover:text-white inline-flex flex-col items-center justify-center px-5 group">
                     <svg className="w-6 h-6 mb-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5"/></svg>
