@@ -8,6 +8,13 @@
       "when": 1782936187565,
       "tag": "0000_clever_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782944900046,
+      "tag": "0001_dapper_firedrake",
+      "breakpoints": true
     }
   ]
 }

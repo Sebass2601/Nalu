@@ -1,3 +1,4 @@
+export * from "./schema/authTables";
 export * from "./schema/course";
 export * from "./schema/courseProduct";
 export * from "./schema/courseSection";
