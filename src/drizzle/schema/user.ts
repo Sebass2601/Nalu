@@ -12,6 +12,7 @@ export const UserTable = pgTable("users", {
   id,
   email: text().notNull().unique(),
   name: text().notNull().default("user"),
+  password: text(),
   image: text(),
   emailVerified: timestamp({ withTimezone: true }),
   deletedAt: timestamp({ withTimezone: true }),

@@ -15,6 +15,13 @@
       "when": 1782944900046,
       "tag": "0001_dapper_firedrake",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783437717277,
+      "tag": "0002_eminent_shard",
+      "breakpoints": true
     }
   ]
 }
