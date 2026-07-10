@@ -11,6 +11,7 @@ import {
     AccountTable,
     SessionTable,
     VerificationTokenTable,
+    UserRole,
 } from "@/drizzle/schema";
 
 // Shape and rules for the login form input. `safeParse` in `authorize` rejects
@@ -30,17 +31,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session: { strategy: "jwt" },
     callbacks: {
         
-        jwt({ token, user }) {
+        async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
+                const dbUser = await db.query.UserTable.findFirst({
+                    where: eq(UserTable.id, user.id as string),
+                });
+                token.role = dbUser?.role;
             }
             return token;
         },
 
         session({ session, token }) {
-            if (token.id) {
-                session.user.id = token.id as string;
-            }
+            if (token.id) session.user.id = token.id as string;
+            if (token.role) session.user.role = token.role as UserRole;
             return session;
         },
     },

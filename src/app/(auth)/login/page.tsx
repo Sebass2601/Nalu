@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { cinzel } from "@/app/components/ui/fonts";
+import { cinzel } from "@/components/ui/fonts";
 import LoginForm from "./LoginForm";
-import GoogleSignInButton from "@/app/components/ui/GoogleSignInButton";
+import GoogleSignInButton from "@/components/ui/GoogleSignInButton";
 
 export default function LoginPage() {
     return (

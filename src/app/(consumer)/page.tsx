@@ -1,5 +1,5 @@
 import Image from "next/image";
-import MultiLayerParallax from "@/app/components/ui/MultiLayerParallax"
+import MultiLayerParallax from "@/components/ui/MultiLayerParallax"
 import { Cinzel } from 'next/font/google';
 
 const cinzel = Cinzel({ subsets: ["latin"] });

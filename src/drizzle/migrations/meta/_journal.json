@@ -22,6 +22,13 @@
       "when": 1783437717277,
       "tag": "0002_eminent_shard",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783709055773,
+      "tag": "0003_dear_ares",
+      "breakpoints": true
     }
   ]
 }
