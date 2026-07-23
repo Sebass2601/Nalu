@@ -12,11 +12,20 @@ export const LessonStatusEnum = pgEnum(
     lessonStatuses
 );
 
+export const lessonTypes = ["video", "text"] as const;
+export type LessonType = (typeof lessonTypes)[number];
+export const LessonTypeEnum = pgEnum(
+    "lesson_type",
+    lessonTypes
+);
+
 export const LessonTable = pgTable("lessons", {
     id,
     name: text().notNull(),
     description: text(),
-    youtubeVideoId: text().notNull(),
+    type: LessonTypeEnum().notNull().default("video"),
+    youtubeVideoId: text(),
+    content: text(),
     order: integer().notNull(),
     status: LessonStatusEnum().notNull().default("private"),
     sectionId: uuid()

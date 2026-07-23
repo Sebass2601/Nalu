@@ -30,7 +30,7 @@ export default function SignUpForm() {
                     id="name"
                     name="name"
                     type="text"
-                    className="rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
+                    className="font-sans rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
                 />
                 {state?.fieldErrors?.name && (
                     <p className="text-sm text-red-400">
@@ -47,7 +47,7 @@ export default function SignUpForm() {
                     id="email"
                     name="email"
                     type="text"
-                    className="rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
+                    className="font-sans rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
                 />
                 {state?.fieldErrors?.email && (
                     <p className="text-sm text-red-400">
@@ -64,7 +64,7 @@ export default function SignUpForm() {
                     id="password"
                     name="password"
                     type="password"
-                    className="rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
+                    className="font-sans rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
                 />
                 {state?.fieldErrors?.password && (
                     <ul className="text-sm text-red-400">

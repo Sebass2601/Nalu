@@ -1,5 +1,5 @@
 import { getGlobalTag, getIdTag } from "@/lib/dataCache"
-import { revalidateTag } from "next/cache"
+import { updateTag } from "next/cache"
 
 // Tag for "all users" — refresh this when the whole list could change.
 export function getCourseGlobalTag() {
@@ -12,6 +12,6 @@ export function getCourseIdTag(id: string) {
 }
 
 export function revalidateCourseCache(id: string) {
-    revalidateTag(getCourseGlobalTag(), "max")
-    revalidateTag(getCourseIdTag(id), "max")
+    updateTag(getCourseGlobalTag())
+    updateTag(getCourseIdTag(id))
 }

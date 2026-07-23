@@ -9,21 +9,26 @@ import { RequiredLabelIcon } from "@/components/RequiredLabelIcon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { createCourse } from "../actions/courses";
+import { createCourse, updateCourse } from "../actions/courses";
 import { actionToast } from "@/lib/actionToast";
 
-export function CourseForm() {
+export function CourseForm({course}: { course?: {
+    id: string
+    name: string
+    description: string
+}}) {
     
     const form = useForm<z.infer<typeof courseSchema>>({
         resolver: zodResolver(courseSchema),
-        defaultValues: {
+        defaultValues: course ?? {
             name: "",
             description: ""
         }
     })
 
     async function onSubmit(values: z.infer<typeof courseSchema>) {
-        const data = await createCourse(values)
+        const action = course == null ? createCourse : updateCourse.bind(null, course.id)
+        const data = await action(values)
         actionToast({actionData: data })
     }
 
@@ -38,7 +43,7 @@ export function CourseForm() {
                     <FormItem>
                         <FormLabel>
                             <RequiredLabelIcon/>
-                            Name
+                            Nombre
                         </FormLabel>
                         <FormControl>
                             <Input {...field} />
@@ -54,7 +59,7 @@ export function CourseForm() {
                     <FormItem>
                         <FormLabel>
                             <RequiredLabelIcon/>
-                            Description
+                            Descripción
                         </FormLabel>
                         <FormControl>
                             <Textarea className="min-h-20 resize-none" {...field} />
@@ -65,7 +70,7 @@ export function CourseForm() {
             />
             <div className="self-end">
                 <Button disabled={form.formState.isSubmitting} type="submit">
-                    Save
+                    Guardar
                 </Button>
             </div>
         </form>

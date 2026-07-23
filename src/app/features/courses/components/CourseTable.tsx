@@ -21,11 +21,11 @@ export function CourseTable({
         <TableHeader>
             <TableRow>
                 <TableHead>{formatPlural(courses.length, {
-                    singular: "course", plural: "courses"
+                    singular: "curso", plural: "cursos"
                 })}
                 </TableHead>
-                <TableHead>Students</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Estudiantes</TableHead>
+                <TableHead>Acciones</TableHead>
             </TableRow>
         </TableHeader>
         <TableBody>
@@ -36,13 +36,13 @@ export function CourseTable({
                             <div className="font-semibold">{course.name}</div>
                             <div className="text-muted-foreground">
                                 {formatPlural(course.sectionsCount, {
-                                    singular: "section",
-                                    plural: "sections",
+                                    singular: "sección",
+                                    plural: "secciones",
                                 })}
                                 {" "}•{" "}
                                 {formatPlural(course.lessonsCount, {
-                                    singular: "lesson",
-                                    plural: "lessons",
+                                    singular: "lección",
+                                    plural: "lecciones",
                                 })}
                             </div>
                         </div>
@@ -51,13 +51,14 @@ export function CourseTable({
                     <TableCell>
                         <div className="flex gap-2">
                             <Button asChild>
-                                <Link href={`/admin/courses/${course.id}/edit`}>Edit</Link>
+                                <Link href={`/admin/courses/${course.id}/edit`}>Editar</Link>
                             </Button>
                             <ActionButton
                             variant="destructiveOutline" 
+                            requireAreYouSure
                             action={deleteCourse.bind(null, course.id)}>
                                 <Trash2Icon />
-                                <span className="sr-only">Delete</span>
+                                <span className="sr-only">Eliminar</span>
                             </ActionButton>
                         </div>
                     </TableCell>

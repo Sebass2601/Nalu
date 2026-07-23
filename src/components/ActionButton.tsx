@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { actionToast } from "@/lib/actionToast";
 import { cn } from "@/lib/utils";
 import { Loader2Icon } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 
 export function ActionButton({
     action,
@@ -22,6 +23,30 @@ export function ActionButton({
         actionToast({ actionData: data })
      })
    };
+
+   if (requireAreYouSure) {
+    return (
+      <AlertDialog open={isLoading ? true : undefined }>
+        <AlertDialogTrigger asChild>
+          <Button {...props} />
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Estas Seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta accion no puede ser deshecha.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction disabled={isLoading} onClick={performAction}>
+              <LoadingTextSwap isLoading={isLoading}>Si</LoadingTextSwap>
+            </AlertDialogAction> 
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    )
+   }
 
    return (
    <Button {...props} disabled={isLoading} onClick={performAction}>
