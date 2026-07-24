@@ -3,9 +3,10 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { compare } from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/drizzle/db";
+import { emailSchema, normalizeEmail } from "@/data/schemas/auth";
 import {
     UserTable,
     AccountTable,
@@ -17,7 +18,7 @@ import {
 // Shape and rules for the login form input. `safeParse` in `authorize` rejects
 // anything malformed before we ever touch the database.
 const signInSchema = z.object({
-    email: z.email(),
+    email: emailSchema,
     password: z.string().min(1),
 });
 
@@ -30,7 +31,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
     session: { strategy: "jwt" },
     callbacks: {
-        
+        async signIn({ user }) {
+            if (user.email == null) return false;
+
+            const email = normalizeEmail(user.email);
+            // Auth.js uses this object when creating a new OAuth user.
+            user.email = email;
+
+            const existingUser = await db.query.UserTable.findFirst({
+                columns: { deletedAt: true },
+                where: sql`lower(${UserTable.email}) = ${email}`,
+            });
+
+            // New OAuth users do not exist yet and may continue. Existing
+            // users may sign in only while their account is active.
+            return existingUser == null || existingUser.deletedAt == null;
+        },
+
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
@@ -61,7 +78,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // 2. Find the user by email.
                 const user = await db.query.UserTable.findFirst({
-                    where: eq(UserTable.email, email),
+                    where: and(
+                        sql`lower(${UserTable.email}) = ${email}`,
+                        isNull(UserTable.deletedAt)
+                    ),
                 });
 
                 // 3. Reject if there's no user, or the user has no password

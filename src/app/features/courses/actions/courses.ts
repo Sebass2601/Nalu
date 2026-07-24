@@ -36,7 +36,14 @@ export async function deleteCourse(id: string) {
         return { error: true, message: "Error al  borrar el curso"}
     };
 
-    await deleteCourseDB(id);
+    const result = await deleteCourseDB(id);
+
+    if (!result.success) {
+        return {
+            error: true,
+            message: "No se puede eliminar un curso que es parte de un producto.",
+        };
+    }
 
     return { error: false, message: "Curso eliminado exitosamente"}
 }

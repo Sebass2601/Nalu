@@ -28,6 +28,7 @@ export function SortableLessonList({
         content: string | null
         description: string | null
         sectionId: string
+        images: { id: string; url: string; caption: string | null }[]
     }[]
 }) {
     return (

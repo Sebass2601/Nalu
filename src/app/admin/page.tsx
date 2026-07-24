@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Cinzel } from "next/font/google";
+import { requireAdmin } from "@/app/features/users/actions/currentUser";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -30,7 +31,9 @@ const sections = [
     },
 ];
 
-export default function AdminPage() {
+export default async function AdminPage() {
+    await requireAdmin();
+
     return (
         <div className={`${cinzel.className} min-h-[calc(100vh-5rem)] bg-[#0a1628] text-yellow-200 px-6 pt-8 pb-16`}>
             <div className="max-w-5xl mx-auto">

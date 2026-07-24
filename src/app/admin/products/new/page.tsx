@@ -5,8 +5,11 @@ import { getCourseGlobalTag } from "@/app/features/courses/db/cache/courses";
 import { ProductForm } from "@/app/features/products/components/ProductForm";
 import { asc } from "drizzle-orm";
 import { cacheTag } from "next/cache";
+import { requireAdmin } from "@/app/features/users/actions/currentUser";
 
 export default async function NewProductPage() {
+    await requireAdmin();
+
     return (
         <div className="container my-6">
             <PageHeader title="Nuevo Producto" />

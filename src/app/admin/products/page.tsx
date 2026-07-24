@@ -11,8 +11,10 @@ import {
     PurchaseTable,
 } from "@/drizzle/schema";
 import { asc, countDistinct, eq } from "drizzle-orm";
+import { requireAdmin } from "@/app/features/users/actions/currentUser";
 
 export default async function ProductsPage() {
+    await requireAdmin();
     const products = await getProducts();
     return (
         <div className="min-h-[calc(100vh-5rem)] bg-white text-gray-900">

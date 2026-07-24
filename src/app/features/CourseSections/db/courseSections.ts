@@ -1,5 +1,10 @@
 import { db } from "@/drizzle/db";
-import { CourseSectionTable } from "@/drizzle/schema";
+import {
+    CourseSectionTable,
+    ImageLessonTable,
+    LessonTable,
+} from "@/drizzle/schema";
+import { deleteUploadThingFiles } from "@/lib/uploadthingServer";
 import { revalidateCourseSectionCache } from "./cache/courseSections";
 import { eq } from "drizzle-orm";
 
@@ -62,9 +67,36 @@ export async function updateSectionOrders(sectionIds: string[]) {
     })
 }
 
-export async function deleteSection (id: string) {
-    const [deletedSection] = await db.delete(CourseSectionTable).where(eq(CourseSectionTable.id, id)).returning();
-    if (deletedSection == null) throw new Error("Error al eliminar la Lesson.");
+export async function deleteSection(id: string) {
+    const { deletedSection, imageUrls } = await db.transaction(async trx => {
+        // Collect URLs before the section cascade removes lessons and images.
+        const images = await trx
+            .select({ url: ImageLessonTable.url })
+            .from(ImageLessonTable)
+            .innerJoin(
+                LessonTable,
+                eq(ImageLessonTable.lessonId, LessonTable.id)
+            )
+            .where(eq(LessonTable.sectionId, id));
+
+        const [deletedSection] = await trx
+            .delete(CourseSectionTable)
+            .where(eq(CourseSectionTable.id, id))
+            .returning();
+
+        if (deletedSection == null) {
+            trx.rollback();
+            throw new Error("Error al eliminar la sección.");
+        }
+
+        return {
+            deletedSection,
+            imageUrls: images.map(image => image.url),
+        };
+    });
+
+    await deleteUploadThingFiles(imageUrls);
+
     revalidateCourseSectionCache({
         courseId: deletedSection.courseId,
         id: deletedSection.id,

@@ -1,7 +1,7 @@
 "use server";
 
 import { hash } from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/drizzle/db";
 import { UserTable } from "@/drizzle/schema";
@@ -39,7 +39,7 @@ export async function signUp(
     const { name, email, password } = parsed.data;
 
     const existing = await db.query.UserTable.findFirst({
-        where: eq(UserTable.email, email),
+        where: sql`lower(${UserTable.email}) = ${email}`,
     });
     if (existing) {
         return { error: "Ya hay una cuenta con este email." };

@@ -3,6 +3,7 @@ import { createdAt, id, updatedAt } from "../schemaHelpers";
 import { CourseSectionTable } from "./courseSection";
 import { relations } from "drizzle-orm";
 import { UserLessonCompleteTable } from "./userLessonComplete";
+import { ImageLessonTable } from "./imageLesson";
 
 
 export const lessonStatuses = ["public", "private", "preview"] as const;
@@ -43,6 +44,7 @@ export const LessonRelationship = relations(
             references: [CourseSectionTable.id],
         }),
         userLessonsComplete: many(UserLessonCompleteTable),
+        images: many(ImageLessonTable),
     }),
     
 );

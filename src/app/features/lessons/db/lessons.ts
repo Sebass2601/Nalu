@@ -1,6 +1,11 @@
 import { db } from "@/drizzle/db";
-import { CourseSectionTable, LessonTable } from "@/drizzle/schema";
+import {
+    CourseSectionTable,
+    ImageLessonTable,
+    LessonTable,
+} from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
+import { deleteUploadThingFiles } from "@/lib/uploadthingServer";
 import { revalidateLessonCache } from "./cache/lessons";
 
 export async function getNextCourseLessonOrder(sectionId: string) {
@@ -78,26 +83,39 @@ export async function updateLesson(
 }
 
 export async function deleteLesson(id: string) {
-    const [deletedLesson, courseId] = await db.transaction(async trx => {
-        const [deletedLesson] = await trx
-            .delete(LessonTable)
-            .where(eq(LessonTable.id, id))
-            .returning();
-        if (deletedLesson == null) {
-            trx.rollback();
-            throw new Error("Error al eliminar la lección.");
-        }
+    const { deletedLesson, courseId, imageUrls } =
+        await db.transaction(async trx => {
+            // Collect URLs before the lesson deletion cascades its image rows.
+            const images = await trx.query.ImageLessonTable.findMany({
+                columns: { url: true },
+                where: eq(ImageLessonTable.lessonId, id),
+            });
 
-        const section = await trx.query.CourseSectionTable.findFirst({
-            columns: { courseId: true },
-            where: ({ id }, { eq }) => eq(id, deletedLesson.sectionId),
+            const [deletedLesson] = await trx
+                .delete(LessonTable)
+                .where(eq(LessonTable.id, id))
+                .returning();
+
+            if (deletedLesson == null) {
+                trx.rollback();
+                throw new Error("Error al eliminar la lección.");
+            }
+
+            const section = await trx.query.CourseSectionTable.findFirst({
+                columns: { courseId: true },
+                where: eq(CourseSectionTable.id, deletedLesson.sectionId),
+            });
+
+            if (section == null) return trx.rollback();
+
+            return {
+                deletedLesson,
+                courseId: section.courseId,
+                imageUrls: images.map(image => image.url),
+            };
         });
 
-        if (section == null) return trx.rollback();
-
-        return [deletedLesson, section.courseId];
-    });
-
+    await deleteUploadThingFiles(imageUrls);
     revalidateLessonCache({ courseId, id: deletedLesson.id });
 
     return deletedLesson;

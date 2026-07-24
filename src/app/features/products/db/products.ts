@@ -1,6 +1,7 @@
 import { db } from "@/drizzle/db";
 import { CourseProductTable, ProductTable } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
+import { deleteUploadThingFiles } from "@/lib/uploadthingServer";
 import { revalidateProductCache } from "./cache/products";
 
 export async function insertProduct(
@@ -37,7 +38,17 @@ export async function updateProduct(
     id: string,
     data: Partial<typeof ProductTable.$inferInsert> & { courseIds: string[] }
 ) {
-    const updatedProduct = await db.transaction(async trx => {
+    const { updatedProduct, previousImageUrl } = await db.transaction(async trx => {
+        const currentProduct = await trx.query.ProductTable.findFirst({
+            columns: { imageUrl: true },
+            where: eq(ProductTable.id, id),
+        });
+
+        if (currentProduct == null) {
+            trx.rollback();
+            throw new Error("Producto no encontrado.");
+        }
+
         const [updatedProduct] = await trx
             .update(ProductTable)
             .set(data)
@@ -63,8 +74,15 @@ export async function updateProduct(
             }))
         );
 
-        return updatedProduct;
+        return {
+            updatedProduct,
+            previousImageUrl: currentProduct.imageUrl,
+        };
     });
+
+    if (previousImageUrl !== updatedProduct.imageUrl) {
+        await deleteUploadThingFiles(previousImageUrl);
+    }
 
     revalidateProductCache(updatedProduct.id);
 
@@ -81,6 +99,7 @@ export async function deleteProduct(id: string) {
 
     if (deletedProduct == null) throw new Error("Error al eliminar el producto.");
 
+    await deleteUploadThingFiles(deletedProduct.imageUrl);
     revalidateProductCache(deletedProduct.id);
 
     return deletedProduct;

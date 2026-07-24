@@ -23,13 +23,14 @@ export function LessonFormDialog({
         content: string | null
         description: string | null
         sectionId: string
+        images: { id: string; url: string; caption: string | null }[]
     }
 }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             {children}
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{lesson == null ? "Nueva Lección" : `Editar ${lesson.name}`}</DialogTitle>
                 </DialogHeader>

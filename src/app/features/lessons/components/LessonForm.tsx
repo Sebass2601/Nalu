@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createLesson, updateLesson } from "../actions/lessons";
 import { lessonSchema } from "../schemas/lessons";
 import { YouTubeVideoPlayer } from "./YouTubeVideoPlayer";
+import { LessonImages } from "./LessonImages";
 
 // Display-only Spanish labels for the DB status enum (values stay in English).
 const lessonStatusLabels: Record<LessonStatus, string> = {
@@ -36,6 +37,7 @@ export function LessonForm({
         content: string | null
         description: string | null
         sectionId: string
+        images: { id: string; url: string; caption: string | null }[]
     },
     defaultSectionId?: string,
     sections: { id: string; name: string;  }[]
@@ -240,6 +242,15 @@ export function LessonForm({
                     )}
                 />
             )}
+
+            {type === "text" &&
+                (lesson != null ? (
+                    <LessonImages lessonId={lesson.id} images={lesson.images} />
+                ) : (
+                    <p className="text-sm text-muted-foreground">
+                        Guarda la lección primero para poder agregar imágenes.
+                    </p>
+                ))}
 
             <div className="self-end">
                 <Button disabled={form.formState.isSubmitting} type="submit">

@@ -1,5 +1,6 @@
-import { CourseSectionTable, CourseTable, LessonTable } from  "@/drizzle/schema";
+import { CategoryTable, CourseSectionTable, CourseTable, ImageLessonTable, LessonTable } from  "@/drizzle/schema";
 import { getCourseIdTag } from "@/app/features/courses/db/cache/courses";
+import { getCategoryGlobalTag } from "@/app/features/categories/db/cache/categories";
 import { getCourseSectionCourseTag } from "@/app/features/CourseSections/db/cache/courseSections";
 import { getLessonCourseTag } from "@/app/features/lessons/db/cache/lessons";
 import { db } from "@/drizzle/db";
@@ -19,12 +20,14 @@ import { SortableSectionList } from "@/app/features/CourseSections/components/So
 import { LessonFormDialog } from "@/app/features/lessons/components/LessonFormDialog";
 import { SortableLessonList } from "@/app/features/lessons/components/SortableLessonList";
 import { cn } from "@/lib/utils";
+import { requireAdmin } from "@/app/features/users/actions/currentUser";
 
 export default async function EditCoursePage({
     params,
 }: {
     params: Promise<{ courseId: string }>
 }) {
+    await requireAdmin();
 
     return (
         <div className="container my-6">
@@ -106,7 +109,7 @@ async function EditCourseContent({
                 <TabsContent value="details">
                     <Card>
                       <CardHeader>
-                        <CourseForm course={course} />
+                        <CourseForm course={course} categories={await getCategories()} />
                       </CardHeader>
                     </Card>
                 </TabsContent>
@@ -125,7 +128,7 @@ async function getCourse(id: string) {
     );
 
     return db.query.CourseTable.findFirst({
-        columns: { id: true, name: true, description: true },
+        columns: { id: true, name: true, description: true, categoryId: true },
         where: eq(CourseTable.id, id),
         with: {
             courseSections: {
@@ -143,6 +146,12 @@ async function getCourse(id: string) {
                             youtubeVideoId: true,
                             content: true,
                             sectionId: true,
+                        },
+                        with: {
+                            images: {
+                                orderBy: asc(ImageLessonTable.order),
+                                columns: { id: true, url: true, caption: true },
+                            }
                         }
                     }
                 }
@@ -152,4 +161,14 @@ async function getCourse(id: string) {
     })
 
 
+}
+
+async function getCategories() {
+    "use cache"
+    cacheTag(getCategoryGlobalTag())
+
+    return db.query.CategoryTable.findMany({
+        orderBy: asc(CategoryTable.name),
+        columns: { id: true, name: true },
+    })
 }

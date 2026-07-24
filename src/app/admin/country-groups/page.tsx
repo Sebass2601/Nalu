@@ -9,8 +9,10 @@ import {
 } from "@/components/ui/table";
 import { getCountryGroups } from "@/app/features/countryGroups/db/countryGroups";
 import { CountryGroupDiscountForm } from "@/app/features/countryGroups/components/CountryGroupDiscountForm";
+import { requireAdmin } from "@/app/features/users/actions/currentUser";
 
 export default async function CountryGroupsPage() {
+    await requireAdmin();
     const countryGroups = await getCountryGroups();
 
     return (

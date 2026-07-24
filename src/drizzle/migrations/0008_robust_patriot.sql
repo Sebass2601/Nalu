@@ -1,0 +1,1 @@
+ALTER TABLE "lesson_images" ADD COLUMN "caption" text;

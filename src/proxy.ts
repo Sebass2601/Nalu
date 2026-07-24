@@ -9,7 +9,8 @@ import { COUNTRY_HEADER_KEY } from "@/lib/userCountryHeader";
 // wrapper). Proxy runs on the Node.js runtime and fires before every matched
 // route. It is an OPTIMISTIC gate only: it reads the session from the signed
 // JWT cookie (no database round-trip) so it stays fast on prefetches. The real
-// authorization gate for /admin lives in `app/admin/layout.tsx`.
+// authorization gates for /admin live in the database-backed admin pages,
+// layout, Server Actions, and upload handlers.
 // ---------------------------------------------------------------------------
 
 // Any URL under this prefix requires an admin session.

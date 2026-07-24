@@ -7,12 +7,14 @@ import { getProductIdTag } from "@/app/features/products/db/cache/products";
 import { asc, eq } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
+import { requireAdmin } from "@/app/features/users/actions/currentUser";
 
 export default async function EditProductPage({
     params,
 }: {
     params: Promise<{ productId: string }>
 }) {
+    await requireAdmin();
     const { productId } = await params
     const product = await getProduct(productId)
 
