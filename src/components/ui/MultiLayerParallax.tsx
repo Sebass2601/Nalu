@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from "react";
+import CategoryButton from "@/components/ui/CategoryButton";
+import { HOTSPOTS, type Entrance } from "@/components/ui/parallaxEntrances";
 
 // Bounds camera coordinates to the visible image range.
 const clamp = (n: number) => Math.min(100, Math.max(0, n));
@@ -9,13 +11,32 @@ const clamp = (n: number) => Math.min(100, Math.max(0, n));
 const SENSITIVITY = 0.7; // Drag response multiplier.
 const FRICTION = 0.93;   // Momentum decay applied per animation frame.
 const PARALLAX = 0.45;   // Background movement relative to the foreground.
+const DRAG_SLOP = 8;     // Pixels of finger travel that turn a tap into a pan.
 
-export default function MultiLayerParallax() {
+// Natural pixel size of the layer images, needed to reproduce the geometry
+// that `background-size: cover` gives the foreground layer.
+const IMAGE = { width: 1536, height: 1024 };
+
+// Button size relative to the foreground layer at its natural resolution.
+const BUTTON_SCALE = 0.62;
+
+const POSITIONS = new Map(HOTSPOTS.map(({ id, x, y }) => [id, { x, y }]));
+
+export default function MultiLayerParallax({
+    entrances = [],
+}: {
+    entrances?: Entrance[];
+}) {
     // Camera position over the image, expressed as 0-100 percentages on each axis.
     const [pos, setPos] = useState({ x: 50, y: 50 });
 
+    // Live size of the viewport element, used to place the buttons over the artwork.
+    const [viewport, setViewport] = useState({ width: 0, height: 0 });
+    const containerRef = useRef<HTMLDivElement>(null);
+
     // Gesture state is kept in refs to avoid rendering on every input sample.
     const drag = useRef<{ touchX: number; touchY: number; posX: number; posY: number } | null>(null);
+    const dragged = useRef(false);                     // Whether the current touch is a pan, not a tap.
     const velocity = useRef({ x: 0, y: 0 });          // Current momentum in position units per frame.
     const lastSample = useRef({ x: 50, y: 50 });      // Previous camera sample for velocity tracking.
     const momentumId = useRef<number | null>(null);   // Active momentum animation frame.
@@ -57,6 +78,18 @@ export default function MultiLayerParallax() {
     // Ensure no animation frame remains scheduled after unmount.
     useEffect(() => stopMomentum, []);
 
+    // Track the viewport size so the button overlay can follow the artwork.
+    useEffect(() => {
+        const element = containerRef.current;
+        if (!element) return;
+        const observer = new ResizeObserver(([entry]) => {
+            const { width, height } = entry.contentRect;
+            setViewport({ width, height });
+        });
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, []);
+
     // Desktop pointer movement maps directly to the camera position.
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         // Ignore synthetic mouse events emitted immediately after touch input.
@@ -72,6 +105,7 @@ export default function MultiLayerParallax() {
     const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
         lastTouch.current = Date.now();
         stopMomentum();
+        dragged.current = false;
         const t = e.touches[0];
         drag.current = { touchX: t.clientX, touchY: t.clientY, posX: pos.x, posY: pos.y };
         lastSample.current = { x: pos.x, y: pos.y };
@@ -84,6 +118,15 @@ export default function MultiLayerParallax() {
         lastTouch.current = Date.now();
         const t = e.touches[0];
         const { width, height } = e.currentTarget.getBoundingClientRect();
+
+        // Past a few pixels of travel the gesture counts as panning, so the
+        // release does not open whichever button sits under the finger.
+        if (
+            Math.abs(t.clientX - drag.current.touchX) +
+            Math.abs(t.clientY - drag.current.touchY) > DRAG_SLOP
+        ) {
+            dragged.current = true;
+        }
 
         // Convert finger travel into percentage-based camera movement.
         const dx = ((t.clientX - drag.current.touchX) / width) * 100 * SENSITIVITY;
@@ -111,8 +154,19 @@ export default function MultiLayerParallax() {
     const bgX = 50 + (pos.x - 50) * PARALLAX;
     const bgY = 50 + (pos.y - 50) * PARALLAX;
 
+    // Reproduce the foreground layer's geometry. `cover` scales the image until
+    // it fills both axes, which is the larger of the two ratios; whatever spills
+    // past the viewport is then shared between the two sides by the same
+    // percentage the camera uses as its background position.
+    const cover = Math.max(viewport.width / IMAGE.width, viewport.height / IMAGE.height);
+    const imageWidth = IMAGE.width * cover;
+    const imageHeight = IMAGE.height * cover;
+    const imageLeft = (viewport.width - imageWidth) * (pos.x / 100);
+    const imageTop = (viewport.height - imageHeight) * (pos.y / 100);
+
     return (
         <div
+            ref={containerRef}
             onMouseMove={handleMouseMove}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -140,6 +194,45 @@ export default function MultiLayerParallax() {
                     backgroundRepeat: "no-repeat",
                 }}
             />
+            {/* Overlay laid exactly over the foreground layer, so the buttons
+                inside it can be positioned in the artwork's own coordinates. */}
+            {cover > 0 && (
+                <div
+                    className="absolute z-20"
+                    style={{
+                        left: imageLeft,
+                        top: imageTop,
+                        width: imageWidth,
+                        height: imageHeight,
+                    }}
+                    // Swallow the click that closes a pan gesture.
+                    onClickCapture={(e) => {
+                        if (!dragged.current) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    {entrances.map((entrance) => {
+                        const position = POSITIONS.get(entrance.id);
+                        if (!position) return null;
+                        return (
+                            <div
+                                key={entrance.id}
+                                className="absolute"
+                                style={{
+                                    left: `${position.x * 100}%`,
+                                    top: `${position.y * 100}%`,
+                                    // Centre the button on its entrance, then size it
+                                    // in step with the artwork rather than the screen.
+                                    transform: `translate(-50%, -50%) scale(${cover * BUTTON_SCALE})`,
+                                }}
+                            >
+                                <CategoryButton href={entrance.href}>{entrance.label}</CategoryButton>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }

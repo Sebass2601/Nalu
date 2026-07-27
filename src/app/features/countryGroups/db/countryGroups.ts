@@ -4,11 +4,15 @@ import { eq, sql } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { getCountryGroupGlobalTag } from "./cache/countryGroups";
 import { revalidateCountryGroupCache } from "./cache/countryGroups";
+import { ensurePppCoupon } from "../lib/pppCoupons";
 
 // Look up the PPP discount for a given ISO country code. Returns null when the
 // country isn't mapped or its group has no recommended discount (so callers
 // fall back to the full price). Cached and keyed by country code; any change to
 // a group's discount busts the whole `countryGroups` tag.
+//
+// `stripeCouponId` rides along so a single lookup answers both questions a
+// price has to answer: what to display, and what to charge.
 export async function getUserPPPDiscount(countryCode: string) {
     "use cache";
     cacheTag(getCountryGroupGlobalTag());
@@ -21,6 +25,7 @@ export async function getUserPPPDiscount(countryCode: string) {
                 columns: {
                     name: true,
                     recommendedDiscountPercentage: true,
+                    stripeCouponId: true,
                 },
             },
         },
@@ -32,6 +37,7 @@ export async function getUserPPPDiscount(countryCode: string) {
     return {
         countryGroupName: group.name,
         discountPercentage: group.recommendedDiscountPercentage,
+        stripeCouponId: group.stripeCouponId,
     };
 }
 
@@ -64,9 +70,16 @@ export async function updateCountryGroupDiscount(
     id: string,
     recommendedDiscountPercentage: number | null
 ) {
+    // Provision the Stripe coupon BEFORE touching the database. If Stripe is
+    // unreachable this throws and the row keeps its old, still-valid discount
+    // and coupon. Writing first would leave a group advertising a discount that
+    // checkout has no coupon to apply — a displayed price and a charged price
+    // that disagree, which is the one failure mode worth ordering around.
+    const stripeCouponId = await ensurePppCoupon(recommendedDiscountPercentage);
+
     const [updated] = await db
         .update(CountryGroupTable)
-        .set({ recommendedDiscountPercentage })
+        .set({ recommendedDiscountPercentage, stripeCouponId })
         .where(eq(CountryGroupTable.id, id))
         .returning();
 

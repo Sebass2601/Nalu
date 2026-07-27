@@ -1,6 +1,6 @@
 import { formatPrice } from "@/lib/formatters";
-import { getUserCountry } from "@/lib/getUserCountry";
-import { getUserPPPDiscount } from "@/app/features/countryGroups/db/countryGroups";
+import { cn } from "@/lib/utils";
+import { getUserCoupon } from "@/app/features/countryGroups/lib/getUserCoupon";
 import { getDiscountedPriceInDollars } from "../lib/ppp";
 
 // Server component that renders a product's price with Purchasing Power Parity
@@ -11,28 +11,45 @@ import { getDiscountedPriceInDollars } from "../lib/ppp";
 // Reading the country header makes this component dynamic, so render it inside a
 // <Suspense> boundary (see `PriceFallback` for the full-price placeholder that
 // streams instantly under Cache Components).
+//
+// `className` restyles the price figure itself — pass a text size here and the
+// same one to the <Suspense> fallback, or the number visibly resizes when the
+// discounted price streams in.
 export async function ProductPrice({
     priceInDollars,
+    className,
 }: {
     priceInDollars: number;
+    className?: string;
 }) {
-    const country = await getUserCountry();
-    const discount = country ? await getUserPPPDiscount(country) : null;
+    const coupon = await getUserCoupon();
 
-    // No country or no discount for their group → just the full price.
-    if (discount == null) {
-        return <FullPrice priceInDollars={priceInDollars} />;
+    // No country, no discount for their group, or no Stripe coupon backing it →
+    // just the full price. That last case matters: showing a discount we cannot
+    // actually apply at checkout would quote one price and charge another.
+    if (coupon == null) {
+        return (
+            <FullPrice
+                priceInDollars={priceInDollars}
+                className={className}
+            />
+        );
     }
 
     const discounted = getDiscountedPriceInDollars(
         priceInDollars,
-        discount.discountPercentage
+        coupon.discountPercentage
     );
 
     return (
         <div className="flex flex-col gap-1">
             <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-semibold text-yellow-200">
+                <span
+                    className={cn(
+                        "text-2xl font-semibold text-yellow-200",
+                        className
+                    )}
+                >
                     {formatPrice(discounted)}
                 </span>
                 <span className="text-sm text-yellow-200/50 line-through">
@@ -40,8 +57,8 @@ export async function ProductPrice({
                 </span>
             </div>
             <span className="text-xs tracking-wide text-yellow-200/80">
-                🌍 {Math.round(discount.discountPercentage * 100)}% off ·
-                Purchasing Power Parity ({discount.countryGroupName})
+                🌍 {coupon.discountPercentage * 100}% off · Purchasing Power
+                Parity ({coupon.countryGroupName})
             </span>
         </div>
     );
@@ -49,9 +66,17 @@ export async function ProductPrice({
 
 // The non-discounted price, also used as the Suspense fallback so the full
 // price is visible instantly while the PPP-adjusted version streams in.
-export function FullPrice({ priceInDollars }: { priceInDollars: number }) {
+export function FullPrice({
+    priceInDollars,
+    className,
+}: {
+    priceInDollars: number;
+    className?: string;
+}) {
     return (
-        <span className="text-2xl font-semibold text-yellow-200">
+        <span
+            className={cn("text-2xl font-semibold text-yellow-200", className)}
+        >
             {formatPrice(priceInDollars)}
         </span>
     );
