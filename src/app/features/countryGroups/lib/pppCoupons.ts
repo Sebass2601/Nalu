@@ -22,7 +22,7 @@ import { stripe } from "@/lib/stripe";
 // for this percentage exists", which is safe to repeat, needs no bookkeeping,
 // and tops out at 99 coupons that are each created exactly once.
 
-export function pppCouponIdFor(percentOff: number) {
+function pppCouponIdFor(percentOff: number) {
     return `ppp-${percentOff}`;
 }
 

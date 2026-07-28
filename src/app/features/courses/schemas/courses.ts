@@ -5,5 +5,12 @@ export const courseSchema = z.object({
     description: z.string().min(1, "Required"),
     // Which category the course belongs to. Optional/nullable: a course may be
     // left un-categorized (null), or there may be no categories yet to pick.
-    categoryId: z.string().nullable().optional()
+    categoryId: z.string().nullable().optional(),
+    // Whether an active subscriber can read this course without buying it.
+    // Required rather than `.default(false)`: a Zod default makes the field
+    // optional on input but present on output, and react-hook-form's resolver
+    // needs those two types to match. The form supplies `false` as its own
+    // default instead, so a course is still never added to the subscription by
+    // omission.
+    includedInSubscription: z.boolean(),
 });

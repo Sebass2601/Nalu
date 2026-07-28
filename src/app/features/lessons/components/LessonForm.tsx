@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { RequiredLabelIcon } from "@/components/RequiredLabelIcon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -210,11 +210,19 @@ export function LessonForm({
                         <FormItem>
                             <FormLabel>
                                 <RequiredLabelIcon/>
-                                ID del video de YouTube
+                                Vídeo de YouTube
                             </FormLabel>
                             <FormControl>
                                 <Input {...field} value={field.value ?? ""} />
                             </FormControl>
+                            {/* The old label asked for an id, so what got
+                                pasted was the link YouTube's share button
+                                gives you — and the lesson saved with a player
+                                that never loaded. Both are accepted now, and
+                                saying so is what stops the guessing. */}
+                            <FormDescription>
+                                Pega el enlace del vídeo o solo su ID.
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}

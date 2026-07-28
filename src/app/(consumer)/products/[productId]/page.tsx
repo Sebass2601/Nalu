@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Cinzel } from "next/font/google";
 import { and, asc, eq, inArray } from "drizzle-orm";
@@ -21,6 +20,11 @@ import {
     ProductPrice,
     FullPrice,
 } from "@/app/features/products/components/ProductPrice";
+import {
+    ProductCallToAction,
+    ProductCallToActionSkeleton,
+} from "@/app/features/purchases/components/ProductCallToAction";
+import { CourseAccessButton } from "@/app/features/purchases/components/CourseAccessButton";
 import { formatPlural } from "@/lib/formatters";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
@@ -55,7 +59,7 @@ async function ProductDetails({
     params: Promise<{ productId: string }>;
 }) {
     const { productId } = await params;
-    const product = await getPublicProduct(productId);
+    const product = await getPublicProductWithSyllabus(productId);
 
     if (product == null) return notFound();
 
@@ -103,12 +107,22 @@ async function ProductDetails({
                     <p className="text-lg text-yellow-200/80">
                         {product.description}
                     </p>
-                    <Link
-                        href={`/products/${product.id}/purchase`}
-                        className="rounded-lg border border-yellow-200/60 px-8 py-4 text-lg tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-                    >
-                        Comprar ahora
-                    </Link>
+                    {/* Sells the product, or opens it if this visitor already
+                        bought it. Buying goes straight to Stripe rather than via
+                        an intermediate page — one click from wanting the product
+                        to paying for it — and the action redirects to /login by
+                        itself when nobody is signed in.
+
+                        Its own boundary because ownership depends on the session
+                        cookie, which is request-time data: the price, the title
+                        and the syllabus below are all cached and must not wait
+                        on a session lookup to appear. */}
+                    <Suspense fallback={<ProductCallToActionSkeleton />}>
+                        <ProductCallToAction
+                            productId={product.id}
+                            courses={product.courses}
+                        />
+                    </Suspense>
                 </div>
                 <div className="relative aspect-video w-full md:max-w-lg md:flex-1">
                     <Image
@@ -123,7 +137,18 @@ async function ProductDetails({
             {courseCount > 0 && (
                 <div className="mt-12 grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
                     {product.courses.map(course => (
-                        <CourseSyllabus key={course.id} course={course} />
+                        <CourseSyllabus
+                            key={course.id}
+                            course={course}
+                            productId={product.id}
+                            // Only a product bundling several courses needs a
+                            // link per card; with one course the button above
+                            // already goes straight there. Decided here, where
+                            // the count comes from cached data, so the cards
+                            // never wait on request-time state to find out
+                            // whether they might show a link at all.
+                            offersAccess={courseCount > 1}
+                        />
                     ))}
                 </div>
             )}
@@ -132,8 +157,16 @@ async function ProductDetails({
 }
 
 // One bundled course: its own counts, then every section as a fold-out list of
-// lessons.
-function CourseSyllabus({ course }: { course: ProductCourse }) {
+// lessons — and, for someone who already bought the product, a way into it.
+function CourseSyllabus({
+    course,
+    productId,
+    offersAccess,
+}: {
+    course: ProductCourse;
+    productId: string;
+    offersAccess: boolean;
+}) {
     const lessonCount = sumBy(
         course.courseSections,
         section => section.lessons.length
@@ -155,6 +188,21 @@ function CourseSyllabus({ course }: { course: ProductCourse }) {
                     plural: "lecciones",
                 })}
             </p>
+
+            {/* Appears only for someone who owns the product, which is not
+                known until the request arrives — so it sits behind its own
+                boundary and the rest of the card renders without it. The
+                fallback is nothing at all: most visitors never get this link,
+                and an empty gap that quietly fills in reads better than a
+                placeholder for something they will never see. */}
+            {offersAccess && (
+                <Suspense fallback={null}>
+                    <CourseAccessButton
+                        productId={productId}
+                        courseId={course.id}
+                    />
+                </Suspense>
+            )}
 
             <div className="mt-4 flex flex-col">
                 {course.courseSections.map(section => (
@@ -232,13 +280,13 @@ function sumBy<T>(items: T[], getValue: (item: T) => number) {
 // One course as the query below shapes it, derived from the query itself so the
 // card never drifts from the columns actually selected.
 type ProductCourse = NonNullable<
-    Awaited<ReturnType<typeof getPublicProduct>>
+    Awaited<ReturnType<typeof getPublicProductWithSyllabus>>
 >["courses"][number];
 
 // The product plus its whole syllabus, hiding anything unpublished: private
 // products 404, private sections disappear, and private lessons are omitted
 // while "preview" ones stay visible as a teaser.
-async function getPublicProduct(id: string) {
+async function getPublicProductWithSyllabus(id: string) {
     "use cache";
     cacheTag(getProductIdTag(id));
 

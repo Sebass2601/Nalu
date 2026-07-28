@@ -9,6 +9,7 @@ import { createdAt, id, updatedAt } from "../schemaHelpers";
 import { relations, sql } from "drizzle-orm";
 import { UserCourseAccessTable } from "./userCourseAccess";
 import { AccountTable, SessionTable } from "./authTables";
+import { SubscriptionTable } from "./subscription";
 
 export const userRoles = ["user", "admin"] as const;
 export type UserRole = (typeof userRoles)[number];
@@ -21,6 +22,12 @@ export const UserTable = pgTable("users", {
   role: userRoleEnum().notNull().default("user"),
   password: text(),
   image: text(),
+  // The Stripe Customer this user maps to, created lazily on their first
+  // checkout. Stripe hangs subscriptions, invoices, saved cards and the billing
+  // portal off this one ID, so without it a returning buyer would show up as a
+  // brand-new stranger every time and could never manage their subscription.
+  // Nullable because most users never reach checkout.
+  stripeCustomerId: text().unique(),
   emailVerified: timestamp({ withTimezone: true }),
   deletedAt: timestamp({ withTimezone: true }),
   createdAt,
@@ -33,9 +40,12 @@ export const UserTable = pgTable("users", {
 
 export const UserRelationships = relations(
     UserTable,
-    ({ many }) => ({
+    ({ many, one }) => ({
         userCourseAccesses: many(UserCourseAccessTable),
         accounts: many(AccountTable),
         sessions: many(SessionTable),
+        // `one`, not `many` — the unique constraint on subscriptions.userId
+        // means a user has at most a single subscription.
+        subscription: one(SubscriptionTable),
     })
 );

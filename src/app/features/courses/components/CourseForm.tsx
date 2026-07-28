@@ -30,6 +30,7 @@ export function CourseForm({ course, categories }: {
         name: string
         description: string
         categoryId: string | null
+        includedInSubscription: boolean
     }
     categories: {
         id: string
@@ -42,7 +43,8 @@ export function CourseForm({ course, categories }: {
         defaultValues: course ?? {
             name: "",
             description: "",
-            categoryId: null
+            categoryId: null,
+            includedInSubscription: false
         }
     })
 
@@ -122,6 +124,41 @@ export function CourseForm({ course, categories }: {
                         <FormControl>
                             <Textarea className="min-h-20 resize-none" {...field} />
                         </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            {/* A plain checkbox rather than a Select: this is the switch that
+                decides whether every subscriber gets this course for free, so
+                it should read as an explicit, deliberate action. */}
+            <FormField
+                control={form.control}
+                name="includedInSubscription"
+                render={({ field }) => (
+                    <FormItem>
+                        <div className="flex items-start gap-3 rounded-md border p-4">
+                            <FormControl>
+                                <input
+                                    type="checkbox"
+                                    checked={field.value ?? false}
+                                    onChange={event =>
+                                        field.onChange(event.target.checked)
+                                    }
+                                    className="mt-1 size-4 cursor-pointer"
+                                />
+                            </FormControl>
+                            <div className="flex flex-col gap-1">
+                                <FormLabel className="cursor-pointer">
+                                    Incluir en la suscripción
+                                </FormLabel>
+                                <p className="text-muted-foreground text-xs">
+                                    Los suscriptores activos podrán ver este
+                                    curso sin comprarlo. Puedes activarlo o
+                                    desactivarlo cuando quieras; quienes lo
+                                    hayan comprado conservan su acceso.
+                                </p>
+                            </div>
+                        </div>
                         <FormMessage />
                     </FormItem>
                 )}

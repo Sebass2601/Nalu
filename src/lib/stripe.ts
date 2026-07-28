@@ -27,12 +27,8 @@ export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
 // Stripe holds every amount as an integer in the currency's smallest unit —
 // cents for USD — because binary floating point cannot represent 0.1 exactly
 // and money must never round wrong. Products in this project store whole
-// dollars (`ProductTable.priceInDollars` is an `integer`), so these two
-// functions are the only places that conversion should happen.
+// dollars (`ProductTable.priceInDollars` is an `integer`), so this is the one
+// place that conversion should happen.
 export function dollarsToCents(dollars: number) {
     return Math.round(dollars * 100);
-}
-
-export function centsToDollars(cents: number) {
-    return cents / 100;
 }

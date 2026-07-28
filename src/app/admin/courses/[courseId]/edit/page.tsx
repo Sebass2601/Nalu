@@ -128,7 +128,13 @@ async function getCourse(id: string) {
     );
 
     return db.query.CourseTable.findFirst({
-        columns: { id: true, name: true, description: true, categoryId: true },
+        columns: {
+            id: true,
+            name: true,
+            description: true,
+            categoryId: true,
+            includedInSubscription: true,
+        },
         where: eq(CourseTable.id, id),
         with: {
             courseSections: {

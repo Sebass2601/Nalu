@@ -9,6 +9,7 @@ export * from "./schema/imageLesson";
 export * from "./schema/lesson";
 export * from "./schema/product";
 export * from "./schema/purchase";
+export * from "./schema/subscription";
 export * from "./schema/user";
 export * from "./schema/userCourseAccess";
 export * from "./schema/userLessonComplete";

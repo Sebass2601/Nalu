@@ -51,6 +51,10 @@ async function Navbar() {
                         <svg className="size-7 sm:size-6 mb-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 19V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v13H7a2 2 0 0 0-2 2Zm0 0a2 2 0 0 0 2 2h12M9 3v14m7 0v4"/></svg>
                         <span className="hidden sm:block text-xs text-center tracking-widest">Mis Cursos</span>
                     </Link>
+                    <Link href="/subscription" className="text-yellow-200 hover:text-white inline-flex flex-col items-center justify-center px-3 sm:px-5 group">
+                        <svg className="size-7 sm:size-6 mb-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h4m-7 5h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1Z"/></svg>
+                        <span className="hidden sm:block text-xs text-center tracking-widest">Suscripción</span>
+                    </Link>
                     <Link href="/purchases" className="text-yellow-200 hover:text-white inline-flex flex-col items-center justify-center px-3 sm:px-5 group">
                         <svg className="size-7 sm:size-6 mb-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 2l1.5 2h9L18 2M5 4h14l-1 16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 4Zm4 6h6m-6 4h6"/></svg>
                         <span className="hidden sm:block text-xs text-center tracking-widest">Compras</span>

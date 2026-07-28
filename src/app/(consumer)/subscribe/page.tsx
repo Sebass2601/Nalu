@@ -1,0 +1,256 @@
+import { Suspense } from "react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { asc, eq } from "drizzle-orm";
+import { cacheTag } from "next/cache";
+import { db } from "@/drizzle/db";
+import { CourseTable } from "@/drizzle/schema";
+import { getCourseGlobalTag } from "@/app/features/courses/db/cache/courses";
+import { getCurrentUser } from "@/app/features/users/actions/currentUser";
+import { hasActiveSubscription } from "@/app/features/subscriptions/db/subscriptions";
+import { getSubscriptionPlans } from "@/app/features/subscriptions/lib/plans";
+import { getUserCoupon } from "@/app/features/countryGroups/lib/getUserCoupon";
+import { getDiscountedPriceInDollars } from "@/app/features/products/lib/ppp";
+import { startSubscriptionCheckout } from "@/app/features/subscriptions/actions/subscriptions";
+import { formatPrice, formatPlural } from "@/lib/formatters";
+import { cinzel } from "@/components/ui/fonts";
+
+// The subscription offer: both billing intervals side by side, plus the actual
+// list of courses it unlocks.
+export default function SubscribePage() {
+    return (
+        <main
+            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+        >
+            <div className="mx-auto w-full max-w-4xl px-4 pt-24 pb-16 sm:pt-28">
+                <div className="flex flex-col items-center gap-3 text-center">
+                    <p className="text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
+                        Suscripción
+                    </p>
+                    <h1 className="text-4xl tracking-wide text-yellow-100">
+                        Acceso a toda la biblioteca
+                    </h1>
+                    <p className="max-w-xl text-yellow-200/80">
+                        Un solo pago recurrente para entrar a los cursos
+                        incluidos. Cancela cuando quieras.
+                    </p>
+                </div>
+
+                <Suspense fallback={<PlansSkeleton />}>
+                    <Plans />
+                </Suspense>
+
+                <Suspense fallback={null}>
+                    <IncludedCourses />
+                </Suspense>
+            </div>
+        </main>
+    );
+}
+
+async function Plans() {
+    // Someone who already subscribes has nothing to buy here.
+    const { user } = await getCurrentUser();
+    if (user != null && (await hasActiveSubscription(user.id))) {
+        redirect("/subscription");
+    }
+
+    // The same coupon `startSubscriptionCheckout` puts on the session, read
+    // here so the page advertises the price Stripe will actually ask for.
+    // Without this the page quoted the list price and checkout then charged
+    // less — the discount appearing from nowhere on the payment screen.
+    const [plans, coupon] = await Promise.all([
+        getSubscriptionPlans(),
+        getUserCoupon(),
+    ]);
+
+    // The annual saving compares the yearly plan against twelve monthly
+    // payments. A PPP coupon scales both sides by the same percentage, so the
+    // ratio between them is unchanged and this figure stays correct discounted
+    // or not.
+    const equivalentMonthly = applyCoupon(
+        Math.round(plans.yearly.equivalentMonthlyInDollars),
+        coupon
+    );
+
+    return (
+        <>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2">
+                <PlanCard
+                    interval="month"
+                    title="Mensual"
+                    priceInDollars={plans.monthly.priceInDollars}
+                    coupon={coupon}
+                    caption="por mes"
+                />
+                <PlanCard
+                    interval="year"
+                    title="Anual"
+                    priceInDollars={plans.yearly.priceInDollars}
+                    coupon={coupon}
+                    caption={`por año · equivale a ${formatPrice(
+                        equivalentMonthly
+                    )}/mes`}
+                    badge={
+                        plans.yearly.savingsPercent > 0
+                            ? `Ahorra ${plans.yearly.savingsPercent}%`
+                            : undefined
+                    }
+                    highlighted
+                />
+            </div>
+            {coupon != null && (
+                <p className="mt-4 text-center text-xs tracking-wide text-yellow-200/80">
+                    🌍 {Math.round(coupon.discountPercentage * 100)}% off ·
+                    Purchasing Power Parity ({coupon.countryGroupName}) —
+                    aplicado a cada renovación
+                </p>
+            )}
+        </>
+    );
+}
+
+// Null coupon means no discount, so the price passes through untouched.
+function applyCoupon(
+    priceInDollars: number,
+    coupon: Awaited<ReturnType<typeof getUserCoupon>>
+) {
+    if (coupon == null) return priceInDollars;
+    return getDiscountedPriceInDollars(priceInDollars, coupon.discountPercentage);
+}
+
+function PlanCard({
+    interval,
+    title,
+    priceInDollars,
+    coupon,
+    caption,
+    badge,
+    highlighted = false,
+}: {
+    interval: "month" | "year";
+    title: string;
+    priceInDollars: number;
+    coupon: Awaited<ReturnType<typeof getUserCoupon>>;
+    caption: string;
+    badge?: string;
+    highlighted?: boolean;
+}) {
+    // Takes the list price and the coupon rather than a pre-formatted string,
+    // so the discount is computed in exactly one place and the struck-through
+    // original stays available to show beside it.
+    const discounted = applyCoupon(priceInDollars, coupon);
+
+    return (
+        <div
+            className={`flex flex-col gap-4 rounded-2xl border p-6 ${
+                highlighted
+                    ? "border-yellow-200/60 bg-[#0a1628]/80"
+                    : "border-yellow-200/25 bg-[#0a1628]/50"
+            }`}
+        >
+            <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl tracking-wide text-yellow-100">
+                    {title}
+                </h2>
+                {badge && (
+                    <span className="rounded border border-yellow-200/50 px-2 py-0.5 text-[10px] tracking-widest text-yellow-200 uppercase">
+                        {badge}
+                    </span>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-1">
+                <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-semibold text-yellow-200">
+                        {formatPrice(discounted)}
+                    </span>
+                    {/* Only when it differs — a coupon that rounds to the same
+                        whole dollar would otherwise print the identical figure
+                        struck through beside itself. */}
+                    {discounted !== priceInDollars && (
+                        <span className="text-sm text-yellow-200/50 line-through">
+                            {formatPrice(priceInDollars)}
+                        </span>
+                    )}
+                </div>
+                <span className="text-xs text-yellow-200/60">{caption}</span>
+            </div>
+
+            {/* A plain form + Server Action: no client JavaScript needed to
+                start a checkout, so this works before hydration. */}
+            <form action={startSubscriptionCheckout.bind(null, interval)}>
+                <button
+                    type="submit"
+                    className="w-full cursor-pointer rounded-lg border border-yellow-200/60 px-6 py-3 tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
+                >
+                    Suscribirme
+                </button>
+            </form>
+        </div>
+    );
+}
+
+// The courses the subscription actually unlocks, read from the same
+// `includedInSubscription` flag the access check uses — so this list can never
+// promise something a subscriber then cannot open.
+async function IncludedCourses() {
+    const courses = await getSubscriptionCourses();
+
+    if (courses.length === 0) {
+        return (
+            <p className="mt-12 text-center text-sm text-yellow-200/60">
+                Aún no hay cursos incluidos en la suscripción.
+            </p>
+        );
+    }
+
+    return (
+        <div className="mt-14 flex flex-col gap-4">
+            <h2 className="text-center text-sm tracking-[0.2em] text-yellow-200/70 uppercase">
+                {formatPlural(courses.length, {
+                    singular: "curso incluido",
+                    plural: "cursos incluidos",
+                })}
+            </h2>
+            <ul className="grid gap-3 sm:grid-cols-2">
+                {courses.map(course => (
+                    <li
+                        key={course.id}
+                        className="rounded-xl border border-yellow-200/20 bg-[#0a1628]/60 p-4"
+                    >
+                        <p className="text-yellow-100">{course.name}</p>
+                        <p className="mt-1 line-clamp-2 text-xs text-yellow-200/60">
+                            {course.description}
+                        </p>
+                    </li>
+                ))}
+            </ul>
+            <p className="mt-2 text-center text-xs text-yellow-200/40">
+                <Link href="/products" className="underline hover:text-yellow-200/70">
+                    Ver también los cursos disponibles para compra individual
+                </Link>
+            </p>
+        </div>
+    );
+}
+
+async function getSubscriptionCourses() {
+    "use cache";
+    cacheTag(getCourseGlobalTag());
+
+    return db.query.CourseTable.findMany({
+        columns: { id: true, name: true, description: true },
+        where: eq(CourseTable.includedInSubscription, true),
+        orderBy: asc(CourseTable.name),
+    });
+}
+
+function PlansSkeleton() {
+    return (
+        <div className="mt-12 grid animate-pulse gap-6 sm:grid-cols-2">
+            <div className="h-56 rounded-2xl bg-[#0a1628]/40" />
+            <div className="h-56 rounded-2xl bg-[#0a1628]/40" />
+        </div>
+    );
+}

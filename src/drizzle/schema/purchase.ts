@@ -17,6 +17,12 @@ export const PurchaseTable = pgTable("purchases", {
      .notNull()
      .references(() => ProductTable.id, { onDelete: "restrict"}),
     stripeSessionId: text().notNull().unique(),
+    // The PaymentIntent behind this purchase. Refund webhooks arrive keyed by
+    // payment intent rather than by checkout session, so without this column a
+    // `charge.refunded` event cannot be matched back to the row it should mark
+    // as refunded. Nullable because rows written before this column existed
+    // have no value for it.
+    stripePaymentIntentId: text(),
     refundedAt: timestamp({ withTimezone: true }),
     createdAt,
     updatedAt,
