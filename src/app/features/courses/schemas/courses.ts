@@ -3,6 +3,17 @@ import { z } from "zod";
 export const courseSchema = z.object({
     name: z.string().min(1, "Required"),
     description: z.string().min(1, "Required"),
+    // Optional cover art: either a full external URL (https://…) or a local path
+    // (/imgs/…). Nullable rather than `.optional()` or `.default(null)` for the
+    // same reason as `includedInSubscription` below — a Zod default makes the
+    // field optional on input but present on output, and react-hook-form's
+    // resolver needs those two types to match. The form supplies null itself.
+    imageUrl: z
+        .union([
+            z.url("Invalid url"),
+            z.string().startsWith("/", "Invalid url"),
+        ])
+        .nullable(),
     // Which category the course belongs to. Optional/nullable: a course may be
     // left un-categorized (null), or there may be no categories yet to pick.
     categoryId: z.string().nullable().optional(),

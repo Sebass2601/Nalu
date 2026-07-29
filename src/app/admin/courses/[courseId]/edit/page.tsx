@@ -132,6 +132,7 @@ async function getCourse(id: string) {
             id: true,
             name: true,
             description: true,
+            imageUrl: true,
             categoryId: true,
             includedInSubscription: true,
         },

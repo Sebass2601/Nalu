@@ -12,6 +12,10 @@ export const CourseTable = pgTable("courses", {
     id,
     name: text().notNull(),
     description: text().notNull(),
+    // Optional cover art, stored as the URL that UploadThing hands back. Nullable
+    // unlike a product's image: a product IS the thing being sold and must have a
+    // picture, while a course is content that reads perfectly well as text alone.
+    imageUrl: text(),
     // Which category this course belongs to. Nullable so existing courses keep
     // working, and "set null" so deleting a category simply un-categorizes its
     // courses instead of blocking the delete or removing the courses.

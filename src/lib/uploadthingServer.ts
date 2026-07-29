@@ -33,8 +33,10 @@ function getUploadThingFileKey(url: string) {
     }
 }
 
-export async function deleteUploadThingFiles(urls: string | string[]) {
-    const fileUrls = Array.isArray(urls) ? urls : [urls];
+// `readonly` because the list is only ever read here, which lets callers pass
+// an `as const` array straight through without copying it.
+export async function deleteUploadThingFiles(urls: string | readonly string[]) {
+    const fileUrls = typeof urls === "string" ? [urls] : urls;
     const keys = [
         ...new Set(
             fileUrls

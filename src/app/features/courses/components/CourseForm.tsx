@@ -7,6 +7,7 @@ import { courseSchema } from "../schemas/courses";
 import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { RequiredLabelIcon } from "@/components/RequiredLabelIcon";
+import { ImageUploadField } from "@/components/ImageUploadField";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export function CourseForm({ course, categories }: {
         id: string
         name: string
         description: string
+        imageUrl: string | null
         categoryId: string | null
         includedInSubscription: boolean
     }
@@ -43,6 +45,7 @@ export function CourseForm({ course, categories }: {
         defaultValues: course ?? {
             name: "",
             description: "",
+            imageUrl: null,
             categoryId: null,
             includedInSubscription: false
         }
@@ -108,6 +111,26 @@ export function CourseForm({ course, categories }: {
                                 ))}
                             </SelectContent>
                         </Select>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            {/* No RequiredLabelIcon: the column is nullable and a course
+                without art renders as text, exactly as it did before. */}
+            <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Imagen</FormLabel>
+                        <FormControl>
+                            <ImageUploadField
+                                endpoint="courseImage"
+                                value={field.value}
+                                onChange={field.onChange}
+                                clearable
+                            />
+                        </FormControl>
                         <FormMessage />
                     </FormItem>
                 )}

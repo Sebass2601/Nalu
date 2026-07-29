@@ -27,10 +27,8 @@ import {
 import { MultiSelect } from "@/components/MultiSelect"
 import { productSchema } from "../schemas/products"
 import { createProduct, updateProduct } from "../actions/products"
-import { useEffect, useRef } from "react"
-import { toast } from "sonner"
-import { ImageIcon, Loader2Icon } from "lucide-react"
-import { useUploadThing } from "@/lib/uploadthing"
+import { useEffect } from "react"
+import { ImageUploadField } from "@/components/ImageUploadField"
 
 // Display-only Spanish labels for the DB status enum (values stay in English).
 const productStatusLabels: Record<productStatus, string> = {
@@ -75,24 +73,6 @@ export function ProductForm({
     useEffect(() => {
         if (product == null) form.reset()
     }, [product, form])
-
-    const imageInputRef = useRef<HTMLInputElement>(null)
-    const { startUpload, isUploading } = useUploadThing("productImage", {
-        // After the browser uploads to UploadThing, store the returned URL in
-        // the form's imageUrl field (which is what gets saved to the product).
-        onClientUploadComplete: files => {
-            const url = files[0]?.ufsUrl
-            if (url != null) {
-                form.setValue("imageUrl", url, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                })
-            }
-        },
-        onUploadError: error => {
-            toast.error(error.message)
-        },
-    })
 
     async function onSubmit(values: z.infer<typeof productSchema>) {
         const action =
@@ -162,52 +142,19 @@ export function ProductForm({
                                     Imagen
                                 </FormLabel>
                                 <FormControl>
-                                    <div className="flex items-center gap-3">
-                                        {field.value ? (
-                                            // Plain <img> avoids whitelisting the
-                                            // UploadThing domain in next.config.
-                                            <img
-                                                src={field.value}
-                                                alt=""
-                                                className="size-16 rounded border object-cover"
-                                            />
-                                        ) : (
-                                            <div className="flex size-16 items-center justify-center rounded border border-dashed text-muted-foreground">
-                                                <ImageIcon className="size-5" />
-                                            </div>
-                                        )}
-                                        <input
-                                            ref={imageInputRef}
-                                            type="file"
-                                            accept="image/*"
-                                            hidden
-                                            onChange={event => {
-                                                const file = event.target.files?.[0]
-                                                if (file != null) startUpload([file])
-                                                event.target.value = ""
-                                            }}
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={isUploading}
-                                            onClick={() =>
-                                                imageInputRef.current?.click()
-                                            }
-                                        >
-                                            {isUploading ? (
-                                                <>
-                                                    <Loader2Icon className="size-4 animate-spin" />
-                                                    Subiendo...
-                                                </>
-                                            ) : field.value ? (
-                                                "Cambiar imagen"
-                                            ) : (
-                                                "Subir imagen"
-                                            )}
-                                        </Button>
-                                    </div>
+                                    {/* Not clearable: a product is the thing
+                                        being sold, so it must always carry a
+                                        picture. */}
+                                    <ImageUploadField
+                                        endpoint="productImage"
+                                        value={field.value}
+                                        onChange={value =>
+                                            form.setValue("imageUrl", value ?? "", {
+                                                shouldValidate: true,
+                                                shouldDirty: true,
+                                            })
+                                        }
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

@@ -24,6 +24,7 @@ export type MyCourse = {
     id: string;
     name: string;
     description: string;
+    imageUrl: string | null;
     categoryName: string | null;
     sectionCount: number;
     lessonCount: number;
@@ -154,6 +155,7 @@ async function getCourseCards(courseIds: string[]) {
             id: CourseTable.id,
             name: CourseTable.name,
             description: CourseTable.description,
+            imageUrl: CourseTable.imageUrl,
             categoryName: CategoryTable.name,
         })
         .from(CourseTable)

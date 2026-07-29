@@ -26,11 +26,13 @@ No schema change. Every column this feature reads already exists;
 | File | Responsibility |
 |---|---|
 | `src/app/(consumer)/purchases/page.tsx` | Route shell: heading, `Suspense`, skeleton, signed-out and empty states |
-| `src/app/features/purchases/db/userPurchases.ts` | `getUserPurchases(userId)` — the read model, cached |
-| `src/app/features/purchases/actions/receipt.ts` | `openPurchaseReceipt` server action → redirect to Stripe's hosted receipt |
+| `src/app/(consumer)/purchases/[purchaseId]/page.tsx` | The receipt for one purchase, plus the link out to Stripe's hosted copy |
+| `src/app/features/purchases/db/userPurchases.ts` | `getUserPurchases(userId)` — the list read model, cached |
 | `src/app/features/purchases/components/PurchaseRow.tsx` | One row, presentational |
 
-No existing file is modified. The navbar link is already in place.
+`src/lib/formatters.ts` gains a shared `formatDate`, since both the list and the
+receipt render the same long-form Spanish date. The navbar link is already in
+place and needs no change.
 
 This mirrors `src/app/features/courses/db/myCourses.ts`, which solves the same
 shape of problem: a page-specific read model assembled from several tables,
@@ -46,7 +48,6 @@ export type UserPurchase = {
   pricePaidInCents: number
   purchasedAt: Date
   refundedAt: Date | null
-  hasReceipt: boolean        // stripePaymentIntentId != null
   courseId: string | null    // set only when the product maps to exactly one course
 }
 ```
@@ -65,8 +66,8 @@ Display fields come from the `productDetails` JSON snapshot, never from the live
 showing what was actually bought after the product is renamed, repriced, or has
 its image replaced.
 
-`stripePaymentIntentId` is deliberately absent from the returned type. It stays
-server-side; nothing that identifies a Stripe object reaches the browser.
+Nothing identifying a Stripe object is returned. Each row links to its own
+receipt page by purchase id, and that page looks up what it needs server-side.
 
 ### Caching
 
@@ -85,66 +86,112 @@ part of the cache key: one entry per user, never shared.
 The list is ordered newest first and renders in full. A realistic user has a
 handful of rows; paging would be building for a load that does not exist.
 
-## Receipt action
+## Receipt page
 
-A plain `<form action={openPurchaseReceipt}>` carrying a hidden `purchaseId`,
-the same shape as `openBillingPortal` on the subscription page. No client
-component and no JavaScript.
+`/purchases/[purchaseId]` renders the receipt itself rather than bouncing
+straight out to Stripe. Modelled on the reference implementation in
+`~/project_copy/course-platform`, restyled for this app and in Spanish.
 
-`ActionButton` is the wrong tool here: it expects `{ error, message }` back and
-raises a toast, but this action never returns normally — it redirects.
+The receipt is built from **our own** records — product name, date, customer,
+amount, paid-or-refunded — so it stands up regardless of Stripe's availability.
+Stripe is consulted for the two things only it knows: the URL of its hosted
+receipt, and the breakdown of how the final price was reached.
 
-Steps:
+Load path:
 
-1. `getCurrentUser()`; `redirect("/login")` when absent.
-2. Load the purchase filtered by **id AND userId together**. `purchaseId`
-   arrives from the browser and is untrusted, so this pairing is the ownership
-   check — without it, anyone could read anyone else's receipt by guessing an id.
-3. `stripe.paymentIntents.retrieve(id, { expand: ["latest_charge"] })`, then
-   read `latest_charge.receipt_url`.
-4. `redirect(receiptUrl)`.
+1. `getCurrentUser({ withFullUser: true })`; `redirect("/login")` when absent.
+   The full user is needed because the receipt names the customer.
+2. Load the purchase filtered by **id AND userId together**. The id comes from
+   the URL and is untrusted, so this pairing is the authorization check —
+   without it anyone could read anyone else's receipt by guessing an id.
+3. `notFound()` when that returns nothing. This covers "no such purchase" and
+   "not yours" with one answer on purpose; a distinct message for the second
+   would confirm to a stranger that the id belongs to somebody.
+4. `stripe.checkout.sessions.retrieve(stripeSessionId, { expand: [...] })` for
+   `payment_intent.latest_charge` and `total_details.breakdown.discounts`.
 
-On any failure — missing payment intent, Stripe error, null `receipt_url` —
-redirect back to `/purchases?recibo=error` rather than throwing into an error
-boundary. The page renders a short Spanish notice above the list when that
-search param is present.
+The session is retrieved rather than the payment intent, because it carries the
+discount breakdown as well as the charge. That matters here: regional pricing
+means a purchase can be discounted, and the breakdown is what explains the gap
+between the list price and what was actually paid.
+
+### Caching
+
+`getPurchase` is tagged with `getPurchaseUserTag(userId)`, not a per-purchase
+tag. The user tag is the one `insertPurchase` and `refundPurchase` already
+expire; a per-id tag would look tighter but nothing invalidates it, so a
+refunded purchase would go on presenting itself as paid.
+
+The Stripe call is deliberately left uncached — it runs only when someone opens
+one specific receipt, and a hosted receipt URL is worth fetching fresh.
+
+### Pricing rows
+
+An undiscounted purchase shows a single bold **Total**; an identical Subtotal
+above it would be noise. Anything that moved the price — a regional coupon, a
+refund — expands it into Subtotal / adjustments / Total.
+
+Coupons here are named for their own rate (`PPP 30%`), so the label is the
+coupon name alone, falling back to the percentage and then to "Descuento" for
+coupons carrying neither.
+
+### Stripe failure
+
+The Stripe call is wrapped: on any error the page still renders the full local
+receipt, minus the hosted link and the discount breakdown, since neither is
+information we hold. A local receipt that 500s because a third party is down
+would defeat its own purpose.
 
 ## UI
 
-Compact rows, on the existing navy / `yellow-200` / Cinzel palette shared by the
-other consumer pages.
+Both pages use the existing navy / `yellow-200` / Cinzel palette shared by the
+other consumer pages, and are server-rendered throughout with no client
+JavaScript. Headings paint immediately; the parts that depend on who is asking
+stream in under `Suspense`.
+
+### The list
 
 Each row carries a 16:9 thumbnail, the product name, the purchase date, the
 price, and its actions:
 
-- **Date** — `toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" })`,
-  matching the subscription page.
+- **Date** — the shared `formatDate`.
 - **Price** — `formatPrice(pricePaidInCents / 100)`. A fully-discounted purchase
   renders as "Gratis", which is correct.
 - **Ver curso** — links to `/courses/[courseId]` when `courseId` is set;
   otherwise **Ver cursos**, linking to `/courses`.
-- **Ver recibo** — the receipt form, rendered only when `hasReceipt` is true.
+- **Ver recibo** — links to `/purchases/[purchaseId]`, on every row.
 
 Refunded rows keep their place in the list, carrying a `Reembolsada` badge at
 reduced opacity. History should be honest: money changed hands and then came
 back, and hiding the row makes people think they were charged silently.
 
 A refunded row shows **no** course link, because the refund revoked access and
-the link would lead to a locked page. It keeps the receipt button — a refund is
+the link would lead to a locked page. It keeps the receipt link — a refund is
 exactly the event someone wants the paperwork for.
 
-The page is server-rendered throughout. The heading paints immediately and the
-list streams in under `Suspense`, since everything below the title depends on
-who is asking.
+### The receipt
+
+A back link to the list, the product name as the heading, and — when Stripe
+returned one — **Ver recibo de Stripe** opening the hosted copy in a new tab.
+
+Below that, one panel: a `Recibo` header carrying the purchase id and a
+`Pagada` / `Reembolsada` badge; a `Fecha` / `Producto` / `Cliente` / `Vendedor`
+grid; and the pricing rows, with the total in a brighter weight.
+
+Amounts here use `formatPrice(..., { showZeroAsNumber: true })`. On a receipt a
+zero is an amount, not the word "Gratis" — a fully refunded total of $0 is
+precisely the point being made.
 
 ## Edge cases
 
-- **Signed out** — a line of Spanish copy plus login and catalogue links,
-  following the Mis Cursos pattern.
+- **Signed out** — the list shows a line of Spanish copy plus login and
+  catalogue links, following the Mis Cursos pattern; the receipt redirects to
+  `/login`.
 - **No purchases** — copy pointing at the catalogue rather than stopping at
   "you have none".
-- **Row without `stripePaymentIntentId`** — rows written before that column
-  existed simply render no receipt button.
+- **Unknown or someone else's purchase id** — `notFound()`, identically.
+- **Stripe unreachable** — the local receipt renders without the hosted link or
+  the discount breakdown.
 - **Product bundling several courses** — one link to `/courses`, labelled in
   the plural.
 
@@ -154,7 +201,9 @@ The project has no test framework, so verification is a build plus manual
 passes.
 
 - `pnpm lint`
-- `pnpm build` (typecheck)
-- Manually: signed out; zero purchases; a normal purchase; a refunded purchase;
-  a product bundling several courses; the receipt round trip against sandbox
-  Stripe; and the `?recibo=error` notice.
+- `npx tsc --noEmit`
+- `pnpm build`
+- Manually: signed out; zero purchases; a normal purchase; a discounted
+  purchase, checking the breakdown; a refunded purchase; a product bundling
+  several courses; another user's purchase id in the URL; and the link out to
+  Stripe's hosted receipt against sandbox Stripe.

@@ -48,8 +48,24 @@ export async function insertCourse(data: typeof CourseTable.$inferInsert) {
 }
 
 export async function updateCourse(id: string, data: typeof CourseTable.$inferInsert) {
+    // Read the cover before overwriting it: UPDATE ... RETURNING hands back the
+    // new row, so the old URL has to be captured first or the file it points at
+    // is orphaned in storage.
+    const current = await db.query.CourseTable.findFirst({
+        columns: { imageUrl: true },
+        where: eq(CourseTable.id, id),
+    });
+
     const [updatedCourse] = await db.update(CourseTable).set(data).where(eq(CourseTable.id, id)).returning();
     if (updatedCourse == null) throw new Error("Error al actualizar el curso");
+
+    // Covers both replacing the image and clearing it outright. Runs after the
+    // row is safely written, so a storage failure can never cost us the update.
+    const previousImageUrl = current?.imageUrl;
+    if (previousImageUrl != null && previousImageUrl !== updatedCourse.imageUrl) {
+        await deleteUploadThingFiles(previousImageUrl);
+    }
+
     revalidateCourseCache(updatedCourse.id);
 
     return updatedCourse
@@ -98,7 +114,14 @@ export async function deleteCourse(id: string) {
             return {
                 success: true,
                 deletedCourse,
-                imageUrls: images.map(image => image.url),
+                // The course's own cover goes with the lesson images beneath it.
+                // Nullable, so it only joins the list when there is one.
+                imageUrls: [
+                    ...images.map(image => image.url),
+                    ...(deletedCourse.imageUrl == null
+                        ? []
+                        : [deletedCourse.imageUrl]),
+                ],
             } as const;
         });
 
