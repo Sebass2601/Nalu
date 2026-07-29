@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
     getSubscriptionCourseRows,
+    UNCATEGORIZED_SLUG,
     type SubscriptionCategoryRow,
 } from "../db/subscriptionCourses";
 import { SubscriptionCourseCard } from "./SubscriptionCourseCard";
@@ -29,9 +30,13 @@ export async function SubscriptionCourseRows({
 
     return (
         <div className="flex flex-col gap-12">
-            {rows.map(row => (
-                <CourseRow key={row.categoryId ?? "uncategorized"} row={row} />
-            ))}
+            {rows.map(row => {
+                // Computed once so the list key and the row's own slug are
+                // provably the same value, rather than two separate spots
+                // that happen to derive it the same way today.
+                const slug = row.categoryId ?? UNCATEGORIZED_SLUG;
+                return <CourseRow key={slug} slug={slug} row={row} />;
+            })}
         </div>
     );
 }
@@ -46,12 +51,17 @@ export async function SubscriptionCourseRows({
 //
 // The cut-off card at the container's right edge is the whole affordance. Do
 // not add padding or a fade that hides it.
-function CourseRow({ row }: { row: SubscriptionCategoryRow }) {
-    const slug = row.categoryId ?? "uncategorized";
+function CourseRow({
+    slug,
+    row,
+}: {
+    slug: string;
+    row: SubscriptionCategoryRow;
+}) {
     const headingId = `subscription-row-${slug}`;
 
     return (
-        <section aria-labelledby={headingId} className="flex flex-col gap-4">
+        <section className="flex flex-col gap-4">
             <div className="flex items-baseline justify-between gap-4 px-1">
                 <h2
                     id={headingId}

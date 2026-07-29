@@ -30,6 +30,22 @@ export function SubscriptionCourseCard({
                         src={course.imageUrl}
                         alt={course.name}
                         fill
+                        // This card renders in two places: a fixed 240px
+                        // (`w-60`) strip here in the row, and an
+                        // `auto-fill, minmax(240px, 1fr)` grid on the
+                        // per-category page. Without `sizes`, `fill` defaults
+                        // to "100vw" and downloads a viewport-width image for
+                        // a 240px slot. `auto-fill` always packs in as many
+                        // 240px+gap tracks as fit, so above the `sm`
+                        // breakpoint a grid cell never grows past roughly
+                        // 240px + one gap — close enough to the row's fixed
+                        // width to share one value. Below it, a narrow
+                        // viewport collapses the grid to a single column that
+                        // stretches toward the full container width, so the
+                        // vw fallback covers that case without under-serving
+                        // it; the row is still just 240px there, so it's
+                        // mildly over-served rather than blurry.
+                        sizes="(min-width: 640px) 240px, 90vw"
                         className="object-cover"
                     />
                 ) : (

@@ -28,14 +28,38 @@ export default function SubscriptionPage() {
                 the panel's edge cannot show a card being cut off, and the cut
                 is what says the row continues. */}
             <div className="mx-auto w-full max-w-6xl px-4 pb-16">
-                <p className="mb-6 text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
-                    Incluido en tu plan
-                </p>
+                {/* The eyebrow is its own boundary, separate from the band
+                    below, so the band can stay public and prerendered while
+                    the eyebrow — copy that only makes sense once you're a
+                    member — waits on the session read. `getCurrentUser` is
+                    `cache()`-deduplicated, so this costs nothing extra beyond
+                    what `SubscriptionDetails` above already pays. */}
+                <Suspense fallback={<EyebrowSkeleton />}>
+                    <SubscriptionEyebrow />
+                </Suspense>
                 <Suspense fallback={<SubscriptionCourseRowsSkeleton />}>
                     <SubscriptionCourseRows emptyMessage="Aún no hay cursos incluidos en la suscripción." />
                 </Suspense>
             </div>
         </main>
+    );
+}
+
+// Reads the session so the "Incluido en tu plan" eyebrow only renders for a
+// signed-in subscriber. Kept out of the band's own Suspense boundary: the
+// band itself reads no session and must stay cacheable, and folding this into
+// it would make the whole boundary request-time just to gate one line of copy.
+// A signed-out visitor never actually sees this render — `SubscriptionDetails`
+// redirects to /login — but until that redirect reaches the client, nothing
+// here should claim membership either.
+async function SubscriptionEyebrow() {
+    const { user } = await getCurrentUser();
+    if (user == null) return null;
+
+    return (
+        <p className="mb-6 text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
+            Incluido en tu plan
+        </p>
     );
 }
 
@@ -142,5 +166,11 @@ function Skeleton() {
             <div className="h-8 w-56 rounded bg-yellow-200/20" />
             <div className="h-48 rounded-2xl bg-[#0a1628]/40" />
         </div>
+    );
+}
+
+function EyebrowSkeleton() {
+    return (
+        <div className="mb-6 h-4 w-40 animate-pulse rounded bg-yellow-200/20" />
     );
 }

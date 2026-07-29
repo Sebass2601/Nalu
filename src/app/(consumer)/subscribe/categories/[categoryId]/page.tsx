@@ -9,13 +9,9 @@ import { CatalogueShell } from "@/app/features/products/components/ProductCatalo
 import {
     getSubscriptionCoursesByCategory,
     UNCATEGORIZED_ROW_NAME,
+    UNCATEGORIZED_SLUG,
 } from "@/app/features/courses/db/subscriptionCourses";
 import { SubscriptionCourseCard } from "@/app/features/courses/components/SubscriptionCourseCard";
-
-// The URL for the catch-all row. A literal is safe because every category id is
-// a uuid, so this can never collide with one — the same trick `CategoryNav`
-// plays with "all".
-const UNCATEGORIZED_SLUG = "uncategorized";
 
 // Rejects anything that is not a uuid before it reaches Postgres, which would
 // raise on the comparison rather than simply matching nothing. A 404 is the

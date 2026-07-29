@@ -38,6 +38,14 @@ export type SubscriptionCategoryRow = {
 // nothing and never finds out.
 export const UNCATEGORIZED_ROW_NAME = "Otros cursos";
 
+// URL slug for the catch-all row's "Ver todos" link. A literal is safe
+// because every category id is a uuid, so this can never collide with one.
+// This is a contract, not a local detail: the row that produces the link and
+// the page that parses the slug back out of the URL both import it from
+// here, so the two sides can never drift out of sync the way independent
+// copies of the same string eventually do.
+export const UNCATEGORIZED_SLUG = "uncategorized";
+
 // Published sections and lessons per course, in one grouped pass.
 //
 // `count(distinct section.id)` because the join multiplies a section by each of
