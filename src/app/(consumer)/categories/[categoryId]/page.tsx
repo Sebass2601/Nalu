@@ -62,7 +62,7 @@ async function CategoryProducts({
 
     return (
         <>
-            <CategoryNav currentCategoryId={category.id} />
+            <CategoryNav current={category.id} />
             <h1 className="text-3xl tracking-widest text-yellow-200 mb-2 text-center">
                 {category.name}
             </h1>
