@@ -5,6 +5,10 @@ import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { getUserSubscription } from "@/app/features/subscriptions/db/subscriptions";
 import { openBillingPortal } from "@/app/features/subscriptions/actions/subscriptions";
 import { cinzel } from "@/components/ui/fonts";
+import {
+    SubscriptionCourseRows,
+    SubscriptionCourseRowsSkeleton,
+} from "@/app/features/courses/components/SubscriptionCourseRows";
 
 // Where a subscriber sees the state of their plan and gets to Stripe's billing
 // portal. Everything mutable — cancelling, switching interval, changing card,
@@ -14,9 +18,21 @@ export default function SubscriptionPage() {
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
-            <div className="mx-auto w-full max-w-2xl px-4 pt-24 pb-16 sm:pt-28">
+            <div className="mx-auto w-full max-w-2xl px-4 pt-24 pb-8 sm:pt-28">
                 <Suspense fallback={<Skeleton />}>
                     <SubscriptionDetails />
+                </Suspense>
+            </div>
+
+            {/* Wider than the panel above it on purpose: a row that stops at
+                the panel's edge cannot show a card being cut off, and the cut
+                is what says the row continues. */}
+            <div className="mx-auto w-full max-w-6xl px-4 pb-16">
+                <p className="mb-6 text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
+                    Incluido en tu plan
+                </p>
+                <Suspense fallback={<SubscriptionCourseRowsSkeleton />}>
+                    <SubscriptionCourseRows emptyMessage="Aún no hay cursos incluidos en la suscripción." />
                 </Suspense>
             </div>
         </main>
