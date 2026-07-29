@@ -1,19 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { asc, eq } from "drizzle-orm";
-import { cacheTag } from "next/cache";
-import { db } from "@/drizzle/db";
-import { CourseTable } from "@/drizzle/schema";
-import { getCourseGlobalTag } from "@/app/features/courses/db/cache/courses";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { hasActiveSubscription } from "@/app/features/subscriptions/db/subscriptions";
 import { getSubscriptionPlans } from "@/app/features/subscriptions/lib/plans";
 import { getUserCoupon } from "@/app/features/countryGroups/lib/getUserCoupon";
 import { getDiscountedPriceInDollars } from "@/app/features/products/lib/ppp";
 import { startSubscriptionCheckout } from "@/app/features/subscriptions/actions/subscriptions";
-import { formatPrice, formatPlural } from "@/lib/formatters";
+import { formatPrice } from "@/lib/formatters";
 import { cinzel } from "@/components/ui/fonts";
+import {
+    SubscriptionCourseRows,
+    SubscriptionCourseRowsSkeleton,
+} from "@/app/features/courses/components/SubscriptionCourseRows";
 
 // The subscription offer: both billing intervals side by side, plus the actual
 // list of courses it unlocks.
@@ -22,7 +21,7 @@ export default function SubscribePage() {
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
-            <div className="mx-auto w-full max-w-4xl px-4 pt-24 pb-16 sm:pt-28">
+            <div className="mx-auto w-full max-w-4xl px-4 pt-24 pb-8 sm:pt-28">
                 <div className="flex flex-col items-center gap-3 text-center">
                     <p className="text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
                         Suscripción
@@ -39,10 +38,25 @@ export default function SubscribePage() {
                 <Suspense fallback={<PlansSkeleton />}>
                     <Plans />
                 </Suspense>
+            </div>
 
-                <Suspense fallback={null}>
-                    <IncludedCourses />
+            {/* The same rows the subscriber sees, shown here as the contents of
+                the offer. Grouped and illustrated, where this used to be a
+                flat list of names. */}
+            <div className="mx-auto w-full max-w-6xl px-4 pb-16">
+                <Suspense fallback={<SubscriptionCourseRowsSkeleton />}>
+                    <SubscriptionCourseRows emptyMessage="Aún no hay cursos incluidos en la suscripción." />
                 </Suspense>
+
+                <p className="mt-12 text-center text-xs text-yellow-200/40">
+                    <Link
+                        href="/products"
+                        className="underline hover:text-yellow-200/70"
+                    >
+                        Ver también los cursos disponibles para compra
+                        individual
+                    </Link>
+                </p>
             </div>
         </main>
     );
@@ -189,61 +203,6 @@ function PlanCard({
             </form>
         </div>
     );
-}
-
-// The courses the subscription actually unlocks, read from the same
-// `includedInSubscription` flag the access check uses — so this list can never
-// promise something a subscriber then cannot open.
-async function IncludedCourses() {
-    const courses = await getSubscriptionCourses();
-
-    if (courses.length === 0) {
-        return (
-            <p className="mt-12 text-center text-sm text-yellow-200/60">
-                Aún no hay cursos incluidos en la suscripción.
-            </p>
-        );
-    }
-
-    return (
-        <div className="mt-14 flex flex-col gap-4">
-            <h2 className="text-center text-sm tracking-[0.2em] text-yellow-200/70 uppercase">
-                {formatPlural(courses.length, {
-                    singular: "curso incluido",
-                    plural: "cursos incluidos",
-                })}
-            </h2>
-            <ul className="grid gap-3 sm:grid-cols-2">
-                {courses.map(course => (
-                    <li
-                        key={course.id}
-                        className="rounded-xl border border-yellow-200/20 bg-[#0a1628]/60 p-4"
-                    >
-                        <p className="text-yellow-100">{course.name}</p>
-                        <p className="mt-1 line-clamp-2 text-xs text-yellow-200/60">
-                            {course.description}
-                        </p>
-                    </li>
-                ))}
-            </ul>
-            <p className="mt-2 text-center text-xs text-yellow-200/40">
-                <Link href="/products" className="underline hover:text-yellow-200/70">
-                    Ver también los cursos disponibles para compra individual
-                </Link>
-            </p>
-        </div>
-    );
-}
-
-async function getSubscriptionCourses() {
-    "use cache";
-    cacheTag(getCourseGlobalTag());
-
-    return db.query.CourseTable.findMany({
-        columns: { id: true, name: true, description: true },
-        where: eq(CourseTable.includedInSubscription, true),
-        orderBy: asc(CourseTable.name),
-    });
 }
 
 function PlansSkeleton() {
