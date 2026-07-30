@@ -16,38 +16,42 @@ async function getLessonCourseId(lessonId: string) {
     return lesson?.section.courseId ?? null;
 }
 
-export async function getLessonImageCount(lessonId: string) {
-    const images = await db.query.ImageLessonTable.findMany({
-        columns: { id: true },
-        where: eq(ImageLessonTable.lessonId, lessonId),
-    });
-    return images.length;
-}
+// Appends a batch of images to a lesson, keeping the order they were selected
+// in.
+//
+// Written as one statement for the whole batch rather than a loop of single
+// inserts. With the old three-image cap a loop cost at most three round trips
+// and nobody noticed; without a cap, an author dropping thirty pictures in at
+// once would pay thirty sequential inserts plus thirty cache revalidations for
+// what is really one edit.
+export async function insertLessonImages(lessonId: string, urls: string[]) {
+    if (urls.length === 0) return [];
 
-export async function insertLessonImage({
-    lessonId,
-    url,
-}: {
-    lessonId: string;
-    url: string;
-}) {
-    // New images go to the end: find the current highest order and add one.
+    // New images go to the end: find the current highest order and count up
+    // from there. Read once for the batch, since the positions of the rows
+    // being added are known from their place in `urls`.
     const last = await db.query.ImageLessonTable.findFirst({
         columns: { order: true },
         where: eq(ImageLessonTable.lessonId, lessonId),
         orderBy: ({ order }, { desc }) => desc(order),
     });
-    const order = last ? last.order + 1 : 0;
+    const nextOrder = last ? last.order + 1 : 0;
 
-    const [image] = await db
+    const images = await db
         .insert(ImageLessonTable)
-        .values({ lessonId, url, order })
+        .values(
+            urls.map((url, index) => ({
+                lessonId,
+                url,
+                order: nextOrder + index,
+            }))
+        )
         .returning();
 
     const courseId = await getLessonCourseId(lessonId);
     if (courseId != null) revalidateLessonCache({ id: lessonId, courseId });
 
-    return image;
+    return images;
 }
 
 export async function updateLessonImageOrders(imageIds: string[]) {

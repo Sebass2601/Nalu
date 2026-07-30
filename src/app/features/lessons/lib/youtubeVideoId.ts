@@ -3,8 +3,8 @@
 // The column is called `youtubeVideoId` and the player needs exactly that: the
 // eleven-character id, on its own. But the thing YouTube's own "Share" button
 // hands you is a full URL, so that is what gets pasted — and storing it verbatim
-// produced a player that silently loaded nothing, because react-youtube passes
-// the value straight through to YouTube as an id.
+// produced a player that silently loaded nothing, because the value is passed
+// straight through to YouTube as an id.
 //
 // Rather than telling people off for pasting the obvious thing, this accepts
 // every form the link can take and reduces it to the id. Anything it cannot

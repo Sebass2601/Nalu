@@ -27,8 +27,9 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
     if (images.length === 0) return null;
 
     // Wrapping with the remainder rather than clamping at the ends, so the
-    // arrows never present themselves as available and then do nothing. With
-    // at most three images, cycling is quicker than backtracking anyway.
+    // arrows never present themselves as available and then do nothing — and
+    // so the last image is one step from the first however long the gallery
+    // gets.
     const total = images.length;
     const image = images[index];
     const go = (step: number) => setIndex((index + step + total) % total);
@@ -70,7 +71,11 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
             )}
 
             {total > 1 && (
-                <div className="mt-2 flex justify-center gap-1.5">
+                // `flex-wrap` because the number of dots is the number of
+                // images, which is now unbounded — a long gallery spills onto a
+                // second row instead of pushing the figure wider than its
+                // column.
+                <div className="mt-2 flex flex-wrap justify-center gap-1.5">
                     {images.map((dot, dotIndex) => (
                         <button
                             key={dot.id}
@@ -93,7 +98,7 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
 
 // One of the two overlaid arrows. Sitting on top of the image rather than beside
 // it keeps the figure the same width whether or not there is anything to switch
-// between, so a one-image lesson and a three-image one lay out identically.
+// between, so a one-image lesson and a twenty-image one lay out identically.
 function GalleryArrow({
     direction,
     onClick,

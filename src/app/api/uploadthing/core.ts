@@ -4,14 +4,22 @@ import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { canUpdateLessons } from "@/app/features/lessons/permissions/lessons";
 import { canUpdateProducts } from "@/app/features/products/permissions/products";
 import { canUpdateCourses } from "@/app/features/courses/permissions/courses";
+import { MAX_LESSON_IMAGES_PER_UPLOAD } from "@/app/features/lessons/lessonImages.constants";
 
 const f = createUploadthing();
 
 // The file routes this app exposes. Each key is an "endpoint" the client
 // uploads to. Here we only allow image uploads for lessons, admins only.
 export const fileRouter = {
+    // A lesson holds as many images as its author wants. `maxFileCount` still
+    // has to be a number — UploadThing offers no "unlimited" — but it caps a
+    // single upload rather than the lesson, so a longer gallery is just more
+    // than one drag.
     lessonImage: f({
-        image: { maxFileSize: "4MB", maxFileCount: 3 },
+        image: {
+            maxFileSize: "4MB",
+            maxFileCount: MAX_LESSON_IMAGES_PER_UPLOAD,
+        },
     })
         // Runs on our server before the upload is allowed. If it throws, the
         // upload is rejected. This is what stops non-admins from uploading.

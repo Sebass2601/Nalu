@@ -14,6 +14,7 @@ import { ActionButton } from "@/components/ActionButton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { actionToast } from "@/lib/actionToast";
+import { formatPlural } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { useUploadThing } from "@/lib/uploadthing";
 import {
@@ -23,7 +24,7 @@ import {
     updateLessonImageOrders,
 } from "../actions/lessonImages";
 import {
-    MAX_LESSON_IMAGES,
+    MAX_LESSON_IMAGES_PER_UPLOAD,
     MAX_LESSON_IMAGE_CAPTION_LENGTH,
 } from "../lessonImages.constants";
 
@@ -38,9 +39,6 @@ export function LessonImages({
     const [isSaving, startTransition] = useTransition();
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    const remaining = MAX_LESSON_IMAGES - images.length;
-    const isFull = remaining <= 0;
 
     const { startUpload, isUploading } = useUploadThing("lessonImage", {
         // Fires after the browser finishes uploading to UploadThing. We take
@@ -61,18 +59,25 @@ export function LessonImages({
     const busy = isUploading || isSaving;
 
     function handleFiles(fileList: FileList | null) {
-        if (fileList == null || fileList.length === 0 || isFull) return;
-        // Never send more files than there are free slots.
-        startUpload(Array.from(fileList).slice(0, remaining));
+        if (fileList == null || fileList.length === 0) return;
+        startUpload(Array.from(fileList));
     }
 
     return (
         <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Imágenes</span>
-                <span className="text-xs text-muted-foreground">
-                    {images.length}/{MAX_LESSON_IMAGES}
-                </span>
+                {/* A plain count, not "3/3". There is no ceiling to count
+                    towards any more, so the number is just information about
+                    the lesson rather than a budget being spent. */}
+                {images.length > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                        {formatPlural(images.length, {
+                            singular: "imagen",
+                            plural: "imágenes",
+                        })}
+                    </span>
+                )}
             </div>
 
             {images.length > 0 && (
@@ -91,65 +96,62 @@ export function LessonImages({
                 </SortableList>
             )}
 
-            {isFull ? (
-                <p className="text-xs text-muted-foreground">
-                    Alcanzaste el máximo de {MAX_LESSON_IMAGES} imágenes. Elimina una
-                    para agregar otra.
-                </p>
-            ) : (
-                <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => !busy && inputRef.current?.click()}
-                    onKeyDown={event => {
-                        if ((event.key === "Enter" || event.key === " ") && !busy) {
-                            event.preventDefault();
-                            inputRef.current?.click();
-                        }
-                    }}
-                    onDragOver={event => {
+            {/* Always available — there is no longer a state in which the
+                lesson is "full" and the dropzone has to be taken away. */}
+            <div
+                role="button"
+                tabIndex={0}
+                onClick={() => !busy && inputRef.current?.click()}
+                onKeyDown={event => {
+                    if ((event.key === "Enter" || event.key === " ") && !busy) {
                         event.preventDefault();
-                        setIsDragging(true);
+                        inputRef.current?.click();
+                    }
+                }}
+                onDragOver={event => {
+                    event.preventDefault();
+                    setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={event => {
+                    event.preventDefault();
+                    setIsDragging(false);
+                    if (!busy) handleFiles(event.dataTransfer.files);
+                }}
+                className={cn(
+                    "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center text-sm text-muted-foreground transition-colors",
+                    isDragging && "border-primary bg-primary/5",
+                    busy && "pointer-events-none opacity-60"
+                )}
+            >
+                {busy ? (
+                    <Loader2Icon className="size-5 animate-spin" />
+                ) : (
+                    <ImagePlusIcon className="size-5" />
+                )}
+                <span>
+                    {busy
+                        ? "Subiendo..."
+                        : "Arrastra imágenes aquí o haz clic para seleccionar"}
+                </span>
+                {/* The only limits left are per-file size and how many can go
+                    up in a single batch, so those are what the hint names. */}
+                <span className="text-xs">
+                    Máx. 4MB por imagen, hasta {MAX_LESSON_IMAGES_PER_UPLOAD} a
+                    la vez
+                </span>
+                <input
+                    ref={inputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    hidden
+                    onChange={event => {
+                        handleFiles(event.target.files);
+                        event.target.value = "";
                     }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={event => {
-                        event.preventDefault();
-                        setIsDragging(false);
-                        if (!busy) handleFiles(event.dataTransfer.files);
-                    }}
-                    className={cn(
-                        "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center text-sm text-muted-foreground transition-colors",
-                        isDragging && "border-primary bg-primary/5",
-                        busy && "pointer-events-none opacity-60"
-                    )}
-                >
-                    {busy ? (
-                        <Loader2Icon className="size-5 animate-spin" />
-                    ) : (
-                        <ImagePlusIcon className="size-5" />
-                    )}
-                    <span>
-                        {busy
-                            ? "Subiendo..."
-                            : "Arrastra imágenes aquí o haz clic para seleccionar"}
-                    </span>
-                    <span className="text-xs">
-                        Puedes agregar {remaining}{" "}
-                        {remaining === 1 ? "imagen más" : "imágenes más"} (máx. 4MB)
-                    </span>
-                    <input
-                        ref={inputRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        hidden
-                        onChange={event => {
-                            handleFiles(event.target.files);
-                            event.target.value = "";
-                        }}
-                    />
-                </div>
-            )}
+                />
+            </div>
         </div>
     );
 }

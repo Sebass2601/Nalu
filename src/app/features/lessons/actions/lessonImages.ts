@@ -4,16 +4,12 @@ import { z } from "zod";
 import { canUpdateLessons } from "../permissions/lessons";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import {
-    getLessonImageCount,
-    insertLessonImage,
+    insertLessonImages,
     updateLessonImageCaption as updateLessonImageCaptionDB,
     updateLessonImageOrders as updateLessonImageOrdersDB,
     deleteLessonImage as deleteLessonImageDB,
 } from "../db/lessonImages";
-import {
-    MAX_LESSON_IMAGES,
-    MAX_LESSON_IMAGE_CAPTION_LENGTH,
-} from "../lessonImages.constants";
+import { MAX_LESSON_IMAGE_CAPTION_LENGTH } from "../lessonImages.constants";
 
 const lessonImageCaptionSchema = z
     .string()
@@ -26,20 +22,11 @@ export async function addLessonImages(lessonId: string, urls: string[]) {
         return { error: true, message: "No tienes permiso para agregar imágenes." };
     }
 
-    const existing = await getLessonImageCount(lessonId);
-    const available = MAX_LESSON_IMAGES - existing;
-
-    if (available <= 0) {
-        return {
-            error: true,
-            message: `Ya alcanzaste el máximo de ${MAX_LESSON_IMAGES} imágenes.`,
-        };
+    if (urls.length === 0) {
+        return { error: true, message: "No se recibió ninguna imagen." };
     }
 
-    // Only persist as many as fit within the limit.
-    for (const url of urls.slice(0, available)) {
-        await insertLessonImage({ lessonId, url });
-    }
+    await insertLessonImages(lessonId, urls);
 
     return { error: false, message: "Imágenes agregadas exitosamente." };
 }

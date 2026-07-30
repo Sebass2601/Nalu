@@ -10,8 +10,8 @@ export const lessonSchema = z
         type: z.enum(LessonTypeEnum.enumValues),
         // Normalised on the way in rather than on the way out, so the column
         // holds what its name promises. Storing the pasted URL instead is what
-        // produced a lesson whose player silently loaded nothing: react-youtube
-        // hands the value straight to YouTube as an id, and a URL is not one.
+        // produced a lesson whose player silently loaded nothing: the value is
+        // handed straight to YouTube as an id, and a URL is not one.
         //
         // Rejecting before transforming is what makes the difference between
         // "you left this empty" and "that link is not a YouTube video" — after
