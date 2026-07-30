@@ -1,3 +1,4 @@
+import type { Viewport } from "next";
 import { ReactNode, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -7,6 +8,14 @@ import { requireAdmin } from "@/app/features/users/actions/currentUser";
 
 
 const cinzel = Cinzel({ subsets: ["latin"] });
+
+// Viewport is merged root-to-leaf with duplicate keys replaced, so this keeps
+// the root's navy `themeColor` (the admin navbar is the same navy) while
+// overriding only the colour scheme: admin content is light, so UA-drawn parts
+// — form controls, scrollbars — should render light here rather than dark.
+export const viewport: Viewport = {
+    colorScheme: "light",
+};
 
 export default function AdminLayout({
     children
@@ -18,7 +27,12 @@ export default function AdminLayout({
     return (
         <>
         <Navbar />
-        <main className="pt-20">
+        {/* An opaque white surface over the navy canvas, so the admin pages
+            that paint no background of their own (the new/edit forms) stay
+            light. Pages with their own background, like the navy dashboard,
+            simply draw over it. min-h-dvh includes the padding under
+            border-box, so this adds no scroll of its own. */}
+        <main className="pt-20 min-h-dvh bg-white">
             <Suspense fallback={null}>
                 <AdminGate>{children}</AdminGate>
             </Suspense>
