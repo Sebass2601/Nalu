@@ -1,5 +1,6 @@
 import { defineConfig } from "drizzle-kit";
 import { env } from "@/data/env/server";
+import { sslConfig } from "@/drizzle/sslConfig";
 
 export default defineConfig({
     out: "./src/drizzle/migrations",
@@ -12,6 +13,7 @@ export default defineConfig({
         user: env.DB_USER,
         database: env.DB_NAME,
         host: env.DB_HOST,
-        ssl: false,
+        port: env.DB_PORT,
+        ssl: sslConfig(),
     },
 })
