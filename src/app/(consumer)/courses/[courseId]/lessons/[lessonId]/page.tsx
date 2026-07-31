@@ -16,7 +16,13 @@ import { getUserLessonCompleteIdTag } from "@/app/features/lessons/db/cache/user
 import { updateLessonCompleteStatus } from "@/app/features/lessons/actions/userLessonComplete";
 import { canUpdateUserLessonCompleteStatus } from "@/app/features/lessons/permissions/userLessonComplete";
 import { LessonBody } from "@/app/features/lessons/components/LessonBody";
-import { userHasCourseAccess } from "@/app/features/courses/db/courseAccess";
+import {
+    courseIsInSubscription,
+    userHasCourseAccess,
+} from "@/app/features/courses/db/courseAccess";
+import { getCheapestPurchasableProductForCourse } from "@/app/features/products/db/products";
+import { CheckoutButton } from "@/app/features/purchases/components/CheckoutButton";
+import { productCtaClassName } from "@/app/features/purchases/components/productCtaStyles";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { ActionButton } from "@/components/ActionButton";
 
@@ -188,20 +194,91 @@ async function Lesson({
 // Shown in place of the lesson body to someone without the course. It names the
 // way out rather than only refusing: the person reading it is, by definition,
 // someone interested enough to have opened the lesson.
-function LockedLesson({ courseId }: { courseId: string }) {
+//
+// There are two independent ways in, and a course can offer either, both, or
+// neither: buying a product that bundles it, or subscribing while it is part of
+// the subscription. Both are asked for, and every one that exists is offered —
+// naming only one of two open doors would send some people the long way round.
+async function LockedLesson({ courseId }: { courseId: string }) {
+    // Independent questions, so they are asked at the same time rather than one
+    // after the other. Both are cached reads.
+    const [product, inSubscription] = await Promise.all([
+        getCheapestPurchasableProductForCourse(courseId),
+        courseIsInSubscription(courseId),
+    ]);
+
     return (
-        <div className="flex flex-col items-center gap-4 rounded-xl border border-yellow-200/40 bg-[#0a1628]/70 px-6 py-16 text-center backdrop-blur-md">
+        <div className="flex flex-col items-center gap-6 rounded-xl border border-yellow-200/40 bg-[#0a1628]/70 px-6 py-16 text-center backdrop-blur-md">
             <Lock className="size-12 text-yellow-200/60" />
             <p className="text-yellow-200/80">
                 Esta lección está bloqueada. Necesitas acceso al curso para
                 verla.
             </p>
-            <Link
-                href={`/courses/${courseId}`}
-                className="rounded-lg border border-yellow-200/60 px-6 py-2 text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-            >
-                Ver el curso
-            </Link>
+
+            {product == null && !inSubscription ? (
+                // Nothing to sell and nothing to join: the course is neither in
+                // a product nor in the subscription. Rather than offer a way in
+                // that does not exist, this goes back to the course itself,
+                // where the preview lessons still are.
+                <Link
+                    href={`/courses/${courseId}`}
+                    className="rounded-lg border border-yellow-200/60 px-6 py-2 text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
+                >
+                    Ver el curso
+                </Link>
+            ) : (
+                // Stacked on a phone, side by side once there is room. Equal
+                // columns because these are peers, not a recommendation and a
+                // fallback — which of the two is the better deal depends on
+                // whether someone wants this course or the whole library.
+                <div className="flex w-full max-w-3xl flex-col items-stretch gap-6 sm:flex-row sm:items-start sm:justify-center sm:gap-8">
+                    {product != null && (
+                        <CheckoutButton
+                            productId={product.id}
+                            className="flex flex-1 flex-col items-center gap-2"
+                        />
+                    )}
+
+                    {product != null && inSubscription && <OrDivider />}
+
+                    {inSubscription && (
+                        <div className="flex flex-1 flex-col items-center gap-2">
+                            <Link
+                                href="/subscribe"
+                                className={productCtaClassName}
+                            >
+                                Suscribirme
+                            </Link>
+                            <p className="text-xs text-yellow-200/50">
+                                Incluye este curso y todos los demás de la
+                                suscripción.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// What separates the two ways into a course. A word rather than a number,
+// because these are alternatives and not a sequence: "01 / 02" would tell the
+// reader to do the first one and then the second.
+//
+// It turns with the layout it divides — a rule across the stack on a phone, a
+// rule down the middle of the two columns on a wide screen — so the same mark
+// means the same thing at both sizes.
+function OrDivider() {
+    return (
+        <div
+            aria-hidden
+            className="flex items-center gap-3 sm:flex-col sm:self-stretch"
+        >
+            <span className="h-px flex-1 bg-yellow-200/20 sm:h-auto sm:w-px" />
+            <span className="text-xs tracking-widest text-yellow-200/40 uppercase">
+                o
+            </span>
+            <span className="h-px flex-1 bg-yellow-200/20 sm:h-auto sm:w-px" />
         </div>
     );
 }

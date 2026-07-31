@@ -1,53 +1,17 @@
 import Link from "next/link"
 import { Cinzel } from "next/font/google"
 import { cn } from "@/lib/utils"
+import { bevelFace, bevelOutline, Diamond } from "./plaque"
 
 const cinzel = Cinzel({ subsets: ["latin"] })
 
 const CUT = 12 // Pixels sliced off each corner.
 
-const end = (n: number) => `calc(100% - ${n}px)`
-
-// Builds an octagon: a rectangle with each corner cut off at 45 degrees.
-const bevel = (cut: number) =>
-  `polygon(
-    ${cut}px 0%, ${end(cut)} 0%,
-    100% ${cut}px, 100% ${end(cut)},
-    ${end(cut)} 100%, ${cut}px 100%,
-    0% ${end(cut)}, 0% ${cut}px
-  )`
-
-// Traces that same octagon as a hollow line, `inset` px in from the element's
-// edge and `width` px thick. It is a single polygon that walks the outer edge
-// clockwise, drops straight down at the top middle, then walks the inner edge
-// anticlockwise. The two opposite directions cancel, leaving the middle unfilled
-// — a border that keeps its mitred corners, which a plain CSS border cannot do
-// once clip-path has cut those corners away.
-//
-// Every octagon parallel to the face meets its straight sides at the same
-// distance from the element's edge, whatever its inset, which is why the outer
-// corner is always CUT. The inner corner is nudged out by width * (√2 - 1) so
-// the diagonal stretches end up as thick as the straight ones.
-const outline = (inset: number, width: number) => {
-  const o = inset
-  const i = inset + width
-  const co = CUT
-  const ci = CUT + width * (Math.SQRT2 - 1)
-  return `polygon(
-    50% ${o}px, ${end(co)} ${o}px, ${end(o)} ${co}px,
-    ${end(o)} ${end(co)}, ${end(co)} ${end(o)},
-    ${co}px ${end(o)}, ${o}px ${end(co)}, ${o}px ${co}px,
-    ${co}px ${o}px, 50% ${o}px,
-    50% ${i}px, ${ci}px ${i}px, ${i}px ${ci}px,
-    ${i}px ${end(ci)}, ${ci}px ${end(i)},
-    ${end(ci)} ${end(i)}, ${end(i)} ${end(ci)},
-    ${end(i)} ${ci}px, ${end(ci)} ${i}px, 50% ${i}px
-  )`
-}
-
-const FACE = bevel(CUT)
-const BORDER = outline(0, 2) // The navbar's gold rule, wrapped around the plaque.
-const HAIRLINE = outline(5, 1) // Faint second line, purely decorative.
+const FACE = bevelFace(CUT)
+// The navbar's gold rule, wrapped around the plaque.
+const BORDER = bevelOutline({ cut: CUT, inset: 0, width: 2 })
+// Faint second line, purely decorative.
+const HAIRLINE = bevelOutline({ cut: CUT, inset: 5, width: 1 })
 
 type CategoryButtonProps = Omit<React.ComponentProps<typeof Link>, "children"> & {
   children: string
@@ -77,21 +41,6 @@ function twoLines(label: string) {
   return [words.slice(0, split).join(" "), words.slice(split).join(" ")]
 }
 
-// Small rotated square that straddles the top and bottom edges of the plaque.
-function Diamond({ className }: { className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "pointer-events-none absolute left-1/2 grid size-2.5 -translate-x-1/2 rotate-45 place-items-center bg-yellow-200",
-        className
-      )}
-    >
-      <span className="size-1 bg-[#0a1628]" />
-    </span>
-  )
-}
-
 export default function CategoryButton({
   children,
   className,
@@ -110,7 +59,13 @@ export default function CategoryButton({
     >
       {/* Frosted glass face, tinted and blurred exactly like the navbar. */}
       <div
-        className="relative bg-[#0a1628]/70 px-7 py-3 backdrop-blur-md transition-colors duration-300 group-hover:bg-[#0a1628]/85"
+        // Tighter on a phone, where the whole plaque is drawn at around two
+        // thirds size and generous padding is spent on emptiness that no
+        // longer reads as generous. The room it gives back is what lets the
+        // lettering grow: the doorways nearest each other in the artwork are
+        // what cap how large these can go, and a shorter, narrower plaque
+        // pushes that cap up.
+        className="relative bg-[#0a1628]/70 px-5 py-2 backdrop-blur-md transition-colors duration-300 group-hover:bg-[#0a1628]/85 sm:px-7 sm:py-3"
         style={{ clipPath: FACE }}
       >
         {/* Light sweep that crosses the glass on hover. */}

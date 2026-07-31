@@ -18,7 +18,20 @@ const DRAG_SLOP = 8;     // Pixels of finger travel that turn a tap into a pan.
 const IMAGE = { width: 1536, height: 1024 };
 
 // Button size relative to the foreground layer at its natural resolution.
-const BUTTON_SCALE = 0.62;
+//
+// Doorways sit at fixed points in the artwork, so both the gaps between them and
+// the plaques themselves scale with `cover` — which means the point where two
+// neighbours touch is a fixed multiple of it, not a pixel size. Measured across
+// screens from 360x640 to 1440x900 with all nine doorways filled, that multiple
+// is 1.079 below `sm` and 0.944 above it, the difference being the plaque's own
+// padding, which tightens on a phone.
+//
+// 0.86 is the largest value that clears the stricter of the two with room to
+// spare, and it is what makes the lettering readable on a phone: the artwork is
+// scaled to fill the height there and ends up about three times wider than the
+// screen, so the old 0.62 — in proportion to the castle, and to nothing anyone
+// can actually see — put the labels near 7px.
+const BUTTON_SCALE = 0.86;
 
 const POSITIONS = new Map(HOTSPOTS.map(({ id, x, y }) => [id, { x, y }]));
 

@@ -1,9 +1,13 @@
 import { db } from "@/drizzle/db";
 import { CourseProductTable, ProductTable } from "@/drizzle/schema";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq, isNotNull } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { deleteUploadThingFiles } from "@/lib/uploadthingServer";
-import { getProductIdTag, revalidateProductCache } from "./cache/products";
+import {
+    getProductGlobalTag,
+    getProductIdTag,
+    revalidateProductCache,
+} from "./cache/products";
 import { wherePublicProducts } from "../permissions/products";
 import {
     archiveStripeProduct,
@@ -32,6 +36,50 @@ export async function getPublicProduct(id: string) {
         },
         where: and(eq(ProductTable.id, id), wherePublicProducts),
     });
+}
+
+// The cheapest way to buy one particular course, or null if there is no way at
+// all. Used by a locked lesson, which knows the course it belongs to but not
+// which product sells it — a course can be bundled into several.
+//
+// Cheapest because the question being answered is "what does it cost to unlock
+// this", and the lowest price is the honest answer to it. Ties break on `id` so
+// two products at the same price always resolve to the same one instead of
+// following whatever order Postgres happened to return.
+//
+// `stripePriceId` must exist: `startCheckout` throws on a product that was
+// never synced to Stripe, so offering one here would hand the buyer a crash
+// instead of a checkout page.
+//
+// Tagged globally rather than per product: this asks about products it has not
+// identified yet, and every product mutation calls `revalidateProductCache`,
+// which updates this tag. A price change, a status flip and a re-linked course
+// all refresh it.
+export async function getCheapestPurchasableProductForCourse(courseId: string) {
+    "use cache";
+    cacheTag(getProductGlobalTag());
+
+    const [product] = await db
+        .select({
+            id: ProductTable.id,
+            priceInDollars: ProductTable.priceInDollars,
+        })
+        .from(ProductTable)
+        .innerJoin(
+            CourseProductTable,
+            eq(CourseProductTable.productId, ProductTable.id)
+        )
+        .where(
+            and(
+                eq(CourseProductTable.courseId, courseId),
+                wherePublicProducts,
+                isNotNull(ProductTable.stripePriceId)
+            )
+        )
+        .orderBy(asc(ProductTable.priceInDollars), asc(ProductTable.id))
+        .limit(1);
+
+    return product ?? null;
 }
 
 export async function insertProduct(

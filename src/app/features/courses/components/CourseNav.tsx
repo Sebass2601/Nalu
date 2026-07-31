@@ -10,6 +10,9 @@ type NavLesson = {
     name: string;
     type: LessonType;
     isComplete: boolean;
+    // Already weighed against this visitor's access by the layout: true only
+    // when the lesson is a preview AND they have no other way into it.
+    isPreview: boolean;
 };
 
 type NavSection = {
@@ -71,7 +74,7 @@ export function CourseNav({
         // a phone, matching the order you read them in, and is reset at lg where
         // the grid places it in the left column instead.
         <div
-            className={`order-2 rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70 p-4 backdrop-blur-md lg:order-0 lg:sticky lg:top-28 lg:self-start ${
+            className={`order-2 rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70 p-4 backdrop-blur-md lg:order-0 lg:sticky lg:top-32 lg:self-start ${
                 isLessonOpen ? "hidden lg:block" : ""
             }`}
         >
@@ -139,6 +142,15 @@ function LessonLink({
         >
             <Icon className="size-3.5 shrink-0 text-yellow-200/50" />
             <span className="flex-1">{lesson.name}</span>
+            {/* The same badge the product page's syllabus carries, so a lesson
+                advertised as watchable there is recognisable here. `shrink-0`
+                keeps it whole: the name beside it is the flexible one, and a
+                badge broken across two lines reads as a second lesson. */}
+            {lesson.isPreview && (
+                <span className="shrink-0 rounded border border-yellow-200/50 px-2 py-0.5 text-[10px] tracking-widest text-yellow-200 uppercase">
+                    Vista previa
+                </span>
+            )}
             {lesson.isComplete && (
                 <Check
                     className="size-3.5 shrink-0 text-yellow-200"

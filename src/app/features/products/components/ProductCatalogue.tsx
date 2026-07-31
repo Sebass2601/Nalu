@@ -25,7 +25,7 @@ export function CatalogueShell({ children }: { children: React.ReactNode }) {
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
-            <div className="pt-28 px-4 max-w-6xl mx-auto pb-16">{children}</div>
+            <div className="pt-32 px-4 max-w-6xl mx-auto pb-16">{children}</div>
         </main>
     );
 }

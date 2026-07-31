@@ -7,6 +7,7 @@ import {
     getCourseOutline,
 } from "@/app/features/courses/db/courseOutline";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
+import { userHasCourseAccess } from "@/app/features/courses/db/courseAccess";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -38,7 +39,7 @@ export default function CourseLayout({
                 into one, and `order` on the children puts the lesson — or the
                 course heading — above the contents list, which is the sequence
                 you actually read them in. */}
-            <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pt-28 pb-16 lg:grid lg:max-w-7xl lg:grid-cols-[300px_1fr]">
+            <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pt-32 pb-16 lg:grid lg:max-w-7xl lg:grid-cols-[300px_1fr]">
                 <Suspense fallback={<CourseNavSkeleton />}>
                     <CourseNavigation params={params} />
                 </Suspense>
@@ -65,6 +66,13 @@ async function CourseNavigation({
     const completedLessonIds =
         userId == null ? [] : await getCompletedLessonIds(userId);
 
+    // Whether the "Vista previa" badges are worth drawing at all. To someone
+    // who bought the course or subscribes, every lesson is already open, so the
+    // badge would be marking a distinction that no longer exists for them.
+    const hasAccess =
+        userId != null &&
+        (await userHasCourseAccess({ userId, courseId: course.id }));
+
     // A Set because this is asked once per lesson in the course, and `includes`
     // on an array would walk the whole list every time.
     const completed = new Set(completedLessonIds);
@@ -75,9 +83,14 @@ async function CourseNavigation({
             courseName={course.name}
             sections={course.courseSections.map(section => ({
                 ...section,
-                lessons: section.lessons.map(lesson => ({
+                // Resolved here rather than in CourseNav so the lesson's
+                // `status` never has to cross to the client: the panel is a
+                // client component, and what it needs is the conclusion, not
+                // the two facts it was drawn from.
+                lessons: section.lessons.map(({ status, ...lesson }) => ({
                     ...lesson,
                     isComplete: completed.has(lesson.id),
+                    isPreview: !hasAccess && status === "preview",
                 })),
             }))}
         />
@@ -86,7 +99,7 @@ async function CourseNavigation({
 
 function CourseNavSkeleton() {
     return (
-        <div className="order-2 animate-pulse rounded-2xl border border-yellow-200/20 bg-[#0a1628]/40 p-4 lg:order-0 lg:sticky lg:top-28 lg:self-start">
+        <div className="order-2 animate-pulse rounded-2xl border border-yellow-200/20 bg-[#0a1628]/40 p-4 lg:order-0 lg:sticky lg:top-32 lg:self-start">
             <div className="mb-4 h-6 w-40 rounded bg-yellow-200/20" />
             <div className="flex flex-col gap-3">
                 {Array.from({ length: 4 }, (_, index) => (

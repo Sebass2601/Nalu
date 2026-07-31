@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Cinzel } from "next/font/google";
 import { and, asc, eq, inArray } from "drizzle-orm";
@@ -24,7 +25,7 @@ import {
     ProductCallToAction,
     ProductCallToActionSkeleton,
 } from "@/app/features/purchases/components/ProductCallToAction";
-import { CourseAccessButton } from "@/app/features/purchases/components/CourseAccessButton";
+import { courseCtaClassName } from "@/app/features/purchases/components/productCtaStyles";
 import { formatPlural } from "@/lib/formatters";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
@@ -44,7 +45,7 @@ export default function ProductPage({
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
-            <div className="pt-28 px-4 max-w-6xl mx-auto pb-16">
+            <div className="pt-32 px-4 max-w-6xl mx-auto pb-16">
                 <Suspense fallback={<ProductSkeleton />}>
                     <ProductDetails params={params} />
                 </Suspense>
@@ -137,18 +138,7 @@ async function ProductDetails({
             {courseCount > 0 && (
                 <div className="mt-12 grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
                     {product.courses.map(course => (
-                        <CourseSyllabus
-                            key={course.id}
-                            course={course}
-                            productId={product.id}
-                            // Only a product bundling several courses needs a
-                            // link per card; with one course the button above
-                            // already goes straight there. Decided here, where
-                            // the count comes from cached data, so the cards
-                            // never wait on request-time state to find out
-                            // whether they might show a link at all.
-                            offersAccess={courseCount > 1}
-                        />
+                        <CourseSyllabus key={course.id} course={course} />
                     ))}
                 </div>
             )}
@@ -157,16 +147,8 @@ async function ProductDetails({
 }
 
 // One bundled course: its own counts, then every section as a fold-out list of
-// lessons — and, for someone who already bought the product, a way into it.
-function CourseSyllabus({
-    course,
-    productId,
-    offersAccess,
-}: {
-    course: ProductCourse;
-    productId: string;
-    offersAccess: boolean;
-}) {
+// lessons — and a way into the course itself.
+function CourseSyllabus({ course }: { course: ProductCourse }) {
     const lessonCount = sumBy(
         course.courseSections,
         section => section.lessons.length
@@ -189,20 +171,20 @@ function CourseSyllabus({
                 })}
             </p>
 
-            {/* Appears only for someone who owns the product, which is not
-                known until the request arrives — so it sits behind its own
-                boundary and the rest of the card renders without it. The
-                fallback is nothing at all: most visitors never get this link,
-                and an empty gap that quietly fills in reads better than a
-                placeholder for something they will never see. */}
-            {offersAccess && (
-                <Suspense fallback={null}>
-                    <CourseAccessButton
-                        productId={productId}
-                        courseId={course.id}
-                    />
-                </Suspense>
-            )}
+            {/* Open to everyone, owner or not, signed in or not. The course it
+                leads to is public in the same way this syllabus is: it names
+                every lesson and lets the preview ones be watched, and each
+                other lesson answers with a lock rather than its contents. So
+                nothing here depends on the session, and the whole card stays
+                cached data rendered in one pass. */}
+            <div className="mt-4">
+                <Link
+                    href={`/courses/${course.id}`}
+                    className={courseCtaClassName}
+                >
+                    Ver curso
+                </Link>
+            </div>
 
             <div className="mt-4 flex flex-col">
                 {course.courseSections.map(section => (
@@ -229,24 +211,59 @@ function CourseSyllabus({
                         </summary>
                         <div className="mt-3 flex flex-col gap-2 pl-7">
                             {section.lessons.map(lesson => (
-                                <div
+                                <LessonRow
                                     key={lesson.id}
-                                    className="flex items-center gap-2 text-sm text-yellow-200/80"
-                                >
-                                    <LessonIcon type={lesson.type} />
-                                    <span className="flex-1">{lesson.name}</span>
-                                    {lesson.status === "preview" && (
-                                        <span className="rounded border border-yellow-200/50 px-2 py-0.5 text-[10px] tracking-widest text-yellow-200 uppercase">
-                                            Vista previa
-                                        </span>
-                                    )}
-                                </div>
+                                    lesson={lesson}
+                                    courseId={course.id}
+                                />
                             ))}
                         </div>
                     </details>
                 ))}
             </div>
         </div>
+    );
+}
+
+// One lesson in the syllabus, named either way but only sometimes offered.
+//
+// A preview lesson is watchable by anyone — signed in or not, owner or not — so
+// its row is a link straight into it. Every other lesson would answer with a
+// lock, so it stays plain text: naming what a product contains is the point of a
+// syllabus, but inviting a click that leads to a refusal is not. The badge
+// already marks which is which, and now marks which ones can be opened.
+function LessonRow({
+    lesson,
+    courseId,
+}: {
+    lesson: ProductCourse["courseSections"][number]["lessons"][number];
+    courseId: string;
+}) {
+    const rowClassName = "flex items-center gap-2 text-sm text-yellow-200/80";
+
+    const content = (
+        <>
+            <LessonIcon type={lesson.type} />
+            <span className="flex-1">{lesson.name}</span>
+            {lesson.status === "preview" && (
+                <span className="rounded border border-yellow-200/50 px-2 py-0.5 text-[10px] tracking-widest text-yellow-200 uppercase">
+                    Vista previa
+                </span>
+            )}
+        </>
+    );
+
+    if (lesson.status !== "preview") {
+        return <div className={rowClassName}>{content}</div>;
+    }
+
+    return (
+        <Link
+            href={`/courses/${courseId}/lessons/${lesson.id}`}
+            className={`${rowClassName} rounded transition-colors hover:text-yellow-100`}
+        >
+            {content}
+        </Link>
     );
 }
 

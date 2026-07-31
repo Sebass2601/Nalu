@@ -18,7 +18,7 @@ export default function MyCoursesPage() {
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
-            <div className="mx-auto max-w-6xl px-4 pt-28 pb-16">
+            <div className="mx-auto max-w-6xl px-4 pt-32 pb-16">
                 <h1 className="mb-8 text-center text-3xl tracking-widest text-yellow-200">
                     Mis cursos
                 </h1>

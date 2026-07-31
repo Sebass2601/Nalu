@@ -27,7 +27,7 @@ export default function PurchaseReceiptPage({
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
-            <div className="mx-auto w-full max-w-2xl px-4 pt-28 pb-16">
+            <div className="mx-auto w-full max-w-2xl px-4 pt-32 pb-16">
                 {/* The params promise is handed down rather than awaited here.
                     Awaiting it in the shell would make the whole route wait on
                     request-time data before rendering anything at all. */}

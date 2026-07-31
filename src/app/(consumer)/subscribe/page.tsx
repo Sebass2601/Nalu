@@ -21,7 +21,7 @@ export default function SubscribePage() {
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
-            <div className="mx-auto w-full max-w-4xl px-4 pt-24 pb-8 sm:pt-28">
+            <div className="mx-auto w-full max-w-4xl px-4 pt-28 pb-8 sm:pt-32">
                 <div className="flex flex-col items-center gap-3 text-center">
                     <p className="text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
                         Suscripción

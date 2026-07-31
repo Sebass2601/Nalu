@@ -63,7 +63,11 @@ async function userOwnsCourse({
 
 // Whether the course is part of the subscription offering. Not user-specific,
 // so this caches once per course and is shared across everyone.
-async function courseIsInSubscription(courseId: string) {
+//
+// Exported because a locked lesson asks the same question for a different
+// reason: not "may this person read it" but "is subscribing a way in at all",
+// which decides whether the lock offers that route alongside buying.
+export async function courseIsInSubscription(courseId: string) {
     "use cache";
     cacheTag(getCourseIdTag(courseId));
 

@@ -15,7 +15,7 @@ export default function PurchaseFailurePage() {
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
-            <div className="mx-auto flex max-w-2xl flex-col items-center gap-8 px-4 pt-28 pb-16 text-center">
+            <div className="mx-auto flex max-w-2xl flex-col items-center gap-8 px-4 pt-32 pb-16 text-center">
                 <div className="flex flex-col gap-3">
                     <p className="text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
                         Algo salió mal

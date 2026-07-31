@@ -45,7 +45,15 @@ export async function getCourseOutline(courseId: string) {
                 orderBy: asc(CourseSectionTable.order),
                 with: {
                     lessons: {
-                        columns: { id: true, name: true, type: true },
+                        // `status` comes along so the contents panel can mark
+                        // which lessons are watchable without buying — the
+                        // same "Vista previa" badge the product page shows.
+                        columns: {
+                            id: true,
+                            name: true,
+                            type: true,
+                            status: true,
+                        },
                         where: inArray(LessonTable.status, [
                             "public",
                             "preview",

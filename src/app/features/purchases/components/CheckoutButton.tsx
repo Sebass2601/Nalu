@@ -17,14 +17,20 @@ import { productCtaClassName } from "./productCtaStyles";
 export function CheckoutButton({
     productId,
     label = "Comprar ahora",
+    // How the button and its notice sit in whatever contains them. Left-aligned
+    // under a product description, which is where this started; centred inside
+    // the locked-lesson panel, which is centred throughout. The default is the
+    // original, so only the caller that differs has to say so.
+    className = "flex flex-col items-start gap-2",
 }: {
     productId: string;
     label?: string;
+    className?: string;
 }) {
     return (
         <form
             action={startCheckout.bind(null, productId)}
-            className="flex flex-col items-start gap-2"
+            className={className}
         >
             <button
                 type="submit"
