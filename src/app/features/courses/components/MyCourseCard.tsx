@@ -2,6 +2,7 @@ import Image from "next/image";
 import { formatPlural } from "@/lib/formatters";
 import type { MyCourse } from "../db/myCourses";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { CourseUpgradeButton } from "./CourseUpgradeOffer";
 
 // One course on the shelf.
 //
@@ -82,6 +83,30 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
                 >
                     Ver curso
                 </PlaqueButton>
+
+                {/* Only on a card that is here because of the subscription, and
+                    only while something still sells it — see `upgradeProductId`.
+                    Below "Ver curso" and in the quieter of the two plaque
+                    variants, because opening the course is still what this card
+                    is for; this is an offer, not the errand.
+                    The button alone, with none of the copy it carries
+                    elsewhere: a card is a summary, and this one already holds a
+                    category, a title, a size, a description, a progress bar and
+                    another button before this one arrives. The two places with
+                    room to explain the offer — the course page and the product
+                    page — still do. */}
+                {course.upgradeProductId && (
+                    <CourseUpgradeButton
+                        productId={course.upgradeProductId}
+                        // `sm` to match "Ver curso" above it — two plaques
+                        // stacked in a card have to be the same size or the
+                        // lower one reads as belonging to something else.
+                        size="sm"
+                        className="mt-2"
+                        fullWidth
+                        showDetails={false}
+                    />
+                )}
             </div>
         </div>
     );

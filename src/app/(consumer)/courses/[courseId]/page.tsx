@@ -10,6 +10,7 @@ import {
     getCourseProgress,
 } from "@/app/features/courses/db/courseOutline";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
+import { CourseUpgradeOffer } from "@/app/features/courses/components/CourseUpgradeOffer";
 import { formatPlural } from "@/lib/formatters";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
@@ -164,6 +165,20 @@ async function StartOrContinueButton({
                 you are going next — and saying which lesson that is beats a bare
                 button, because it is also the answer to "where was I". */}
             <div className="order-1 lg:hidden">
+                {/* Above the card and its eyebrow, not below: the card is where
+                    this page is sending you, so anything under it competes with
+                    the tap it is asking for. Its own boundary so the card does
+                    not wait on the subscription and product reads, and a null
+                    fallback because most readers have no offer coming — a
+                    placeholder would leave a gap that usually resolves to
+                    nothing. */}
+                <Suspense fallback={null}>
+                    <CourseUpgradeOffer
+                        courseId={courseId}
+                        className="mb-6 rounded-xl border border-yellow-200/25 bg-[#0a1628]/50 p-4"
+                    />
+                </Suspense>
+
                 <p className="mb-2 text-center text-sm tracking-widest text-gold-meta uppercase">
                     {isResuming ? "Siguiente" : "Empieza aquí"}
                 </p>
@@ -188,10 +203,21 @@ async function StartOrContinueButton({
 
             {/* Wide screens keep the plain button: the contents list is already
                 beside it naming every lesson, so a card repeating one of them
-                would only say the same thing twice. */}
-            <PlaqueButton href={href} className="hidden self-start lg:inline-block">
-                {label}
-            </PlaqueButton>
+                would only say the same thing twice.
+                The upgrade sits beside it. Aligned to the top, which is what
+                puts the two plaques on the same line: the offer's copy hangs
+                below its button rather than above it, so its first row is the
+                button itself. `items-start` also stops the short button
+                stretching to the height of the taller column beside it. */}
+            <div className="hidden items-start gap-8 lg:flex">
+                <PlaqueButton href={href} className="inline-block">
+                    {label}
+                </PlaqueButton>
+
+                <Suspense fallback={null}>
+                    <CourseUpgradeOffer courseId={courseId} />
+                </Suspense>
+            </div>
         </>
     );
 }

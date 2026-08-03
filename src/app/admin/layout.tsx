@@ -6,6 +6,7 @@ import { Cinzel } from "next/font/google";
 import { requireAdmin } from "@/app/features/users/actions/currentUser";
 import { NavBarFrame } from "@/components/ui/NavBarFrame";
 import { NavItem } from "@/components/ui/NavItem";
+import { UserMenu } from "@/components/ui/UserMenu";
 
 
 
@@ -82,7 +83,20 @@ function Navbar() {
                     />
                 </Link>
 
-                <div className="mx-auto flex items-center gap-1 pl-20 sm:gap-2 sm:pl-0 lg:gap-4">
+                {/* Padded clear of both corners and centred by that padding,
+                    exactly as the consumer bar is. The gap closes to nothing on
+                    a phone, which it does not have to do over there: five
+                    plaques plus the logo and the avatar do not fit a small
+                    phone, and the 16px of gaps is the cheapest thing to give
+                    up. The plaques keep their own 6px of padding, so the icons
+                    still sit 12px apart rather than touching.
+                    Even so this bar runs out of room below about 380px and the
+                    last plaque meets the avatar. Left that way on purpose:
+                    admin work happens on a desktop, and the alternative was
+                    shrinking the logo on phones for a screen nobody manages
+                    courses from. The consumer bar, which does get used on a
+                    phone, has room to spare. */}
+                <div className="mx-auto flex items-center gap-0 pr-16 pl-20 sm:gap-2 sm:pr-0 sm:pl-0 lg:gap-4">
                     <NavItem
                         href="/admin/products"
                         label="Productos"
@@ -118,6 +132,15 @@ function Navbar() {
                             <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12h18M12 3c2.5 2.5 3.5 6 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-6-3.5-9s1-6.5 3.5-9Z M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"/></svg>
                         }
                     />
+                </div>
+
+                {/* Same right corner as the consumer bar, mirroring the logo.
+                    The admin bar had no way out of it at all — signing out
+                    meant walking back to the consumer side first. The four
+                    screens behind it are an admin's own account, not admin
+                    tooling. */}
+                <div className="absolute top-1/2 right-4 -translate-y-1/2 sm:right-8">
+                    <UserMenu />
                 </div>
             </div>
         </NavBarFrame>

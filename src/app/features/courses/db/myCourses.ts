@@ -19,6 +19,8 @@ import { getUSerCourseAccessUserTag } from "./cache/userCourseAccess";
 import { getUserLessonCompleteUserTag } from "@/app/features/lessons/db/cache/userLessonComplete";
 import { getSubscriptionUserTag } from "@/app/features/subscriptions/db/cache/subscriptions";
 import { hasActiveSubscription } from "@/app/features/subscriptions/db/subscriptions";
+import { getProductGlobalTag } from "@/app/features/products/db/cache/products";
+import { getCheapestPurchasableProductForCourse } from "@/app/features/products/db/products";
 
 export type MyCourse = {
     id: string;
@@ -29,6 +31,11 @@ export type MyCourse = {
     sectionCount: number;
     lessonCount: number;
     completedCount: number;
+    // The product to send them to if this course is on the shelf only because
+    // they subscribe and something is still selling it. Null for a course they
+    // bought — there is nothing left to sell — and null when no public product
+    // bundles it. The card reads it as "offer the upgrade, or do not".
+    upgradeProductId: string | null;
 };
 
 // Everything this person can open from "Mis cursos", with enough about each to
@@ -61,11 +68,17 @@ export async function getMyCourses(userId: string): Promise<MyCourse[]> {
     );
     // What the courses themselves say — an admin publishing a lesson changes the
     // totals on these cards, and renaming a category changes their labels.
+    //
+    // Products are in here for the upgrade offer below: unpublishing a product
+    // or unlinking a course from it has to take the button off these cards, and
+    // without this tag the shelf would keep offering a checkout that no longer
+    // exists.
     cacheTag(
         getCourseGlobalTag(),
         getCourseSectionGlobalTag(),
         getLessonGlobalTag(),
-        getCategoryGlobalTag()
+        getCategoryGlobalTag(),
+        getProductGlobalTag()
     );
 
     const [purchasedIds, startedIds] = await Promise.all([
@@ -83,10 +96,11 @@ export async function getMyCourses(userId: string): Promise<MyCourse[]> {
     const visibleIds = [...new Set([...purchasedIds, ...subscriptionIds])];
     if (visibleIds.length === 0) return [];
 
-    const [courses, totals, completed] = await Promise.all([
+    const [courses, totals, completed, upgrades] = await Promise.all([
         getCourseCards(visibleIds),
         getLessonTotals(visibleIds),
         getCompletedCounts({ userId, courseIds: visibleIds }),
+        getUpgradeProductIds({ visibleIds, purchasedIds }),
     ]);
 
     return courses.map(course => ({
@@ -94,7 +108,49 @@ export async function getMyCourses(userId: string): Promise<MyCourse[]> {
         sectionCount: totals.get(course.id)?.sectionCount ?? 0,
         lessonCount: totals.get(course.id)?.lessonCount ?? 0,
         completedCount: completed.get(course.id) ?? 0,
+        upgradeProductId: upgrades.get(course.id) ?? null,
     }));
+}
+
+// Which of these cards should offer "buy it for good", and what to sell.
+//
+// The four conditions `getCourseUpgradeOffer` spells out are already three-
+// quarters settled by the time we get here, which is why this does not call it:
+// everything on the shelf that was not purchased got here through
+// `subscriptionIds`, and that list is only ever populated for a signed-in
+// subscriber whose subscription is live and whose courses are in it. Subtracting
+// the purchased ids therefore leaves exactly the "access ends with the
+// subscription" set, and the only open question is whether anything still sells
+// them.
+//
+// That last question is asked through the same `getCheapestPurchasableProductForCourse`
+// the course page and a locked lesson use, so all three resolve to the same
+// product at the same price. In parallel rather than in sequence, and each call
+// is separately cached — a shelf is a handful of courses, and the alternative is
+// a second hand-written copy of that query's public/Stripe filters and its
+// price-then-id tie-break, which is exactly the drift the shared helper exists
+// to prevent.
+async function getUpgradeProductIds({
+    visibleIds,
+    purchasedIds,
+}: {
+    visibleIds: string[];
+    purchasedIds: string[];
+}) {
+    const purchased = new Set(purchasedIds);
+    const subscriptionOnlyIds = visibleIds.filter(id => !purchased.has(id));
+
+    const products = await Promise.all(
+        subscriptionOnlyIds.map(id => getCheapestPurchasableProductForCourse(id))
+    );
+
+    return new Map(
+        subscriptionOnlyIds
+            .map((id, index) => [id, products[index]?.id] as const)
+            .filter((entry): entry is readonly [string, string] =>
+                entry[1] != null
+            )
+    );
 }
 
 async function getPurchasedCourseIds(userId: string) {

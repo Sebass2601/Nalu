@@ -2,10 +2,10 @@ import { ReactNode, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Cinzel } from "next/font/google";
-import { auth, signOut } from "@/auth";
-import type { Session } from "next-auth";
+import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { NavBarFrame } from "@/components/ui/NavBarFrame";
 import { NavItem } from "@/components/ui/NavItem";
+import { UserMenu } from "@/components/ui/UserMenu";
 
 
 
@@ -33,7 +33,11 @@ function NavbarShell() {
 // logo and the labels drop away, leaving the icons enough width to breathe;
 // from `sm` up the labels return and the row centres in the bar proper.
 async function Navbar() {
-    const session: Session | null = await auth();
+    // The database user, not the session. `UserMenu` needs a picture that
+    // reflects the last upload rather than the one baked into the JWT at
+    // sign-in, and the same read answers the two questions this bar asks —
+    // whether anyone is signed in, and whether they are an admin.
+    const { user } = await getCurrentUser();
     return (
         <NavBarFrame>
             <div className={`${cinzel.className} flex h-full items-center`}>
@@ -51,7 +55,14 @@ async function Navbar() {
                     />
                 </Link>
 
-                <div className="mx-auto flex items-center gap-1 pl-20 sm:gap-2 sm:pl-0 lg:gap-4">
+                {/* On a phone the row is squeezed between two fixed corners —
+                    the logo on the left, the avatar on the right — so it is
+                    padded clear of both. The padding is what keeps it centred:
+                    `mx-auto` centres the padded box in the whole bar, so
+                    without the right side the row would drift into the avatar.
+                    From `sm` up there is room and both give way, letting the
+                    row centre in the bar proper. */}
+                <div className="mx-auto flex items-center gap-1 pr-16 pl-20 sm:gap-2 sm:pr-0 sm:pl-0 lg:gap-4">
                     <NavItem
                         href="/"
                         label="Inicio"
@@ -73,20 +84,18 @@ async function Navbar() {
                         and redirects anyone without a session to /login, so a
                         visitor is sent to the public pricing page instead. */}
                     <NavItem
-                        href={session?.user ? "/subscription" : "/subscribe"}
+                        href={user ? "/subscription" : "/subscribe"}
                         label="Suscripción"
                         icon={
                             <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h4m-7 5h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1Z"/></svg>
                         }
                     />
-                    <NavItem
-                        href="/purchases"
-                        label="Compras"
-                        icon={
-                            <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 2l1.5 2h9L18 2M5 4h14l-1 16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 4Zm4 6h6m-6 4h6"/></svg>
-                        }
-                    />
-                    {session?.user?.role === "admin" && (
+                    {/* Compras is no longer a doorway of its own. A receipt log
+                        is something you go looking for once in a while, not a
+                        section of the site you move between, so it now lives
+                        under the avatar with the rest of the account screens —
+                        which is also what buys the bar the width for them. */}
+                    {user?.role === "admin" && (
                         <NavItem
                             href="/admin"
                             label="Admin"
@@ -95,32 +104,24 @@ async function Navbar() {
                             }
                         />
                     )}
-                    {session?.user ? (
-                    <form
-                        action={async () => {
-                            "use server";
-                            await signOut();
-                        }}
-                        // `contents` so the button below is laid out by the row
-                        // itself and sits level with the plaques beside it.
-                        className="contents"
-                    >
-                        <NavItem
-                            label="Cerrar sesión"
-                            icon={
-                                <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 13 16h-2a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 12 21Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                            }
-                        />
-                    </form>
-                    ) : (
-                    <NavItem
-                        href="/login"
-                        label="Iniciar sesión"
-                        icon={
-                            <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 13 16h-2a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 12 21Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                        }
-                    />
-                    )}
+                </div>
+
+                {/* Pinned to the right corner, mirroring the logo on the left
+                    — you and the mark, with the doorways between them. Absolute
+                    like the logo rather than a member of the row, so the row
+                    still centres in the bar itself and not in whatever space
+                    these two leave over.
+                    Sign-out used to be a plaque in the row; it is now one item
+                    of four inside this menu, and `UserMenu` decides between the
+                    avatar and the sign-in doorway on its own. */}
+                {/* Set further in than the logo's own `left-2 sm:left-4`, and
+                    deliberately so: the logo is a PNG carrying its own
+                    transparent margin, so its mark already sits inside its box,
+                    while the avatar's gold ring is its true edge. Matching the
+                    numbers would leave the avatar looking closer to the screen
+                    edge than the logo does. */}
+                <div className="absolute top-1/2 right-4 -translate-y-1/2 sm:right-8">
+                    <UserMenu />
                 </div>
             </div>
         </NavBarFrame>

@@ -72,6 +72,27 @@ export const fileRouter = {
         .onUploadComplete(async ({ file }) => {
             return { url: file.ufsUrl };
         }),
+    // A single avatar, uploaded by the owner of the account from /profile.
+    //
+    // The only endpoint open to a plain user rather than an admin — the check
+    // is therefore just "is anyone signed in", and the URL it returns is
+    // written to that same person's own `image` column by the profile action,
+    // so there is nothing here one user could aim at another.
+    profileImage: f({
+        image: { maxFileSize: "4MB", maxFileCount: 1 }
+    })
+        .middleware(async () => {
+            const user = await getCurrentUser();
+
+            if (user.userId == null) {
+                throw new UploadThingError("No autorizado");
+            }
+
+            return { userId: user.userId };
+        })
+        .onUploadComplete(async ({ file }) => {
+            return { url: file.ufsUrl };
+        }),
 } satisfies FileRouter;
 
 export type AppFileRouter = typeof fileRouter;

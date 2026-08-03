@@ -40,7 +40,11 @@ export async function userHasCourseAccess({
 }
 
 // Permanent, purchase-derived access.
-async function userOwnsCourse({
+//
+// Exported because the upgrade offer asks the same question with the opposite
+// intent: not "may they read it" but "have they already bought it", which is
+// what decides whether there is anything left to sell them.
+export async function userOwnsCourse({
     userId,
     courseId,
 }: {

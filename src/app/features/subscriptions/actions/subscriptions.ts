@@ -28,7 +28,9 @@ export async function startSubscriptionCheckout(interval: string) {
     // letting them buy a second one. The unique constraint on
     // subscriptions.userId would reject the duplicate anyway, but only after
     // Stripe had taken the money.
-    if (await hasActiveSubscription(user.id)) redirect("/subscription");
+    if (await hasActiveSubscription(user.id)) {
+        redirect("/subscription-management");
+    }
 
     // A subscription REQUIRES a Customer — Stripe attaches the plan, invoices,
     // saved card and billing portal to it. Unlike one-time payments,
@@ -105,7 +107,9 @@ export async function openBillingPortal() {
 
     const session = await stripe.billingPortal.sessions.create({
         customer: stripeCustomerId,
-        return_url: `${env.SERVER_URL}/subscription`,
+        // Back to the plan panel they opened the portal from, not to the
+        // course band — /subscription no longer shows the plan at all.
+        return_url: `${env.SERVER_URL}/subscription-management`,
     });
 
     redirect(session.url);

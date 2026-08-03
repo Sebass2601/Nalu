@@ -22,31 +22,75 @@ export function CheckoutButton({
     // the locked-lesson panel, which is centred throughout. The default is the
     // original, so only the caller that differs has to say so.
     className = "flex flex-col items-start gap-2",
+    // The plaque's own two sizes. Default everywhere this began — a page's
+    // main call to action — and `sm` where it is a secondary offer sharing a
+    // row or a card with something else, so it does not outweigh the button it
+    // sits beside.
+    size = "default",
+    // Solid gold by default, because on a product page buying IS the page.
+    // `secondary` is for the upgrade offer, which always sits beside a primary
+    // "keep reading" button — two gold plaques side by side would leave the
+    // reader with no idea which one the page wanted them to press.
+    variant = "primary",
+    // Whether the button fills its container. The original behaviour is to
+    // stretch on a phone and shrink to its label from `sm` up; a card wants it
+    // full width at every size, matching the buttons stacked with it.
+    fullWidth = false,
+    // An extra line between the button and the redirect notice, for callers
+    // whose offer needs a reason as well as a price — the upgrade, where the
+    // buyer already has the course open and "buy" alone reads as a mistake.
+    // Above the notice on purpose: why you would buy comes before how the
+    // payment is handled.
+    hint,
+    // Everything under the button — the hint, the redirect notice, the discount
+    // switch — or nothing but the button itself.
+    //
+    // False only on the "Mis cursos" shelf, where the offer is one line in a
+    // card that already carries a category, a title, a size, a description, a
+    // progress bar and another button. Three more lines of small print there
+    // buries the card's own job. See the call site for what that costs.
+    showDetails = true,
 }: {
     productId: string;
     label?: string;
     className?: string;
+    size?: "default" | "sm";
+    variant?: "primary" | "secondary";
+    fullWidth?: boolean;
+    hint?: string;
+    showDetails?: boolean;
 }) {
     return (
         <form
             action={startCheckout.bind(null, productId)}
             className={className}
         >
-            <PlaqueButton type="submit" className="w-full sm:w-auto">
+            <PlaqueButton
+                type="submit"
+                size={size}
+                variant={variant}
+                className={fullWidth ? "block w-full" : "w-full sm:w-auto"}
+            >
                 {label}
             </PlaqueButton>
-            <p className="text-sm text-gold-meta">
-                Serás redirigido a Stripe para completar el pago de forma
-                segura.
-            </p>
-            {/* Its own boundary because it reads the buyer's country, which is
-                request-time data — the button above must not wait on it. The
-                fallback is nothing at all: this is a secondary path, and an
-                empty gap that fills in reads better than a placeholder that
-                turns out to be for an option this buyer never had. */}
-            <Suspense fallback={null}>
-                <DiscountCodeSwitch />
-            </Suspense>
+            {showDetails && (
+                <>
+                    {hint && <p className="text-sm text-gold-body">{hint}</p>}
+                    <p className="text-sm text-gold-meta">
+                        Serás redirigido a Stripe para completar el pago de
+                        forma segura.
+                    </p>
+                    {/* Its own boundary because it reads the buyer's country,
+                        which is request-time data — the button above must not
+                        wait on it. The fallback is nothing at all: this is a
+                        secondary path, and an empty gap that fills in reads
+                        better than a placeholder that turns out to be for an
+                        option this buyer never had. */}
+                    <Suspense fallback={null}>
+                        <DiscountCodeSwitch />
+                    </Suspense>
+                </>
+            )}
         </form>
     );
 }
