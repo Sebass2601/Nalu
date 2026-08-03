@@ -30,12 +30,12 @@ export async function updateSection(id: string, unsafeData: z.infer<typeof secti
     const {success, data } = sectionSchema.safeParse(unsafeData);
 
     if (!success || !canUpdateCourseSections(await getCurrentUser())) {
-        return { error: true, message: "Hubo un error al actualizar la seccion."}
+        return { error: true, message: "Hubo un error al actualizar la clase."}
     }
 
     await updateSectionDB(id, data);
 
-    return { error: false, message: "Seccion actualizada exitosamente."};
+    return { error: false, message: "Clase actualizada exitosamente."};
 }
 
 export async function deleteSection(id: string) {
@@ -45,7 +45,7 @@ export async function deleteSection(id: string) {
 
     await deleteSectionDB(id);
 
-    return { error: false, message: "Seccion eliminada exitosamente."}
+    return { error: false, message: "Clase eliminada exitosamente."}
 }
 
 export async function updateSectionOrders(sectionIds: string[]) {
@@ -53,10 +53,10 @@ export async function updateSectionOrders(sectionIds: string[]) {
         sectionIds.length === 0 ||
         !canUpdateCourseSections(await getCurrentUser())
     ) {
-        return {error: true, message: "Error al reodernar secciones."}
+        return {error: true, message: "Error al reodernar clases."}
     }
 
     await updateSectionOrdersDB(sectionIds);
 
-    return {error: false, message: "Seccion actualizada exitosamente."}
+    return {error: false, message: "Clase actualizada exitosamente."}
 }

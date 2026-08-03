@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { Cinzel } from "next/font/google";
 import { getMyCourses } from "@/app/features/courses/db/myCourses";
 import { MyCourseCard } from "@/app/features/courses/components/MyCourseCard";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -19,7 +19,7 @@ export default function MyCoursesPage() {
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
             <div className="mx-auto max-w-6xl px-4 pt-32 pb-16">
-                <h1 className="mb-8 text-center text-3xl tracking-widest text-yellow-200">
+                <h1 className="mb-8 text-center text-4xl tracking-widest text-gold">
                     Mis cursos
                 </h1>
 
@@ -58,7 +58,7 @@ async function MyCourses() {
 function Empty() {
     return (
         <div className="flex flex-col items-center gap-4 text-center">
-            <p className="text-yellow-200/70">
+            <p className="text-gold-body">
                 Todavía no tienes cursos. Cuando compres uno o empieces uno de
                 tu suscripción, aparecerá aquí.
             </p>
@@ -70,16 +70,11 @@ function Empty() {
 function SignedOut() {
     return (
         <div className="flex flex-col items-center gap-4 text-center">
-            <p className="text-yellow-200/70">
+            <p className="text-gold-body">
                 Inicia sesión para ver tus cursos.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-                <Link
-                    href="/login"
-                    className="rounded-lg border border-yellow-200/60 px-6 py-2 text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-                >
-                    Iniciar sesión
-                </Link>
+                <PlaqueButton href="/login">Iniciar sesión</PlaqueButton>
                 <CatalogueLink />
             </div>
         </div>
@@ -88,12 +83,7 @@ function SignedOut() {
 
 function CatalogueLink() {
     return (
-        <Link
-            href="/products"
-            className="rounded-lg border border-yellow-200/60 px-6 py-2 text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-        >
-            Ver catálogo
-        </Link>
+        <PlaqueButton href="/products">Ver catálogo</PlaqueButton>
     );
 }
 

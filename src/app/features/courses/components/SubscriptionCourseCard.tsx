@@ -56,19 +56,19 @@ export function SubscriptionCourseCard({
             <div className="flex flex-1 flex-col gap-2 p-4">
                 {/* Clamped so a three-line name cannot push the meta line out
                     of alignment with the cards beside it. */}
-                <h3 className="line-clamp-2 text-sm tracking-wide text-yellow-100">
+                <h3 className="line-clamp-2 text-base tracking-wide text-gold-bright">
                     {course.name}
                 </h3>
 
-                <p className="mt-auto text-xs tracking-widest text-yellow-200/50 uppercase">
+                <p className="mt-auto text-sm tracking-widest text-gold-meta uppercase">
                     {formatPlural(course.sectionCount, {
-                        singular: "sección",
-                        plural: "secciones",
+                        singular: "clase",
+                        plural: "clases",
                     })}{" "}
                     ·{" "}
                     {formatPlural(course.lessonCount, {
-                        singular: "lección",
-                        plural: "lecciones",
+                        singular: "sección",
+                        plural: "secciones",
                     })}
                 </p>
             </div>
@@ -82,7 +82,7 @@ export function SubscriptionCourseCard({
 function TypographicCover({ name }: { name: string }) {
     return (
         <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-[#16294a] via-[#0f1f38] to-[#0a1628] p-4">
-            <span className="line-clamp-3 text-center text-xs tracking-[0.2em] text-yellow-200/80 uppercase">
+            <span className="line-clamp-3 text-center text-sm tracking-[0.2em] text-gold-body uppercase">
                 {name}
             </span>
         </div>

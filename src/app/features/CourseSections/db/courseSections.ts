@@ -86,7 +86,7 @@ export async function deleteSection(id: string) {
 
         if (deletedSection == null) {
             trx.rollback();
-            throw new Error("Error al eliminar la sección.");
+            throw new Error("Error al eliminar la clase.");
         }
 
         return {

@@ -10,6 +10,7 @@ import { getReceiptDetails } from "@/app/features/purchases/lib/receiptDetails";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { formatDate, formatPrice } from "@/lib/formatters";
 import { cinzel } from "@/components/ui/fonts";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // The receipt for a single purchase, kept here rather than only on Stripe.
 //
@@ -66,41 +67,41 @@ async function Receipt({
         <div className="flex flex-col gap-6">
             <Link
                 href="/purchases"
-                className="text-xs tracking-widest text-yellow-200/50 uppercase hover:text-yellow-200/80"
+                className="text-sm tracking-widest text-gold-meta uppercase hover:text-gold-body"
             >
                 ← Mis compras
             </Link>
 
             <div className="flex flex-wrap items-center justify-between gap-4">
-                <h1 className="text-3xl tracking-wide text-yellow-100">
+                <h1 className="text-4xl tracking-wide text-gold-bright">
                     {purchase.productDetails.name}
                 </h1>
 
                 {/* Only when Stripe handed one back. A row with no hosted
                     receipt still has a perfectly good local one below. */}
                 {receiptUrl && (
-                    <Link
+                    <PlaqueButton
                         href={receiptUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rounded-lg border border-yellow-200/60 px-5 py-2 text-xs tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
+                        size="sm"
                     >
                         Ver recibo de Stripe
-                    </Link>
+                    </PlaqueButton>
                 )}
             </div>
 
             <div className="flex flex-col rounded-2xl border border-yellow-200/30 bg-[#0a1628]/60 backdrop-blur-md">
                 <div className="flex items-start justify-between gap-4 p-6">
                     <div className="flex min-w-0 flex-col gap-1">
-                        <h2 className="text-lg tracking-wide text-yellow-100">
+                        <h2 className="text-xl tracking-wide text-gold-bright">
                             Recibo
                         </h2>
-                        <p className="truncate text-xs text-yellow-200/50">
+                        <p className="truncate text-sm text-gold-meta">
                             ID: {purchase.id}
                         </p>
                     </div>
-                    <span className="shrink-0 rounded-full border border-yellow-200/40 px-3 py-1 text-xs tracking-widest text-yellow-200/80 uppercase">
+                    <span className="shrink-0 rounded-full border border-yellow-200/40 px-3 py-1 text-sm tracking-widest text-gold-body uppercase">
                         {isRefunded ? "Reembolsada" : "Pagada"}
                     </span>
                 </div>
@@ -121,8 +122,8 @@ async function Receipt({
                             <span
                                 className={
                                     isBold
-                                        ? "text-yellow-100"
-                                        : "text-yellow-200/70"
+                                        ? "text-gold-bright"
+                                        : "text-gold-body"
                                 }
                             >
                                 {label}
@@ -130,8 +131,8 @@ async function Receipt({
                             <span
                                 className={`justify-self-end ${
                                     isBold
-                                        ? "text-yellow-100"
-                                        : "text-yellow-200/70"
+                                        ? "text-gold-bright"
+                                        : "text-gold-body"
                                 }`}
                             >
                                 {/* `showZeroAsNumber` because on a receipt a
@@ -153,10 +154,10 @@ async function Receipt({
 function Field({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex flex-col gap-1">
-            <span className="text-xs tracking-widest text-yellow-200/50 uppercase">
+            <span className="text-sm tracking-widest text-gold-meta uppercase">
                 {label}
             </span>
-            <span className="wrap-break-words text-yellow-100">{value}</span>
+            <span className="wrap-break-words text-gold-bright">{value}</span>
         </div>
     );
 }

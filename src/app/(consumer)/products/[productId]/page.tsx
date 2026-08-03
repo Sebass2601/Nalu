@@ -25,7 +25,7 @@ import {
     ProductCallToAction,
     ProductCallToActionSkeleton,
 } from "@/app/features/purchases/components/ProductCallToAction";
-import { courseCtaClassName } from "@/app/features/purchases/components/productCtaStyles";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { formatPlural } from "@/lib/formatters";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
@@ -78,34 +78,34 @@ async function ProductDetails({
                             fallback={
                                 <FullPrice
                                     priceInDollars={product.priceInDollars}
-                                    className="text-2xl"
+                                    className="text-3xl"
                                 />
                             }
                         >
                             <ProductPrice
                                 priceInDollars={product.priceInDollars}
-                                className="text-2xl"
+                                className="text-3xl"
                             />
                         </Suspense>
-                        <h1 className="text-4xl tracking-wide text-yellow-100">
+                        <h1 className="text-5xl tracking-wide text-gold-bright">
                             {product.name}
                         </h1>
                         {/* formatPlural picks the singular or plural wording
                             from the count, so a product with a single course
-                            reads "1 curso · 8 lecciones". */}
-                        <p className="text-sm tracking-widest text-yellow-200/70 uppercase">
+                            reads "1 curso · 8 secciones". */}
+                        <p className="text-base tracking-widest text-gold-body uppercase">
                             {formatPlural(courseCount, {
                                 singular: "curso",
                                 plural: "cursos",
                             })}{" "}
                             ·{" "}
                             {formatPlural(lessonCount, {
-                                singular: "lección",
-                                plural: "lecciones",
+                                singular: "sección",
+                                plural: "secciones",
                             })}
                         </p>
                     </div>
-                    <p className="text-lg text-yellow-200/80">
+                    <p className="text-xl text-gold-body">
                         {product.description}
                     </p>
                     {/* Sells the product, or opens it if this visitor already
@@ -156,18 +156,18 @@ function CourseSyllabus({ course }: { course: ProductCourse }) {
 
     return (
         <div className="rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70 p-5 backdrop-blur-md">
-            <h2 className="text-xl tracking-wide text-yellow-100">
+            <h2 className="text-2xl tracking-wide text-gold-bright">
                 {course.name}
             </h2>
-            <p className="mt-1 text-xs tracking-widest text-yellow-200/60 uppercase">
+            <p className="mt-1 text-sm tracking-widest text-gold-meta uppercase">
                 {formatPlural(course.courseSections.length, {
-                    singular: "sección",
-                    plural: "secciones",
+                    singular: "clase",
+                    plural: "clases",
                 })}{" "}
                 ·{" "}
                 {formatPlural(lessonCount, {
-                    singular: "lección",
-                    plural: "lecciones",
+                    singular: "sección",
+                    plural: "secciones",
                 })}
             </p>
 
@@ -178,12 +178,9 @@ function CourseSyllabus({ course }: { course: ProductCourse }) {
                 nothing here depends on the session, and the whole card stays
                 cached data rendered in one pass. */}
             <div className="mt-4">
-                <Link
-                    href={`/courses/${course.id}`}
-                    className={courseCtaClassName}
-                >
+                <PlaqueButton href={`/courses/${course.id}`} size="sm">
                     Ver curso
-                </Link>
+                </PlaqueButton>
             </div>
 
             <div className="mt-4 flex flex-col">
@@ -196,15 +193,15 @@ function CourseSyllabus({ course }: { course: ProductCourse }) {
                         className="group border-t border-yellow-200/20 py-3"
                     >
                         <summary className="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
-                            <ChevronRight className="size-4 shrink-0 text-yellow-200/70 transition-transform group-open:rotate-90" />
+                            <ChevronRight className="size-4 shrink-0 text-gold-body transition-transform group-open:rotate-90" />
                             <span className="flex flex-1 flex-col">
-                                <span className="text-base text-yellow-100">
+                                <span className="text-lg text-gold-bright">
                                     {section.name}
                                 </span>
-                                <span className="text-xs text-yellow-200/50">
+                                <span className="text-sm text-gold-meta">
                                     {formatPlural(section.lessons.length, {
-                                        singular: "lección",
-                                        plural: "lecciones",
+                                        singular: "sección",
+                                        plural: "secciones",
                                     })}
                                 </span>
                             </span>
@@ -239,14 +236,14 @@ function LessonRow({
     lesson: ProductCourse["courseSections"][number]["lessons"][number];
     courseId: string;
 }) {
-    const rowClassName = "flex items-center gap-2 text-sm text-yellow-200/80";
+    const rowClassName = "flex items-center gap-2 text-base text-gold-body";
 
     const content = (
         <>
             <LessonIcon type={lesson.type} />
             <span className="flex-1">{lesson.name}</span>
             {lesson.status === "preview" && (
-                <span className="rounded border border-yellow-200/50 px-2 py-0.5 text-[10px] tracking-widest text-yellow-200 uppercase">
+                <span className="rounded border border-yellow-200/50 px-2 py-0.5 text-xs tracking-widest text-gold uppercase">
                     Vista previa
                 </span>
             )}
@@ -260,7 +257,7 @@ function LessonRow({
     return (
         <Link
             href={`/courses/${courseId}/lessons/${lesson.id}`}
-            className={`${rowClassName} rounded transition-colors hover:text-yellow-100`}
+            className={`${rowClassName} rounded transition-colors hover:text-gold-bright`}
         >
             {content}
         </Link>
@@ -269,7 +266,7 @@ function LessonRow({
 
 function LessonIcon({ type }: { type: LessonType }) {
     const Icon = type === "text" ? FileText : Video;
-    return <Icon className="size-4 shrink-0 text-yellow-200/50" />;
+    return <Icon className="size-4 shrink-0 text-gold-meta" />;
 }
 
 function ProductSkeleton() {

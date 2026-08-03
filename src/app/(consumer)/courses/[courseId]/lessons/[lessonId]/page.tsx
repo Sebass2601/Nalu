@@ -22,7 +22,7 @@ import {
 } from "@/app/features/courses/db/courseAccess";
 import { getCheapestPurchasableProductForCourse } from "@/app/features/products/db/products";
 import { CheckoutButton } from "@/app/features/purchases/components/CheckoutButton";
-import { productCtaClassName } from "@/app/features/purchases/components/productCtaStyles";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { ActionButton } from "@/components/ActionButton";
 
@@ -94,19 +94,19 @@ async function Lesson({
                     anywhere. */}
                 <Link
                     href={`/courses/${courseId}`}
-                    className="flex items-center gap-2 self-start text-sm tracking-widest text-yellow-200/70 uppercase transition-colors hover:text-yellow-100 lg:hidden"
+                    className="flex items-center gap-2 self-start text-base tracking-widest text-gold-body uppercase transition-colors hover:text-gold-bright lg:hidden"
                 >
                     <ChevronLeft className="size-4" />
                     Contenido del curso
                 </Link>
-                <p className="text-xs tracking-widest text-yellow-200/60 uppercase">
+                <p className="text-sm tracking-widest text-gold-meta uppercase">
                     {lesson.sectionName}
                 </p>
-                <h1 className="text-3xl tracking-wide text-yellow-100">
+                <h1 className="text-4xl tracking-wide text-gold-bright">
                     {lesson.name}
                 </h1>
                 {lesson.description && (
-                    <p className="text-yellow-200/70">{lesson.description}</p>
+                    <p className="text-gold-body">{lesson.description}</p>
                 )}
             </header>
 
@@ -134,58 +134,78 @@ async function Lesson({
                 <LockedLesson courseId={courseId} />
             )}
 
-            <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-yellow-200/20 pt-6">
-                <Suspense fallback={<NavigationPlaceholder />}>
-                    <ToLessonButton
-                        lesson={lesson}
-                        courseId={courseId}
-                        lessonFunc={getPreviousLesson}
-                        direction="previous"
-                    >
-                        Anterior
-                    </ToLessonButton>
-                </Suspense>
+            {/* On a phone: the two navigation buttons on one row at opposite
+                ends, and "completada" centred on a row of its own beneath them.
+                A two-column grid rather than flex ordering, because the columns
+                are what hold the layout still — the far end of a lesson has no
+                "siguiente", and a column keeps its width whether or not
+                anything is in it, so the buttons that remain stay exactly where
+                they were instead of sliding across.
+
+                Placed explicitly rather than by source order, so the markup can
+                keep the reading order it has: previous, complete, next.
+
+                From `sm` up it goes back to being one flex row — there is room
+                for all three, and the grid placement is ignored outright once
+                the container is no longer a grid. */}
+            <footer className="mt-4 grid grid-cols-2 items-center gap-3 border-t border-yellow-200/20 pt-6 sm:flex sm:flex-wrap sm:justify-between">
+                <div className="col-start-1 row-start-1 justify-self-start">
+                    <Suspense fallback={<NavigationPlaceholder />}>
+                        <ToLessonButton
+                            lesson={lesson}
+                            courseId={courseId}
+                            lessonFunc={getPreviousLesson}
+                            direction="previous"
+                        >
+                            Anterior
+                        </ToLessonButton>
+                    </Suspense>
+                </div>
 
                 {/* A written lesson has no moment that says "done", so the
                     reader says so themselves. It stays available on video
                     lessons too, both to undo an accidental completion and for
                     anyone who watched the video elsewhere. */}
                 {canComplete && (
-                    <ActionButton
-                        action={updateLessonCompleteStatus.bind(
-                            null,
-                            lesson.id,
-                            !isComplete
-                        )}
-                        variant="outline"
-                        className="cursor-pointer border-yellow-200/60 bg-transparent text-yellow-200 uppercase tracking-widest hover:bg-yellow-200 hover:text-[#0a1628]"
-                    >
-                        <span className="flex items-center gap-2">
-                            {isComplete ? (
-                                <>
-                                    <CheckSquare2 className="size-4" />
-                                    Completada
-                                </>
-                            ) : (
-                                <>
-                                    <Square className="size-4" />
-                                    Marcar completada
-                                </>
+                    <div className="col-span-2 row-start-2 justify-self-center">
+                        <ActionButton
+                            action={updateLessonCompleteStatus.bind(
+                                null,
+                                lesson.id,
+                                !isComplete
                             )}
-                        </span>
-                    </ActionButton>
+                            plaque
+                            size="sm"
+                        >
+                            <span className="flex items-center gap-2">
+                                {isComplete ? (
+                                    <>
+                                        <CheckSquare2 className="size-4" />
+                                        Completada
+                                    </>
+                                ) : (
+                                    <>
+                                        <Square className="size-4" />
+                                        Marcar completada
+                                    </>
+                                )}
+                            </span>
+                        </ActionButton>
+                    </div>
                 )}
 
-                <Suspense fallback={<NavigationPlaceholder />}>
-                    <ToLessonButton
-                        lesson={lesson}
-                        courseId={courseId}
-                        lessonFunc={getNextLesson}
-                        direction="next"
-                    >
-                        Siguiente
-                    </ToLessonButton>
-                </Suspense>
+                <div className="col-start-2 row-start-1 justify-self-end">
+                    <Suspense fallback={<NavigationPlaceholder />}>
+                        <ToLessonButton
+                            lesson={lesson}
+                            courseId={courseId}
+                            lessonFunc={getNextLesson}
+                            direction="next"
+                        >
+                            Siguiente
+                        </ToLessonButton>
+                    </Suspense>
+                </div>
             </footer>
         </article>
     );
@@ -209,9 +229,9 @@ async function LockedLesson({ courseId }: { courseId: string }) {
 
     return (
         <div className="flex flex-col items-center gap-6 rounded-xl border border-yellow-200/40 bg-[#0a1628]/70 px-6 py-16 text-center backdrop-blur-md">
-            <Lock className="size-12 text-yellow-200/60" />
-            <p className="text-yellow-200/80">
-                Esta lección está bloqueada. Necesitas acceso al curso para
+            <Lock className="size-12 text-gold-meta" />
+            <p className="text-gold-body">
+                Esta sección está bloqueada. Necesitas acceso al curso para
                 verla.
             </p>
 
@@ -220,12 +240,9 @@ async function LockedLesson({ courseId }: { courseId: string }) {
                 // a product nor in the subscription. Rather than offer a way in
                 // that does not exist, this goes back to the course itself,
                 // where the preview lessons still are.
-                <Link
-                    href={`/courses/${courseId}`}
-                    className="rounded-lg border border-yellow-200/60 px-6 py-2 text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-                >
+                <PlaqueButton href={`/courses/${courseId}`} size="sm">
                     Ver el curso
-                </Link>
+                </PlaqueButton>
             ) : (
                 // Stacked on a phone, side by side once there is room. Equal
                 // columns because these are peers, not a recommendation and a
@@ -243,13 +260,10 @@ async function LockedLesson({ courseId }: { courseId: string }) {
 
                     {inSubscription && (
                         <div className="flex flex-1 flex-col items-center gap-2">
-                            <Link
-                                href="/subscribe"
-                                className={productCtaClassName}
-                            >
+                            <PlaqueButton href="/subscribe">
                                 Suscribirme
-                            </Link>
-                            <p className="text-xs text-yellow-200/50">
+                            </PlaqueButton>
+                            <p className="text-sm text-gold-meta">
                                 Incluye este curso y todos los demás de la
                                 suscripción.
                             </p>
@@ -275,7 +289,7 @@ function OrDivider() {
             className="flex items-center gap-3 sm:flex-col sm:self-stretch"
         >
             <span className="h-px flex-1 bg-yellow-200/20 sm:h-auto sm:w-px" />
-            <span className="text-xs tracking-widest text-yellow-200/40 uppercase">
+            <span className="text-sm tracking-widest text-gold-faint uppercase">
                 o
             </span>
             <span className="h-px flex-1 bg-yellow-200/20 sm:h-auto sm:w-px" />
@@ -308,14 +322,16 @@ async function ToLessonButton({
     const Icon = direction === "previous" ? ChevronLeft : ChevronRight;
 
     return (
-        <Link
+        <PlaqueButton
             href={`/courses/${courseId}/lessons/${toLesson.id}`}
-            className="flex items-center gap-2 rounded-lg border border-yellow-200/60 px-5 py-2 text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
+            size="sm"
         >
-            {direction === "previous" && <Icon className="size-4" />}
-            {children}
-            {direction === "next" && <Icon className="size-4" />}
-        </Link>
+            <span className="flex items-center justify-center gap-2">
+                {direction === "previous" && <Icon className="size-4" />}
+                {children}
+                {direction === "next" && <Icon className="size-4" />}
+            </span>
+        </PlaqueButton>
     );
 }
 

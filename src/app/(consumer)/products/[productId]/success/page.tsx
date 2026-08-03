@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicProduct } from "@/app/features/products/db/products";
 import { cinzel } from "@/components/ui/fonts";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // Where the buyer lands after the webhook has granted their access. By the time
 // this renders the purchase is already recorded — the GET handler on the
@@ -40,13 +40,13 @@ async function SuccessDetails({
     return (
         <div className="flex flex-col items-center gap-8 text-center">
             <div className="flex flex-col gap-3">
-                <p className="text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
+                <p className="text-sm tracking-[0.3em] text-gold-body uppercase">
                     Compra completada
                 </p>
-                <h1 className="text-4xl tracking-wide text-yellow-100">
+                <h1 className="text-5xl tracking-wide text-gold-bright">
                     ¡Gracias por tu compra!
                 </h1>
-                <p className="text-lg text-yellow-200/80">
+                <p className="text-xl text-gold-body">
                     Ya tienes acceso permanente a {product.name}.
                 </p>
             </div>
@@ -60,12 +60,9 @@ async function SuccessDetails({
                 />
             </div>
 
-            <Link
-                href="/products"
-                className="rounded-lg border border-yellow-200/60 px-8 py-4 text-lg tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-            >
+            <PlaqueButton href="/products">
                 Ver mis cursos
-            </Link>
+            </PlaqueButton>
         </div>
     );
 }

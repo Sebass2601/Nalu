@@ -31,7 +31,7 @@ export async function updateLessonCompleteStatus(
     if (userId == null || !hasPermission) {
         return {
             error: true,
-            message: "No se pudo actualizar el estado de la lección.",
+            message: "No se pudo actualizar el estado de la sección.",
         };
     }
 
@@ -40,7 +40,7 @@ export async function updateLessonCompleteStatus(
     return {
         error: false,
         message: complete
-            ? "Lección marcada como completada."
-            : "Lección marcada como pendiente.",
+            ? "Sección marcada como completada."
+            : "Sección marcada como pendiente.",
     };
 }

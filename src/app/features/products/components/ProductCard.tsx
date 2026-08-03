@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { ProductPrice, FullPrice } from "./ProductPrice";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // One product as it appears in any listing grid: cover image, price, name,
 // a clipped description and the button that opens it. Kept as a component so
@@ -30,7 +30,7 @@ export function ProductCard({
                 />
             </div>
             <div className="p-5 flex flex-col gap-3 flex-1">
-                <h2 className="text-lg tracking-wide text-yellow-100">
+                <h2 className="text-xl tracking-wide text-gold-bright">
                     {name}
                 </h2>
                 {/* Full price streams instantly; the PPP-adjusted price
@@ -40,24 +40,25 @@ export function ProductCard({
                     fallback={
                         <FullPrice
                             priceInDollars={priceInDollars}
-                            className="text-xl"
+                            className="text-2xl"
                         />
                     }
                 >
                     <ProductPrice
                         priceInDollars={priceInDollars}
-                        className="text-xl"
+                        className="text-2xl"
                     />
                 </Suspense>
-                <p className="text-sm text-yellow-200/70 line-clamp-3 flex-1">
+                <p className="text-base text-gold-body line-clamp-3 flex-1">
                     {description}
                 </p>
-                <Link
+                <PlaqueButton
                     href={`/products/${id}`}
-                    className="mt-2 block rounded-lg border border-yellow-200/60 px-4 py-2 text-center text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
+                    className="mt-2 block w-full"
+                    size="sm"
                 >
                     Ver curso
-                </Link>
+                </PlaqueButton>
             </div>
         </div>
     );

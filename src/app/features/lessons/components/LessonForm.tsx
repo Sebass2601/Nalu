@@ -128,7 +128,7 @@ export function LessonForm({
                     render={({ field}) => (
                         <FormItem>
                             <FormLabel>
-                                Sección
+                                Clase
                             </FormLabel>
                             <Select
                                 onValueChange={field.onChange}
@@ -240,7 +240,7 @@ export function LessonForm({
                             <FormControl>
                                 <Textarea
                                     className="min-h-60"
-                                    placeholder="Escribe la lección en uno o más párrafos. El nombre de la lección de arriba se usa como título."
+                                    placeholder="Escribe la sección en uno o más párrafos. El nombre de la sección de arriba se usa como título."
                                     {...field}
                                     value={field.value ?? ""}
                                 />
@@ -256,7 +256,7 @@ export function LessonForm({
                     <LessonImages lessonId={lesson.id} images={lesson.images} />
                 ) : (
                     <p className="text-sm text-muted-foreground">
-                        Guarda la lección primero para poder agregar imágenes.
+                        Guarda la sección primero para poder agregar imágenes.
                     </p>
                 ))}
 

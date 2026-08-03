@@ -53,17 +53,17 @@ async function EditCourseContent({
             <PageHeader title={course.name} />
             <Tabs defaultValue="lessons">
                 <TabsList>
-                    <TabsTrigger value="lessons">Lecciones</TabsTrigger>
+                    <TabsTrigger value="lessons">Secciones</TabsTrigger>
                     <TabsTrigger value="details">Detalles</TabsTrigger>
                 </TabsList>
                 <TabsContent value="lessons">
                     <Card>
                         <CardHeader className="flex items-center flex-row justify-between">
-                            <CardTitle>Secciones</CardTitle>
+                            <CardTitle>Clases</CardTitle>
                             <SectionFormDialog courseId={course.id}>
                                 <DialogTrigger asChild>
                                     <Button variant="outline">
-                                        <PlusIcon /> Nueva Sección
+                                        <PlusIcon /> Nueva Clase
                                     </Button>
                                 </DialogTrigger>
                             </SectionFormDialog>
@@ -92,7 +92,7 @@ async function EditCourseContent({
                                 >
                                     <DialogTrigger asChild>
                                         <Button variant="outline">
-                                            <PlusIcon /> Nueva Lección
+                                            <PlusIcon /> Nueva Sección
                                         </Button>
                                     </DialogTrigger>
                                 </LessonFormDialog>

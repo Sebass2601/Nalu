@@ -32,7 +32,7 @@ export async function insertLesson(data: typeof LessonTable.$inferInsert) {
 
         return [newLesson, section.courseId];
     });
-    if (newLesson == null) throw new Error("Error al crear la lección.");
+    if (newLesson == null) throw new Error("Error al crear la sección.");
 
     revalidateLessonCache({ courseId, id: newLesson.id });
 
@@ -64,7 +64,7 @@ export async function updateLesson(
             .returning();
         if (updatedLesson == null) {
             trx.rollback();
-            throw new Error("Error al actualizar la lección.");
+            throw new Error("Error al actualizar la sección.");
         }
 
         const section = await trx.query.CourseSectionTable.findFirst({
@@ -98,7 +98,7 @@ export async function deleteLesson(id: string) {
 
             if (deletedLesson == null) {
                 trx.rollback();
-                throw new Error("Error al eliminar la lección.");
+                throw new Error("Error al eliminar la sección.");
             }
 
             const section = await trx.query.CourseSectionTable.findFirst({

@@ -80,7 +80,7 @@ export function CourseNav({
         >
             {/* Only on wide screens. On a phone this list is the course page,
                 whose own heading already names the course directly above it. */}
-            <p className="mb-4 hidden text-lg tracking-wide text-yellow-100 lg:block">
+            <p className="mb-4 hidden text-xl tracking-wide text-gold-bright lg:block">
                 {courseName}
             </p>
 
@@ -91,9 +91,9 @@ export function CourseNav({
                         open={section.id === openSectionId}
                         className="group border-t border-yellow-200/20 py-2 first:border-t-0"
                     >
-                        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm text-yellow-100 [&::-webkit-details-marker]:hidden">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-base text-gold-bright [&::-webkit-details-marker]:hidden">
                             <span>{section.name}</span>
-                            <span className="text-xs text-yellow-200/50 transition-transform group-open:rotate-90">
+                            <span className="text-sm text-gold-meta transition-transform group-open:rotate-90">
                                 ›
                             </span>
                         </summary>
@@ -134,26 +134,26 @@ function LessonLink({
             // `aria-current` says so to a screen reader, and the filled
             // background says so to everyone else.
             aria-current={isCurrent ? "page" : undefined}
-            className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors ${
+            className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-base transition-colors ${
                 isCurrent
-                    ? "bg-yellow-200/15 text-yellow-100"
-                    : "text-yellow-200/70 hover:bg-yellow-200/10 hover:text-yellow-100"
+                    ? "bg-yellow-200/15 text-gold-bright"
+                    : "text-gold-body hover:bg-yellow-200/10 hover:text-gold-bright"
             }`}
         >
-            <Icon className="size-3.5 shrink-0 text-yellow-200/50" />
+            <Icon className="size-3.5 shrink-0 text-gold-meta" />
             <span className="flex-1">{lesson.name}</span>
             {/* The same badge the product page's syllabus carries, so a lesson
                 advertised as watchable there is recognisable here. `shrink-0`
                 keeps it whole: the name beside it is the flexible one, and a
                 badge broken across two lines reads as a second lesson. */}
             {lesson.isPreview && (
-                <span className="shrink-0 rounded border border-yellow-200/50 px-2 py-0.5 text-[10px] tracking-widest text-yellow-200 uppercase">
+                <span className="shrink-0 rounded border border-yellow-200/50 px-2 py-0.5 text-xs tracking-widest text-gold uppercase">
                     Vista previa
                 </span>
             )}
             {lesson.isComplete && (
                 <Check
-                    className="size-3.5 shrink-0 text-yellow-200"
+                    className="size-3.5 shrink-0 text-gold"
                     aria-label="Completada"
                 />
             )}

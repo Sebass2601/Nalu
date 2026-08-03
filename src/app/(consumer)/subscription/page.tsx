@@ -9,6 +9,7 @@ import {
     SubscriptionCourseRows,
     SubscriptionCourseRowsSkeleton,
 } from "@/app/features/courses/components/SubscriptionCourseRows";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // Where a subscriber sees the state of their plan and gets to Stripe's billing
 // portal. Everything mutable — cancelling, switching interval, changing card,
@@ -57,7 +58,7 @@ async function SubscriptionEyebrow() {
     if (user == null) return null;
 
     return (
-        <p className="mb-6 text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
+        <p className="mb-6 text-sm tracking-[0.3em] text-gold-body uppercase">
             Incluido en tu plan
         </p>
     );
@@ -82,10 +83,10 @@ async function SubscriptionDetails() {
     return (
         <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-2">
-                <p className="text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
+                <p className="text-sm tracking-[0.3em] text-gold-body uppercase">
                     Tu suscripción
                 </p>
-                <h1 className="text-3xl tracking-wide text-yellow-100">
+                <h1 className="text-4xl tracking-wide text-gold-bright">
                     Plan {subscription.interval === "month" ? "mensual" : "anual"}
                 </h1>
             </div>
@@ -105,21 +106,18 @@ async function SubscriptionDetails() {
                 />
 
                 {subscription.cancelAtPeriodEnd && (
-                    <p className="text-xs text-yellow-200/60">
+                    <p className="text-sm text-gold-meta">
                         Tu suscripción está cancelada, pero conservas el acceso
                         hasta esa fecha.
                     </p>
                 )}
 
                 <form action={openBillingPortal}>
-                    <button
-                        type="submit"
-                        className="w-full cursor-pointer rounded-lg border border-yellow-200/60 px-6 py-3 tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628] sm:w-auto"
-                    >
+                    <PlaqueButton type="submit" className="w-full sm:w-auto">
                         Gestionar suscripción
-                    </button>
+                    </PlaqueButton>
                 </form>
-                <p className="text-xs text-yellow-200/50">
+                <p className="text-sm text-gold-meta">
                     Cambia de plan, actualiza tu tarjeta o cancela desde el
                     portal seguro de Stripe.
                 </p>
@@ -127,7 +125,7 @@ async function SubscriptionDetails() {
 
             <Link
                 href="/products"
-                className="text-xs tracking-widest text-yellow-200/50 uppercase underline hover:text-yellow-200/80"
+                className="text-sm tracking-widest text-gold-meta uppercase underline hover:text-gold-body"
             >
                 Ver cursos
             </Link>
@@ -138,8 +136,8 @@ async function SubscriptionDetails() {
 function Row({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex items-baseline justify-between gap-4">
-            <span className="text-sm text-yellow-200/60">{label}</span>
-            <span className="text-yellow-100">{value}</span>
+            <span className="text-base text-gold-meta">{label}</span>
+            <span className="text-gold-bright">{value}</span>
         </div>
     );
 }

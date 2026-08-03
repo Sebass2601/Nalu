@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { bevelFace } from "@/components/ui/plaque";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FileText, Video } from "lucide-react";
@@ -10,6 +11,7 @@ import {
 } from "@/app/features/courses/db/courseOutline";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { formatPlural } from "@/lib/formatters";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // The course's own landing page, sitting in the layout's content column beside
 // the contents panel. It answers "what is this and where am I" — the navigating
@@ -46,7 +48,7 @@ async function CourseOverview({
     // where the course starts, and where this student left off.
     //
     // Each one carries its section's name because the card that offers the next
-    // lesson names where it sits — "Sección 2" is what tells someone returning
+    // lesson names where it sits — "Clase 2" is what tells someone returning
     // after a week whereabouts they are.
     const lessonsInOrder = course.courseSections.flatMap(section =>
         section.lessons.map(lesson => ({
@@ -58,24 +60,24 @@ async function CourseOverview({
     return (
         <article className="flex flex-col gap-6">
             <header className="flex flex-col gap-3">
-                <h1 className="text-4xl tracking-wide text-yellow-100">
+                <h1 className="text-5xl tracking-wide text-gold-bright">
                     {course.name}
                 </h1>
-                <p className="text-sm tracking-widest text-yellow-200/70 uppercase">
+                <p className="text-base tracking-widest text-gold-body uppercase">
                     {formatPlural(course.courseSections.length, {
-                        singular: "sección",
-                        plural: "secciones",
+                        singular: "clase",
+                        plural: "clases",
                     })}{" "}
                     ·{" "}
                     {formatPlural(lessonCount, {
-                        singular: "lección",
-                        plural: "lecciones",
+                        singular: "sección",
+                        plural: "secciones",
                     })}
                 </p>
                 {/* Hidden on a phone, where this page is the contents list and
                     the space is better spent getting the next lesson and the
                     sections above the fold. */}
-                <p className="hidden text-lg text-yellow-200/80 lg:block">
+                <p className="hidden text-xl text-gold-body lg:block">
                     {course.description}
                 </p>
             </header>
@@ -104,8 +106,8 @@ async function CourseOverview({
             )}
 
             {lessonCount === 0 && (
-                <p className="text-yellow-200/70">
-                    Este curso todavía no tiene lecciones publicadas.
+                <p className="text-gold-body">
+                    Este curso todavía no tiene secciones publicadas.
                 </p>
             )}
         </article>
@@ -162,48 +164,48 @@ async function StartOrContinueButton({
                 you are going next — and saying which lesson that is beats a bare
                 button, because it is also the answer to "where was I". */}
             <div className="order-1 lg:hidden">
-                <p className="mb-2 text-center text-xs tracking-widest text-yellow-200/50 uppercase">
+                <p className="mb-2 text-center text-sm tracking-widest text-gold-meta uppercase">
                     {isResuming ? "Siguiente" : "Empieza aquí"}
                 </p>
                 <Link
                     href={href}
                     className="flex flex-col gap-3 rounded-xl border border-yellow-200/60 bg-[#0a1628]/70 p-4 backdrop-blur-md"
                 >
-                    <span className="text-lg tracking-wide text-yellow-100">
+                    <span className="text-xl tracking-wide text-gold-bright">
                         {target.name}
                     </span>
-                    <span className="flex items-center gap-2 text-xs tracking-widest text-yellow-200/60 uppercase">
+                    <span className="flex items-center gap-2 text-sm tracking-widest text-gold-meta uppercase">
                         <TypeIcon className="size-3.5" />
                         {target.type === "text" ? "Lectura" : "Vídeo"}
                         <span aria-hidden>·</span>
                         <span className="truncate">{target.sectionName}</span>
                     </span>
-                    <span className="self-start rounded-lg border border-yellow-200/60 px-5 py-2 text-sm tracking-widest text-yellow-200 uppercase">
+                    <PlaqueButton as="span" className="self-start">
                         {label}
-                    </span>
+                    </PlaqueButton>
                 </Link>
             </div>
 
             {/* Wide screens keep the plain button: the contents list is already
                 beside it naming every lesson, so a card repeating one of them
                 would only say the same thing twice. */}
-            <Link
-                href={href}
-                className="hidden self-start rounded-lg border border-yellow-200/60 px-8 py-4 text-lg tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628] lg:inline-block"
-            >
+            <PlaqueButton href={href} className="hidden self-start lg:inline-block">
                 {label}
-            </Link>
+            </PlaqueButton>
         </>
     );
 }
 
 function StartButtonSkeleton() {
     return (
-        <div className="h-15 w-48 animate-pulse self-start rounded-lg bg-yellow-200/10" />
+        <div
+            className="h-14 w-48 animate-pulse self-start bg-yellow-200/10"
+            style={{ clipPath: bevelFace(10) }}
+        />
     );
 }
 
-// "8 de 12 lecciones completadas", with a bar. Renders nothing for a visitor who
+// "8 de 12 secciones completadas", with a bar. Renders nothing for a visitor who
 // is not signed in, and nothing for a course with no lessons, where a progress
 // figure would be a division by zero dressed up as information.
 async function CourseProgress({
@@ -221,13 +223,13 @@ async function CourseProgress({
 
     return (
         <div className="flex flex-col gap-2">
-            <p className="text-sm text-yellow-200/70">
+            <p className="text-base text-gold-body">
                 {/* formatPlural prefixes the count itself, so this reads
-                    "8 de 12 lecciones completadas". */}
+                    "8 de 12 secciones completadas". */}
                 {completed} de{" "}
                 {formatPlural(total, {
-                    singular: "lección completada",
-                    plural: "lecciones completadas",
+                    singular: "sección completada",
+                    plural: "secciones completadas",
                 })}
             </p>
             <div

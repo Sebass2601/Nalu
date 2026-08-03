@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getUserCoupon } from "@/app/features/countryGroups/lib/getUserCoupon";
 import { startCheckout } from "../actions/stripe";
-import { productCtaClassName } from "./productCtaStyles";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // Sends the buyer to Stripe's hosted checkout in one click.
 //
@@ -32,13 +32,10 @@ export function CheckoutButton({
             action={startCheckout.bind(null, productId)}
             className={className}
         >
-            <button
-                type="submit"
-                className={productCtaClassName}
-            >
+            <PlaqueButton type="submit" className="w-full sm:w-auto">
                 {label}
-            </button>
-            <p className="text-xs text-yellow-200/50">
+            </PlaqueButton>
+            <p className="text-sm text-gold-meta">
                 Serás redirigido a Stripe para completar el pago de forma
                 segura.
             </p>
@@ -77,7 +74,7 @@ async function DiscountCodeSwitch() {
                 type="submit"
                 name="discountMode"
                 value="promo"
-                className="cursor-pointer text-xs text-yellow-200/70 underline underline-offset-2 transition-colors hover:text-yellow-200"
+                className="cursor-pointer text-sm text-gold-body underline underline-offset-2 transition-colors hover:text-gold"
             >
                 ¿Tienes un código de descuento?
             </button>
@@ -87,7 +84,7 @@ async function DiscountCodeSwitch() {
                 small code — and they would not find out until the payment page
                 showed a higher number. Naming the percentage here is what makes
                 this a real choice instead of a trap. */}
-            <p className="text-xs text-yellow-200/40">
+            <p className="text-sm text-gold-faint">
                 Solo se puede usar un descuento por compra: al aplicar un código
                 se reemplaza tu precio regional ({percentOff}% de descuento,{" "}
                 {coupon.countryGroupName}).

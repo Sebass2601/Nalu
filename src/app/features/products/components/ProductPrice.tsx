@@ -6,7 +6,9 @@ import { getDiscountedPriceInDollars } from "../lib/ppp";
 // Server component that renders a product's price with Purchasing Power Parity
 // applied. It reads the buyer's country (stamped by proxy.ts from Arcjet
 // geolocation) and, if their country group has a recommended discount, shows
-// the local price alongside the struck-through original plus a PPP badge.
+// the local price alongside the struck-through original. The discount is shown
+// as the two prices only — deliberately unlabelled, so the page never names the
+// buyer's region back to them.
 //
 // Reading the country header makes this component dynamic, so render it inside a
 // <Suspense> boundary (see `PriceFallback` for the full-price placeholder that
@@ -42,23 +44,17 @@ export async function ProductPrice({
     );
 
     return (
-        <div className="flex flex-col gap-1">
-            <div className="flex items-baseline gap-2">
-                <span
-                    className={cn(
-                        "text-2xl font-semibold text-yellow-200",
-                        className
-                    )}
-                >
-                    {formatPrice(discounted)}
-                </span>
-                <span className="text-sm text-yellow-200/50 line-through">
-                    {formatPrice(priceInDollars)}
-                </span>
-            </div>
-            <span className="text-xs tracking-wide text-yellow-200/80">
-                🌍 {coupon.discountPercentage * 100}% off · Purchasing Power
-                Parity ({coupon.countryGroupName})
+        <div className="flex items-baseline gap-2">
+            <span
+                className={cn(
+                    "text-3xl font-semibold text-gold",
+                    className
+                )}
+            >
+                {formatPrice(discounted)}
+            </span>
+            <span className="text-base text-gold-meta line-through">
+                {formatPrice(priceInDollars)}
             </span>
         </div>
     );
@@ -75,7 +71,7 @@ export function FullPrice({
 }) {
     return (
         <span
-            className={cn("text-2xl font-semibold text-yellow-200", className)}
+            className={cn("text-3xl font-semibold text-gold", className)}
         >
             {formatPrice(priceInDollars)}
         </span>

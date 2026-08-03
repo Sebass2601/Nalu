@@ -22,7 +22,7 @@ export async function SubscriptionCourseRows({
 
     if (rows.length === 0) {
         return (
-            <p className="text-center text-sm text-yellow-200/60">
+            <p className="text-center text-base text-gold-meta">
                 {emptyMessage}
             </p>
         );
@@ -65,7 +65,7 @@ function CourseRow({
             <div className="flex items-baseline justify-between gap-4 px-1">
                 <h2
                     id={headingId}
-                    className="text-xl tracking-widest text-yellow-200"
+                    className="text-2xl tracking-widest text-gold"
                 >
                     {row.categoryName}
                 </h2>
@@ -73,7 +73,7 @@ function CourseRow({
                     headings stop lining up down the page. */}
                 <Link
                     href={`/subscribe/categories/${slug}`}
-                    className="shrink-0 text-xs tracking-widest text-yellow-200/60 uppercase underline hover:text-yellow-200"
+                    className="shrink-0 text-sm tracking-widest text-gold-meta uppercase underline hover:text-gold"
                 >
                     Ver todos
                 </Link>

@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { CheckoutButton } from "./CheckoutButton";
 import { userOwnsProduct } from "../db/purchases";
-import { productCtaClassName } from "./productCtaStyles";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { bevelFace } from "@/components/ui/plaque";
 
 // Decides what the main control on a product page does: sell the product, or
 // open what was already bought.
@@ -41,7 +41,7 @@ export async function ProductCallToAction({
     // says what is true and stops there.
     if (courses.length === 0) {
         return (
-            <p className="text-lg tracking-widest text-yellow-200 uppercase">
+            <p className="text-xl tracking-widest text-gold uppercase">
                 Ya tienes este producto
             </p>
         );
@@ -51,12 +51,9 @@ export async function ProductCallToAction({
     // choosing entirely and goes straight in.
     if (courses.length === 1) {
         return (
-            <Link
-                href={`/courses/${courses[0].id}`}
-                className={productCtaClassName}
-            >
+            <PlaqueButton href={`/courses/${courses[0].id}`}>
                 Ir al curso
-            </Link>
+            </PlaqueButton>
         );
     }
 
@@ -78,6 +75,9 @@ export async function ProductCallToAction({
 // which reads as a mistake being corrected.
 export function ProductCallToActionSkeleton() {
     return (
-        <div className="h-14 w-48 animate-pulse rounded-lg bg-yellow-200/10" />
+        <div
+            className="h-14 w-48 animate-pulse bg-yellow-200/10"
+            style={{ clipPath: bevelFace(10) }}
+        />
     );
 }

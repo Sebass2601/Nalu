@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import { formatPlural } from "@/lib/formatters";
 import type { MyCourse } from "../db/myCourses";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // One course on the shelf.
 //
@@ -39,28 +39,28 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
 
             <div className="flex flex-1 flex-col gap-3 p-5">
                 {course.categoryName && (
-                    <p className="text-xs tracking-widest text-yellow-200/60 uppercase">
+                    <p className="text-sm tracking-widest text-gold-meta uppercase">
                         {course.categoryName}
                     </p>
                 )}
 
-                <h2 className="text-lg tracking-wide text-yellow-100">
+                <h2 className="text-xl tracking-wide text-gold-bright">
                     {course.name}
                 </h2>
 
-                <p className="text-xs tracking-widest text-yellow-200/50 uppercase">
+                <p className="text-sm tracking-widest text-gold-meta uppercase">
                     {formatPlural(course.sectionCount, {
-                        singular: "sección",
-                        plural: "secciones",
+                        singular: "clase",
+                        plural: "clases",
                     })}{" "}
                     ·{" "}
                     {formatPlural(course.lessonCount, {
-                        singular: "lección",
-                        plural: "lecciones",
+                        singular: "sección",
+                        plural: "secciones",
                     })}
                 </p>
 
-                <p className="line-clamp-3 flex-1 text-sm text-yellow-200/70">
+                <p className="line-clamp-3 flex-1 text-base text-gold-body">
                     {course.description}
                 </p>
 
@@ -75,12 +75,13 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
                     />
                 )}
 
-                <Link
+                <PlaqueButton
                     href={`/courses/${course.id}`}
-                    className="mt-1 block rounded-lg border border-yellow-200/60 px-4 py-2 text-center text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
+                    className="mt-1 block w-full"
+                    size="sm"
                 >
                     Ver curso
-                </Link>
+                </PlaqueButton>
             </div>
         </div>
     );
@@ -101,11 +102,11 @@ function CourseProgressBar({
 
     return (
         <div className="flex flex-col gap-1.5">
-            <p className="text-xs text-yellow-200/70">
+            <p className="text-sm text-gold-body">
                 {done} de{" "}
                 {formatPlural(total, {
-                    singular: "lección completada",
-                    plural: "lecciones completadas",
+                    singular: "sección completada",
+                    plural: "secciones completadas",
                 })}
             </p>
             <div

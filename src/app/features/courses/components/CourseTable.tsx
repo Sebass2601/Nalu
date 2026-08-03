@@ -36,13 +36,13 @@ export function CourseTable({
                             <div className="font-semibold">{course.name}</div>
                             <div className="text-muted-foreground">
                                 {formatPlural(course.sectionsCount, {
-                                    singular: "sección",
-                                    plural: "secciones",
+                                    singular: "clase",
+                                    plural: "clases",
                                 })}
                                 {" "}•{" "}
                                 {formatPlural(course.lessonsCount, {
-                                    singular: "lección",
-                                    plural: "lecciones",
+                                    singular: "sección",
+                                    plural: "secciones",
                                 })}
                             </div>
                         </div>

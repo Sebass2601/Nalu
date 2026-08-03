@@ -20,7 +20,7 @@ export function SectionFormDialog({
             {children}
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{section == null ? "Nueva Sección" : `Editar ${section.name}`}</DialogTitle>
+                    <DialogTitle>{section == null ? "Nueva Clase" : `Editar ${section.name}`}</DialogTitle>
                 </DialogHeader>
                 <SectionForm section={section} courseId={courseId} onSuccess={() => setIsOpen(false)} />
             </DialogContent>

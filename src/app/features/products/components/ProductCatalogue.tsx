@@ -48,17 +48,17 @@ export function Catalogue({
     return (
         <>
             <CategoryNav current={current} />
-            <h1 className="text-3xl tracking-widest text-yellow-200 mb-2 text-center">
+            <h1 className="text-4xl tracking-widest text-gold mb-2 text-center">
                 {title}
             </h1>
             {description && (
-                <p className="text-sm text-yellow-200/70 mb-8 text-center max-w-2xl mx-auto">
+                <p className="text-base text-gold-body mb-8 text-center max-w-2xl mx-auto">
                     {description}
                 </p>
             )}
 
             {products.length === 0 ? (
-                <p className="mt-12 text-center text-yellow-200/70">
+                <p className="mt-12 text-center text-gold-body">
                     {emptyMessage}
                 </p>
             ) : (

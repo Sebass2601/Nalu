@@ -65,7 +65,7 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
                 rather than under the whole gallery — and the space collapses
                 entirely for images that have none. */}
             {image.caption && (
-                <figcaption className="mt-2 text-center text-xs text-yellow-200/70">
+                <figcaption className="mt-2 text-center text-sm text-gold-body">
                     {image.caption}
                 </figcaption>
             )}
@@ -114,7 +114,7 @@ function GalleryArrow({
             type="button"
             onClick={onClick}
             aria-label={isPrevious ? "Imagen anterior" : "Imagen siguiente"}
-            className={`absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-full border border-yellow-200/50 bg-[#0a1628]/80 p-1.5 text-yellow-200 backdrop-blur-sm transition-colors hover:bg-yellow-200 hover:text-[#0a1628] ${
+            className={`absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-full border border-yellow-200/50 bg-[#0a1628]/80 p-1.5 text-gold backdrop-blur-sm transition-colors hover:bg-yellow-200 hover:text-[#0a1628] ${
                 isPrevious ? "left-2" : "right-2"
             }`}
         >

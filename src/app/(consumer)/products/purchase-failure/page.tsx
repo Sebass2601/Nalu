@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { cinzel } from "@/components/ui/fonts";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // Where the webhook's GET handler sends anyone whose return trip could not be
 // turned into a purchase — a missing session ID, a session that is not paid, or
@@ -17,13 +17,13 @@ export default function PurchaseFailurePage() {
         >
             <div className="mx-auto flex max-w-2xl flex-col items-center gap-8 px-4 pt-32 pb-16 text-center">
                 <div className="flex flex-col gap-3">
-                    <p className="text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
+                    <p className="text-sm tracking-[0.3em] text-gold-body uppercase">
                         Algo salió mal
                     </p>
-                    <h1 className="text-4xl tracking-wide text-yellow-100">
+                    <h1 className="text-5xl tracking-wide text-gold-bright">
                         No pudimos confirmar tu compra
                     </h1>
-                    <p className="text-lg text-yellow-200/80">
+                    <p className="text-xl text-gold-body">
                         Si el cobro se realizó, tu acceso se activará en unos
                         minutos de forma automática. Revisa tus cursos antes de
                         intentar pagar de nuevo.
@@ -31,18 +31,12 @@ export default function PurchaseFailurePage() {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-4">
-                    <Link
-                        href="/products"
-                        className="rounded-lg border border-yellow-200/60 px-8 py-3 tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-                    >
+                    <PlaqueButton href="/products">
                         Ver mis cursos
-                    </Link>
-                    <Link
-                        href="/products"
-                        className="rounded-lg border border-yellow-200/30 px-8 py-3 tracking-widest text-yellow-200/80 uppercase transition-colors hover:border-yellow-200/60 hover:text-yellow-200"
-                    >
+                    </PlaqueButton>
+                    <PlaqueButton href="/products" variant="secondary">
                         Volver a la tienda
-                    </Link>
+                    </PlaqueButton>
                 </div>
             </div>
         </main>

@@ -59,16 +59,36 @@ export function bevelOutline({
 }
 
 // Small rotated square that straddles the top and bottom edges of a plaque.
-export function Diamond({ className }: { className?: string }) {
+//
+// `tone` is which side of the edge it has to survive. A diamond half on the
+// plaque and half on the page can only be read if it contrasts with both, so
+// gold works on a dark face and navy works on a gold one — and the navy is
+// ringed in gold, because its outer half sits on a dark page where a bare navy
+// diamond would vanish.
+export function Diamond({
+    className,
+    tone = "gold",
+}: {
+    className?: string
+    tone?: "gold" | "navy"
+}) {
     return (
         <span
             aria-hidden
             className={cn(
-                "pointer-events-none absolute left-1/2 grid size-2.5 -translate-x-1/2 rotate-45 place-items-center bg-yellow-200",
+                "pointer-events-none absolute left-1/2 grid size-2.5 -translate-x-1/2 rotate-45 place-items-center",
+                tone === "gold"
+                    ? "bg-yellow-200"
+                    : "bg-[#0a1628] ring-1 ring-yellow-200",
                 className
             )}
         >
-            <span className="size-1 bg-[#0a1628]" />
+            <span
+                className={cn(
+                    "size-1",
+                    tone === "gold" ? "bg-[#0a1628]" : "bg-yellow-200"
+                )}
+            />
         </span>
     )
 }

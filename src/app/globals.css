@@ -48,6 +48,40 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* The gold the consumer side is written in.
+ *
+ * Every piece of text out there used to name its own shade, and there were nine
+ * of them — yellow-100, yellow-200, and the same yellow-200 at seven different
+ * opacities — spread across a hundred-odd elements. Nine shades for what are
+ * really five jobs, which is why they drifted apart in the first place: nothing
+ * said which one a description was supposed to use, so each new one picked
+ * whatever looked close.
+ *
+ * These five are those jobs. Change a value here and every element doing that
+ * job follows, which is the whole point: making the page warmer or cooler is
+ * now five numbers in one file rather than a hunt through every component.
+ *
+ * Deliberately NOT `@theme inline` like the block above. Plain `@theme` emits
+ * these as real CSS variables on :root and has the utilities reference them, so
+ * they can also be overridden at runtime — per section, or by a future theme —
+ * rather than being baked into each class at build time.
+ *
+ * Ordered brightest to faintest. The three that carry a percentage are the same
+ * yellow-200 seen through varying amounts of the navy behind it.
+ */
+@theme {
+  /* Headings — the course title, the lesson title, a product name. */
+  --color-gold-bright: oklch(98.7% 0.026 102.212);
+  /* Emphasis that is not a heading: prices, the lesson you are on. */
+  --color-gold: oklch(97.3% 0.071 103.193);
+  /* Descriptions and running prose — the bulk of the reading. */
+  --color-gold-body: oklch(94.5% 0.129 101.54 / 90%);
+  /* Meta lines: "3 clases · 7 secciones", dates, captions under a control. */
+  --color-gold-meta: oklch(94.5% 0.129 101.54 / 75%);
+  /* The quietest thing on screen. Fine print that must not compete. */
+  --color-gold-faint: oklch(94.5% 0.129 101.54 / 60%);
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

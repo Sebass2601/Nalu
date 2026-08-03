@@ -13,6 +13,7 @@ import {
     SubscriptionCourseRows,
     SubscriptionCourseRowsSkeleton,
 } from "@/app/features/courses/components/SubscriptionCourseRows";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // The subscription offer: both billing intervals side by side, plus the actual
 // list of courses it unlocks.
@@ -23,13 +24,13 @@ export default function SubscribePage() {
         >
             <div className="mx-auto w-full max-w-4xl px-4 pt-28 pb-8 sm:pt-32">
                 <div className="flex flex-col items-center gap-3 text-center">
-                    <p className="text-xs tracking-[0.3em] text-yellow-200/70 uppercase">
+                    <p className="text-sm tracking-[0.3em] text-gold-body uppercase">
                         Suscripción
                     </p>
-                    <h1 className="text-4xl tracking-wide text-yellow-100">
+                    <h1 className="text-5xl tracking-wide text-gold-bright">
                         Acceso a toda la biblioteca
                     </h1>
-                    <p className="max-w-xl text-yellow-200/80">
+                    <p className="max-w-xl text-gold-body">
                         Un solo pago recurrente para entrar a los cursos
                         incluidos. Cancela cuando quieras.
                     </p>
@@ -48,10 +49,10 @@ export default function SubscribePage() {
                     <SubscriptionCourseRows emptyMessage="Aún no hay cursos incluidos en la suscripción." />
                 </Suspense>
 
-                <p className="mt-12 text-center text-xs text-yellow-200/40">
+                <p className="mt-12 text-center text-sm text-gold-faint">
                     <Link
                         href="/products"
-                        className="underline hover:text-yellow-200/70"
+                        className="underline hover:text-gold-body"
                     >
                         Ver también los cursos disponibles para compra
                         individual
@@ -88,39 +89,30 @@ async function Plans() {
     );
 
     return (
-        <>
-            <div className="mt-12 grid gap-6 sm:grid-cols-2">
-                <PlanCard
-                    interval="month"
-                    title="Mensual"
-                    priceInDollars={plans.monthly.priceInDollars}
-                    coupon={coupon}
-                    caption="por mes"
-                />
-                <PlanCard
-                    interval="year"
-                    title="Anual"
-                    priceInDollars={plans.yearly.priceInDollars}
-                    coupon={coupon}
-                    caption={`por año · equivale a ${formatPrice(
-                        equivalentMonthly
-                    )}/mes`}
-                    badge={
-                        plans.yearly.savingsPercent > 0
-                            ? `Ahorra ${plans.yearly.savingsPercent}%`
-                            : undefined
-                    }
-                    highlighted
-                />
-            </div>
-            {coupon != null && (
-                <p className="mt-4 text-center text-xs tracking-wide text-yellow-200/80">
-                    🌍 {Math.round(coupon.discountPercentage * 100)}% off ·
-                    Purchasing Power Parity ({coupon.countryGroupName}) —
-                    aplicado a cada renovación
-                </p>
-            )}
-        </>
+        <div className="mt-12 grid gap-6 sm:grid-cols-2">
+            <PlanCard
+                interval="month"
+                title="Mensual"
+                priceInDollars={plans.monthly.priceInDollars}
+                coupon={coupon}
+                caption="por mes"
+            />
+            <PlanCard
+                interval="year"
+                title="Anual"
+                priceInDollars={plans.yearly.priceInDollars}
+                coupon={coupon}
+                caption={`por año · equivale a ${formatPrice(
+                    equivalentMonthly
+                )}/mes`}
+                badge={
+                    plans.yearly.savingsPercent > 0
+                        ? `Ahorra ${plans.yearly.savingsPercent}%`
+                        : undefined
+                }
+                highlighted
+            />
+        </div>
     );
 }
 
@@ -164,11 +156,11 @@ function PlanCard({
             }`}
         >
             <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl tracking-wide text-yellow-100">
+                <h2 className="text-2xl tracking-wide text-gold-bright">
                     {title}
                 </h2>
                 {badge && (
-                    <span className="rounded border border-yellow-200/50 px-2 py-0.5 text-[10px] tracking-widest text-yellow-200 uppercase">
+                    <span className="rounded border border-yellow-200/50 px-2 py-0.5 text-xs tracking-widest text-gold uppercase">
                         {badge}
                     </span>
                 )}
@@ -176,30 +168,28 @@ function PlanCard({
 
             <div className="flex flex-col gap-1">
                 <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-semibold text-yellow-200">
+                    <span className="text-4xl font-semibold text-gold">
                         {formatPrice(discounted)}
                     </span>
                     {/* Only when it differs — a coupon that rounds to the same
                         whole dollar would otherwise print the identical figure
                         struck through beside itself. */}
                     {discounted !== priceInDollars && (
-                        <span className="text-sm text-yellow-200/50 line-through">
+                        <span className="text-base text-gold-meta line-through">
                             {formatPrice(priceInDollars)}
                         </span>
                     )}
                 </div>
-                <span className="text-xs text-yellow-200/60">{caption}</span>
+                <span className="text-sm text-gold-meta">{caption}</span>
             </div>
 
             {/* A plain form + Server Action: no client JavaScript needed to
                 start a checkout, so this works before hydration. */}
-            <form action={startSubscriptionCheckout.bind(null, interval)}>
-                <button
-                    type="submit"
-                    className="w-full cursor-pointer rounded-lg border border-yellow-200/60 px-6 py-3 tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-                >
-                    Suscribirme
-                </button>
+            <form
+                action={startSubscriptionCheckout.bind(null, interval)}
+                className="flex justify-center"
+            >
+                <PlaqueButton type="submit">Suscribirme</PlaqueButton>
             </form>
         </div>
     );

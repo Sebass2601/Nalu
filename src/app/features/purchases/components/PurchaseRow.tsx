@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import { formatDate, formatPrice } from "@/lib/formatters";
 import type { UserPurchase } from "../db/userPurchases";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // One line of the purchase history.
 //
@@ -33,15 +33,15 @@ export function PurchaseRow({ purchase }: { purchase: UserPurchase }) {
 
             <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <h2 className="text-lg tracking-wide text-yellow-100">
+                    <h2 className="text-xl tracking-wide text-gold-bright">
                         {purchase.productName}
                     </h2>
                     {isRefunded && <RefundedBadge />}
                 </div>
-                <p className="text-xs tracking-widest text-yellow-200/60 uppercase">
+                <p className="text-sm tracking-widest text-gold-meta uppercase">
                     {formatDate(purchase.purchasedAt)}
                 </p>
-                <p className="text-yellow-200">
+                <p className="text-gold">
                     {formatPrice(purchase.pricePaidInCents / 100)}
                 </p>
             </div>
@@ -65,12 +65,13 @@ export function PurchaseRow({ purchase }: { purchase: UserPurchase }) {
 // promises only what it delivers.
 function CourseLink({ courseId }: { courseId: string | null }) {
     return (
-        <Link
+        <PlaqueButton
             href={courseId == null ? "/courses" : `/courses/${courseId}`}
-            className="rounded-lg border border-yellow-200/60 px-4 py-2 text-center text-xs tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
+            className="block w-full"
+            size="sm"
         >
             {courseId == null ? "Ver cursos" : "Ver curso"}
-        </Link>
+        </PlaqueButton>
     );
 }
 
@@ -80,18 +81,20 @@ function CourseLink({ courseId }: { courseId: string | null }) {
 // anyone who wants the original.
 function ReceiptLink({ purchaseId }: { purchaseId: string }) {
     return (
-        <Link
+        <PlaqueButton
             href={`/purchases/${purchaseId}`}
-            className="rounded-lg border border-yellow-200/30 px-4 py-2 text-center text-xs tracking-widest text-yellow-200/70 uppercase transition-colors hover:border-yellow-200/60 hover:text-yellow-200"
+            className="block w-full"
+            size="sm"
+            variant="secondary"
         >
             Ver recibo
-        </Link>
+        </PlaqueButton>
     );
 }
 
 function RefundedBadge() {
     return (
-        <span className="rounded-full border border-yellow-200/40 px-2 py-0.5 text-[0.65rem] tracking-widest text-yellow-200/70 uppercase">
+        <span className="rounded-full border border-yellow-200/40 px-2 py-0.5 text-xs tracking-widest text-gold-body uppercase">
             Reembolsada
         </span>
     );

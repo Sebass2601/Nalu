@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { getUserPurchases } from "@/app/features/purchases/db/userPurchases";
 import { PurchaseRow } from "@/app/features/purchases/components/PurchaseRow";
 import { cinzel } from "@/components/ui/fonts";
+import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // The receipt log behind the Compras tab: every one-time purchase this person
 // has made, newest first.
@@ -18,7 +18,7 @@ export default function PurchasesPage() {
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
             <div className="mx-auto w-full max-w-4xl px-4 pt-32 pb-16">
-                <h1 className="mb-8 text-center text-3xl tracking-widest text-yellow-200">
+                <h1 className="mb-8 text-center text-4xl tracking-widest text-gold">
                     Mis compras
                 </h1>
 
@@ -56,7 +56,7 @@ async function PurchaseList() {
 function Empty() {
     return (
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <p className="text-yellow-200/70">
+            <p className="text-gold-body">
                 Todavía no has hecho ninguna compra. Cuando compres un curso,
                 aparecerá aquí con su recibo.
             </p>
@@ -68,16 +68,11 @@ function Empty() {
 function SignedOut() {
     return (
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <p className="text-yellow-200/70">
+            <p className="text-gold-body">
                 Inicia sesión para ver tus compras.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-                <Link
-                    href="/login"
-                    className="rounded-lg border border-yellow-200/60 px-6 py-2 text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-                >
-                    Iniciar sesión
-                </Link>
+                <PlaqueButton href="/login">Iniciar sesión</PlaqueButton>
                 <CatalogueLink />
             </div>
         </div>
@@ -86,12 +81,7 @@ function SignedOut() {
 
 function CatalogueLink() {
     return (
-        <Link
-            href="/products"
-            className="rounded-lg border border-yellow-200/60 px-6 py-2 text-sm tracking-widest text-yellow-200 uppercase transition-colors hover:bg-yellow-200 hover:text-[#0a1628]"
-        >
-            Ver catálogo
-        </Link>
+        <PlaqueButton href="/products">Ver catálogo</PlaqueButton>
     );
 }
 

@@ -37,7 +37,7 @@ export function LessonBody({
                         // An unfinished lesson rather than a broken one: the
                         // admin form allows saving a video lesson before its
                         // video id is filled in.
-                        <div className="flex h-full w-full items-center justify-center bg-[#0a1628]/70 text-sm text-yellow-200/60">
+                        <div className="flex h-full w-full items-center justify-center bg-[#0a1628]/70 text-base text-gold-meta">
                             Este vídeo aún no está disponible.
                         </div>
                     )}
@@ -79,7 +79,7 @@ function LessonText({
     const rest = hasLead ? paragraphs.slice(1) : paragraphs;
 
     return (
-        <div className="flex flex-col gap-4 text-yellow-200/85">
+        <div className="flex flex-col gap-4 text-gold-body">
             {lead && <p className="leading-relaxed">{lead}</p>}
 
             {/* The float and the text it wraps around must share one container,

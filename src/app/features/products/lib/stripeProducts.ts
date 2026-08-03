@@ -1,5 +1,6 @@
 import "server-only";
 
+import Stripe from "stripe";
 import { stripe, dollarsToCents } from "@/lib/stripe";
 import { env } from "@/data/env/server";
 import type { productStatus } from "@/drizzle/schema";
@@ -95,25 +96,53 @@ export async function updateStripeProduct(
     // Re-sent on every update so a product created before this tax code existed
     // is repaired the first time an admin saves it, rather than staying
     // unbuyable until someone notices.
-    await stripe.products.update(product.stripeProductId, {
-        name: product.name,
-        description: product.description,
-        images: [absoluteImageUrl(product.imageUrl)],
-        tax_code: ONLINE_COURSE_TAX_CODE,
-        active: product.status === "public",
-    });
+    try {
+        await stripe.products.update(product.stripeProductId, {
+            name: product.name,
+            description: product.description,
+            images: [absoluteImageUrl(product.imageUrl)],
+            tax_code: ONLINE_COURSE_TAX_CODE,
+            active: product.status === "public",
+        });
+    } catch (error) {
+        // The stored ID names an object this account has never heard of. The
+        // ordinary cause is an environment pointed at a different Stripe
+        // sandbox than the one that minted these IDs — every database row then
+        // carries IDs belonging to the other account. Recreating is the only
+        // way forward, and it is safe: the unreachable object is not being
+        // orphaned by us, it simply is not ours.
+        if (!isStripeErrorCode(error, "resource_missing")) throw error;
+        return createStripeProduct(product);
+    }
 
     const desiredAmount = dollarsToCents(product.priceInDollars);
 
     // Ask Stripe what the current Price actually is rather than comparing
     // against the old database value. Stripe is the side that bills, so a drift
     // between the two is exactly the case this needs to catch and repair.
-    const currentPrice =
-        product.stripePriceId == null
-            ? null
-            : await stripe.prices.retrieve(product.stripePriceId);
+    // A Price missing from this account is treated as no Price at all, so the
+    // replacement below mints one.
+    let currentPrice: Stripe.Price | null = null;
+    if (product.stripePriceId != null) {
+        try {
+            currentPrice = await stripe.prices.retrieve(product.stripePriceId);
+        } catch (error) {
+            if (!isStripeErrorCode(error, "resource_missing")) throw error;
+        }
+    }
 
-    if (currentPrice != null && currentPrice.unit_amount === desiredAmount) {
+    // Reuse the existing Price only when it is BOTH the right amount and still
+    // usable. Checking the amount alone was a real bug: a Price archived out of
+    // band — by another environment sharing this Stripe account, say — still
+    // reports its original `unit_amount`, so a row asking for that same amount
+    // matched and got the dead ID handed straight back. Checkout then rejected
+    // it with "The price specified is inactive", and re-saving the product in
+    // the admin took this same early exit and repaired nothing.
+    if (
+        currentPrice != null &&
+        currentPrice.active &&
+        currentPrice.unit_amount === desiredAmount
+    ) {
         return {
             stripeProductId: product.stripeProductId,
             stripePriceId: currentPrice.id,
@@ -127,8 +156,9 @@ export async function updateStripeProduct(
     });
 
     // Archive last, and only after the replacement exists. Doing it first would
-    // leave a window where the product has no usable price at all.
-    if (currentPrice != null) {
+    // leave a window where the product has no usable price at all. An already
+    // archived Price needs nothing done to it.
+    if (currentPrice != null && currentPrice.active) {
         await stripe.prices.update(currentPrice.id, { active: false });
     }
 
@@ -136,6 +166,16 @@ export async function updateStripeProduct(
         stripeProductId: product.stripeProductId,
         stripePriceId: newPrice.id,
     };
+}
+
+// Stripe reports "no such object" as a typed error carrying this code. Narrowed
+// to the code rather than the class so a network failure or a revoked key still
+// throws instead of being mistaken for a missing object and silently recreating
+// the catalogue. (`pppCoupons.ts` keeps its own copy of this — the two features
+// are otherwise independent, and sharing three lines across them is not worth
+// the coupling.)
+function isStripeErrorCode(error: unknown, code: string) {
+    return error instanceof Stripe.errors.StripeError && error.code === code;
 }
 
 // Deactivates a product in Stripe when it is removed here.
