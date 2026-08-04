@@ -135,7 +135,10 @@ export function NavItem({
         // the tile stays the width it already was.
         "group relative inline-flex h-16 items-center justify-center px-1.5 select-none",
         "text-yellow-200 transition-[color,transform] duration-200 ease-out",
-        "hover:-translate-y-0.5 hover:text-white active:translate-y-0",
+        // `hover:active:` so a phone tap changes nothing — a bare `active:`
+        // translate made iOS Safari drop clip-path'd layers mid-press.
+        // See the same line in PlaqueButton.
+        "hover:-translate-y-0.5 hover:text-white hover:active:translate-y-0",
         "focus-visible:outline-none focus-visible:-translate-y-0.5",
         "sm:px-4",
         current && "text-yellow-100"

@@ -42,7 +42,10 @@ export function UserMenuButton({
                     // and the offset belongs there, next to the logo's.
                     "group inline-flex h-16 items-center select-none",
                     "transition-transform duration-200 ease-out",
-                    "hover:-translate-y-0.5 active:translate-y-0",
+                    // `hover:active:` so a phone tap changes nothing — a bare
+                    // `active:` translate made iOS Safari drop clip-path'd
+                    // layers mid-press. See the same line in PlaqueButton.
+                    "hover:-translate-y-0.5 hover:active:translate-y-0",
                     "focus-visible:outline-none focus-visible:-translate-y-0.5",
                     "cursor-pointer"
                 )}

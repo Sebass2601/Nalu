@@ -170,7 +170,12 @@ export function PlaqueButton({
     const shell = cn(
         cinzel.className,
         "group/plaque relative inline-block cursor-pointer select-none",
-        "transition-transform duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0",
+        // `hover:active:`, not `active:`. The press-down exists only to cancel
+        // the hover lift, and Tailwind v4 already limits `hover:` to devices
+        // that have one. Left as a bare `active:`, every phone tap applied an
+        // identity translate — invisible, but enough of a compositing flip for
+        // iOS Safari to drop the clip-path'd layers while the finger was down.
+        "transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:active:translate-y-0",
         // A real focus ring, offset far enough to clear the diamonds. The
         // browser default is unusable here — it traces the element's box, and
         // clip-path has cut that box into an octagon — but removing it without

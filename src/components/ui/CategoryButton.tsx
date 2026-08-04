@@ -52,7 +52,10 @@ export default function CategoryButton({
       className={cn(
         cinzel.className,
         "group relative inline-block select-none",
-        "transition-transform duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0",
+        // `hover:active:` so a phone tap changes nothing — a bare `active:`
+        // translate made iOS Safari drop the clip-path'd layers mid-press.
+        // See the same line in PlaqueButton.
+        "transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:active:translate-y-0",
         "focus-visible:outline-none",
         className
       )}
