@@ -7,6 +7,7 @@ import {
     Catalogue,
     CatalogueShell,
 } from "@/app/features/products/components/ProductCatalogue";
+import { BackLink } from "@/components/ui/BackToHomeLink";
 
 // The whole catalogue, reached from the Todos plaque on any category page.
 //
@@ -18,6 +19,13 @@ export default async function ProductsPage() {
 
     return (
         <CatalogueShell>
+            {/* The same way out the category pages carry, to the same place:
+                the castle is where a visitor picks what to look at, and the
+                pill nav below only moves sideways between catalogues. */}
+            <BackLink href="/" className="mb-8">
+                Volver a la página principal
+            </BackLink>
+
             <Catalogue
                 current="all"
                 title="Todos los cursos"
