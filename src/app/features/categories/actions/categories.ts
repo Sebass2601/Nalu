@@ -4,6 +4,7 @@ import z from "zod";
 import { categorySchema } from "../schemas/categories";
 import { redirect } from "next/navigation";
 import {
+    DoorwayTakenError,
     insertCategory,
     updateCategory as updateCategoryDB,
     deleteCategory as deleteCategoryDB,
@@ -22,7 +23,17 @@ export async function createCategory(unsafeData: z.infer<typeof categorySchema>)
         return { error: true, message: "Hubo un error creando la categoría." };
     }
 
-    await insertCategory(data);
+    try {
+        await insertCategory(data);
+    } catch (error) {
+        // A doorway clash is the admin's to fix, so it is reported back as a
+        // message instead of crashing the page. Anything else is a real fault
+        // and keeps bubbling.
+        if (error instanceof DoorwayTakenError) {
+            return { error: true, message: error.message };
+        }
+        throw error;
+    }
 
     redirect("/admin/categories");
 }
@@ -40,7 +51,14 @@ export async function updateCategory(
         };
     }
 
-    await updateCategoryDB(id, data);
+    try {
+        await updateCategoryDB(id, data);
+    } catch (error) {
+        if (error instanceof DoorwayTakenError) {
+            return { error: true, message: error.message };
+        }
+        throw error;
+    }
 
     redirect("/admin/categories");
 }

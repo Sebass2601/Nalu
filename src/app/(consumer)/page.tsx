@@ -16,26 +16,6 @@ const FIXED_ENTRANCES: Record<string, { label: string; href: string }> = {
   "4": { label: "Gran Salón del Conocimiento", href: "/" },
 };
 
-// Categories that must appear at one particular doorway, keyed by the doorway's
-// id in HOTSPOTS. They are matched by category id rather than by name, so
-// renaming a category in the admin panel never moves it off its doorway.
-// Every category left out of this list fills whatever doorways remain.
-const PINNED_CATEGORIES: Record<string, string> = {
-  // "Torre del Tiempo" → the archway beneath the clock tower.
-  "2": "910db7e6-b0f7-4148-9f03-e02dca7286d7",
-  // "Templo de los Espejos" → the mid-left lit window.
-  "3": "b6bb2614-39e4-43cc-9796-4e3602805e6f",
-  // "El Reino Escondido" → the lower left archway.
-  "9": "0f077991-d335-46f2-86c1-4bca3e4cea37",
-};
-
-// Wording for a doorway's button, keyed by doorway id. A doorway listed here
-// keeps this exact text no matter what its category is later renamed to; a
-// doorway left out simply shows its category's current name.
-const LABEL_OVERRIDES: Record<string, string> = {
-  // "2": "Torre del Tiempo",
-};
-
 export default async function Home() {
   const categories = await getCategories();
 
@@ -51,39 +31,44 @@ async function getCategories() {
   cacheTag(getCategoryGlobalTag());
 
   return db
-    .select({ id: CategoryTable.id, name: CategoryTable.name })
+    .select({
+      id: CategoryTable.id,
+      name: CategoryTable.name,
+      doorway: CategoryTable.doorway,
+    })
     .from(CategoryTable)
     .orderBy(asc(CategoryTable.name));
 }
 
-type Category = { id: string; name: string };
+type Category = { id: string; name: string; doorway: string | null };
 
-// Fills every doorway: the fixed ones keep their own wording, the pinned
-// category takes the doorway it was assigned, and the rest are handed out in
-// alphabetical order. Doorways with no category left over are dropped rather
-// than rendered as a button that leads nowhere.
+// Turns the categories into the plaques the castle draws. Each one goes to the
+// doorway stored on it, and a category without a doorway is simply not drawn —
+// it stays reachable from /products and the category nav.
+//
+// Nothing here depends on how many categories there are or on the order they
+// arrive in, which is the point: a category's plaque only ever moves when an
+// admin changes its doorway. Adding, renaming or deleting a category leaves
+// every other plaque exactly where it was.
+//
+// A doorway pointing at nothing is left as plain artwork, and a category
+// pointing at a doorway the artwork no longer has is dropped rather than drawn
+// off-screen.
 function assignEntrances(categories: Category[]): Entrance[] {
-  const byId = new Map(categories.map((category) => [category.id, category]));
-  const pinnedIds = new Set(Object.values(PINNED_CATEGORIES).filter(Boolean));
-  const unpinned = categories.filter((category) => !pinnedIds.has(category.id));
+  const byDoorway = new Map(
+    categories.flatMap((category) =>
+      category.doorway == null ? [] : [[category.doorway, category] as const]
+    )
+  );
 
   return HOTSPOTS.flatMap(({ id }) => {
-    // A fixed doorway stands on its own and leaves the pool untouched.
+    // A fixed doorway keeps its own wording and is never handed to a category.
     const fixed = FIXED_ENTRANCES[id];
     if (fixed) return [{ id, ...fixed }];
 
-    const pinned = byId.get(PINNED_CATEGORIES[id] ?? "");
-    // shift() takes the next spare category and removes it from the pool, so
-    // no two doorways can end up with the same one.
-    const category = pinned ?? unpinned.shift();
+    const category = byDoorway.get(id);
     if (!category) return [];
 
-    return [
-      {
-        id,
-        label: LABEL_OVERRIDES[id] ?? category.name,
-        href: `/categories/${category.id}`,
-      },
-    ];
+    return [{ id, label: category.name, href: `/categories/${category.id}` }];
   });
 }

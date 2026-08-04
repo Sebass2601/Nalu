@@ -5,6 +5,7 @@ import { Trash2Icon } from "lucide-react"
 import Link from "next/link"
 import { deleteCategory } from "../actions/categories"
 import { ActionButton } from "@/components/ActionButton"
+import { doorwayLabel } from "@/components/ui/parallaxEntrances"
 
 export function CategoryTable({
     categories
@@ -13,6 +14,7 @@ export function CategoryTable({
     id: string
     name: string
     coursesCount: number
+    doorway: string | null
   }[]
 }) {
     return <Table>
@@ -23,6 +25,7 @@ export function CategoryTable({
                 })}
                 </TableHead>
                 <TableHead>Cursos</TableHead>
+                <TableHead>Puerta</TableHead>
                 <TableHead>Acciones</TableHead>
             </TableRow>
         </TableHeader>
@@ -37,6 +40,16 @@ export function CategoryTable({
                             singular: "curso",
                             plural: "cursos",
                         })}
+                    </TableCell>
+                    <TableCell>
+                        {/* A doorway that no longer exists in the artwork falls
+                            back to its bare id, so it can still be spotted and
+                            reassigned instead of vanishing from this list. */}
+                        {category.doorway == null ? (
+                            <span className="text-muted-foreground">Sin puerta</span>
+                        ) : (
+                            doorwayLabel(category.doorway) ?? `Puerta ${category.doorway}`
+                        )}
                     </TableCell>
                     <TableCell>
                         <div className="flex gap-2">

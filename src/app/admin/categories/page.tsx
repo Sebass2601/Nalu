@@ -39,6 +39,7 @@ async function getCategories() {
         .select({
             id: DbCategoryTable.id,
             name: DbCategoryTable.name,
+            doorway: DbCategoryTable.doorway,
             coursesCount: countDistinct(CourseTable.id),
         })
         .from(DbCategoryTable)

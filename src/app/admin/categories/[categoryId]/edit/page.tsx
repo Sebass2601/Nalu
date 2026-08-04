@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { db } from "@/drizzle/db";
 import { CategoryTable } from "@/drizzle/schema";
 import { CategoryForm } from "@/app/features/categories/components/CategoryForm";
+import { getDoorwayOccupants } from "@/app/features/categories/db/categories";
 import { getCategoryIdTag } from "@/app/features/categories/db/cache/categories";
 import { eq } from "drizzle-orm";
 import { cacheTag } from "next/cache";
@@ -15,14 +16,17 @@ export default async function EditCategoryPage({
 }) {
     await requireAdmin();
     const { categoryId } = await params
-    const category = await getCategory(categoryId)
+    const [category, occupants] = await Promise.all([
+        getCategory(categoryId),
+        getDoorwayOccupants(),
+    ])
 
     if (category == null) return notFound()
 
     return (
         <div className="container my-6">
             <PageHeader title={`Editar ${category.name}`} />
-            <CategoryForm category={category} />
+            <CategoryForm category={category} occupants={occupants} />
         </div>
     )
 }
@@ -32,7 +36,7 @@ async function getCategory(id: string) {
     cacheTag(getCategoryIdTag(id))
 
     return db.query.CategoryTable.findFirst({
-        columns: { id: true, name: true, description: true },
+        columns: { id: true, name: true, description: true, doorway: true },
         where: eq(CategoryTable.id, id),
     })
 }
