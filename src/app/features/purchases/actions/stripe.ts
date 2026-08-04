@@ -48,10 +48,37 @@ export async function startCheckout(productId: string, formData: FormData) {
     const { user } = await getCurrentUser({ withFullUser: true });
     if (user == null) redirect("/login");
 
-    // Shared with the purchase page, and it filters to public products — so
-    // someone who guessed the ID of an unpublished product cannot buy it
-    // straight from this endpoint.
-    const product = await getPublicProduct(productId);
+    // A Checkout Session has exactly ONE discount slot: Stripe rejects
+    // `discounts` and `allow_promotion_codes` together with "You may only
+    // specify one of these parameters". So the regional price and a promo code
+    // cannot both apply, and the buyer chooses which one they want before
+    // getting here.
+    //
+    // The submit button they pressed decides it. A button's name/value reaches
+    // the server only when that particular button submits the form, so the
+    // ordinary "Comprar ahora" path sends nothing and keeps the regional price.
+    const wantsPromoCode = formData.get("discountMode") === "promo";
+
+    // Together rather than one after another. None of the three needs anything
+    // the others produce, and awaited in sequence they cost three round trips to
+    // the database — three waits the buyer spends looking at a page that cannot
+    // yet tell them anything. The checks below still run in their original
+    // order, so what this endpoint accepts and rejects is unchanged.
+    const [product, alreadyOwned, coupon] = await Promise.all([
+        // Shared with the purchase page, and it filters to public products — so
+        // someone who guessed the ID of an unpublished product cannot buy it
+        // straight from this endpoint.
+        getPublicProduct(productId),
+        // Re-checked here and not only on the page, because this endpoint is
+        // reachable directly and a page-level check protects nothing.
+        userOwnsProduct({ userId: user.id, productId }),
+        // The line item carries the FULL price; the PPP discount is applied by
+        // the Stripe coupon instead. Keeping the discount in the coupon means
+        // Stripe computes the final amount, and the invoice records why it was
+        // lower.
+        wantsPromoCode ? null : getUserCoupon(),
+    ]);
+
     if (product == null) throw new Error("Producto no encontrado.");
 
     // Every product is mirrored into Stripe on create and update, so a missing
@@ -64,27 +91,9 @@ export async function startCheckout(productId: string, formData: FormData) {
         );
     }
 
-    // Re-checked here and not only on the page, because this endpoint is
-    // reachable directly and a page-level check protects nothing.
-    if (await userOwnsProduct({ userId: user.id, productId })) {
+    if (alreadyOwned) {
         redirect("/products");
     }
-
-    // A Checkout Session has exactly ONE discount slot: Stripe rejects
-    // `discounts` and `allow_promotion_codes` together with "You may only
-    // specify one of these parameters". So the regional price and a promo code
-    // cannot both apply, and the buyer chooses which one they want before
-    // getting here.
-    //
-    // The submit button they pressed decides it. A button's name/value reaches
-    // the server only when that particular button submits the form, so the
-    // ordinary "Comprar ahora" path sends nothing and keeps the regional price.
-    const wantsPromoCode = formData.get("discountMode") === "promo";
-
-    // The line item carries the FULL price; the PPP discount is applied by the
-    // Stripe coupon instead. Keeping the discount in the coupon means Stripe
-    // computes the final amount, and the invoice records why it was lower.
-    const coupon = wantsPromoCode ? null : await getUserCoupon();
 
     const session = await stripe.checkout.sessions.create({
         ui_mode: "hosted_page",

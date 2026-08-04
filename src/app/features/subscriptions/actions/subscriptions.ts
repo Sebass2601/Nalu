@@ -24,17 +24,28 @@ export async function startSubscriptionCheckout(interval: string) {
     const { user } = await getCurrentUser({ withFullUser: true });
     if (user == null) redirect("/login");
 
+    // Neither of these needs the other, so they go together — one wait rather
+    // than two on the path to leaving for Stripe.
+    const [subscribed, coupon] = await Promise.all([
+        hasActiveSubscription(user.id),
+        getUserCoupon(),
+    ]);
+
     // Already subscribed: send them to manage the plan they have instead of
     // letting them buy a second one. The unique constraint on
     // subscriptions.userId would reject the duplicate anyway, but only after
     // Stripe had taken the money.
-    if (await hasActiveSubscription(user.id)) {
+    if (subscribed) {
         redirect("/subscription-management");
     }
 
     // A subscription REQUIRES a Customer — Stripe attaches the plan, invoices,
     // saved card and billing portal to it. Unlike one-time payments,
     // `customer_email` alone is not enough.
+    //
+    // Left sequential on purpose, below the check above rather than beside it:
+    // this one WRITES, and creating a Stripe customer for someone who is about
+    // to be bounced to /subscription-management is a record nobody asked for.
     const stripeCustomerId = await getOrCreateStripeCustomer({
         id: user.id,
         email: user.email,
@@ -45,8 +56,6 @@ export async function startSubscriptionCheckout(interval: string) {
         interval === "month"
             ? env.STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID
             : env.STRIPE_ALL_ACCESS_YEARLY_PRICE_ID;
-
-    const coupon = await getUserCoupon();
 
     const session = await stripe.checkout.sessions.create({
         ui_mode: "hosted_page",

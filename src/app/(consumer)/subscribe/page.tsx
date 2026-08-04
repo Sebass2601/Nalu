@@ -13,7 +13,7 @@ import {
     SubscriptionCourseRows,
     SubscriptionCourseRowsSkeleton,
 } from "@/app/features/courses/components/SubscriptionCourseRows";
-import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { PlaqueSubmitButton } from "@/components/ui/PlaqueSubmitButton";
 
 // The subscription offer: both billing intervals side by side, plus the actual
 // list of courses it unlocks.
@@ -189,7 +189,7 @@ function PlanCard({
                 action={startSubscriptionCheckout.bind(null, interval)}
                 className="flex justify-center"
             >
-                <PlaqueButton type="submit">Suscribirme</PlaqueButton>
+                <PlaqueSubmitButton>Suscribirme</PlaqueSubmitButton>
             </form>
         </div>
     );

@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { getUserSubscription } from "@/app/features/subscriptions/db/subscriptions";
 import { openBillingPortal } from "@/app/features/subscriptions/actions/subscriptions";
 import { cinzel } from "@/components/ui/fonts";
-import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { PlaqueSubmitButton } from "@/components/ui/PlaqueSubmitButton";
 
 // The state of your plan, and the door to Stripe's billing portal.
 //
@@ -79,9 +79,9 @@ async function SubscriptionDetails() {
                 )}
 
                 <form action={openBillingPortal}>
-                    <PlaqueButton type="submit" className="w-full sm:w-auto">
+                    <PlaqueSubmitButton className="w-full sm:w-auto">
                         Gestionar suscripción
-                    </PlaqueButton>
+                    </PlaqueSubmitButton>
                 </form>
                 <p className="text-sm text-gold-meta">
                     Cambia de plan, actualiza tu tarjeta o cancela desde el

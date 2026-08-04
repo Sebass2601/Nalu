@@ -1,14 +1,21 @@
 import { Suspense } from "react";
 import { getUserCoupon } from "@/app/features/countryGroups/lib/getUserCoupon";
 import { startCheckout } from "../actions/stripe";
-import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { PlaqueSubmitButton } from "@/components/ui/PlaqueSubmitButton";
+import { DiscountCodeSubmit } from "./DiscountCodeSubmit";
 
 // Sends the buyer to Stripe's hosted checkout in one click.
 //
 // A plain <form> with a Server Action, not a client component. The whole job is
-// "create a session server-side, then redirect", which needs no browser
-// JavaScript at all — so this stays a server component, ships nothing to the
-// client, and still works if the page's JavaScript never loads.
+// "create a session server-side, then redirect", so this file stays on the
+// server and the purchase still completes if the page's JavaScript never loads.
+//
+// The two submit buttons are the exception, and only just: each is a small
+// client component so it can show a spinner while the session is being created
+// (see PlaqueSubmitButton for why that wait is long enough to need one). They
+// add no data to the submission and no requirement to work — without
+// JavaScript they are ordinary submit buttons and the sale goes through
+// unchanged.
 //
 // The redirect notice lives here rather than at each call site so every button
 // carries it. Leaving the site to pay is worth warning about: an unexpected
@@ -65,14 +72,13 @@ export function CheckoutButton({
             action={startCheckout.bind(null, productId)}
             className={className}
         >
-            <PlaqueButton
-                type="submit"
+            <PlaqueSubmitButton
                 size={size}
                 variant={variant}
                 className={fullWidth ? "block w-full" : "w-full sm:w-auto"}
             >
                 {label}
-            </PlaqueButton>
+            </PlaqueSubmitButton>
             {showDetails && (
                 <>
                     {hint && <p className="text-sm text-gold-body">{hint}</p>}
@@ -114,14 +120,9 @@ async function DiscountCodeSwitch() {
 
     return (
         <div className="mt-2 flex flex-col items-start gap-1 border-t border-yellow-200/15 pt-3">
-            <button
-                type="submit"
-                name="discountMode"
-                value="promo"
-                className="cursor-pointer text-sm text-gold-body underline underline-offset-2 transition-colors hover:text-gold"
-            >
+            <DiscountCodeSubmit>
                 ¿Tienes un código de descuento?
-            </button>
+            </DiscountCodeSubmit>
             {/* Spelling out what they would lose, and by how much. Stripe only
                 allows one discount per purchase, so a buyer with a large
                 regional discount can easily end up paying MORE by redeeming a
