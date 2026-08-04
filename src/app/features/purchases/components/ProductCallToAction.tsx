@@ -34,7 +34,45 @@ export async function ProductCallToAction({
     const owned =
         userId != null && (await userOwnsProduct({ userId, productId }));
 
-    if (!owned) return <CheckoutButton productId={productId} />;
+    if (!owned) {
+        // A lone course has nowhere else to be reached from: the page draws no
+        // syllabus card for a single-course product, because that card said the
+        // course's name where the title already stood, its size where the
+        // header already counted it, and carried one button. Only the button
+        // was worth keeping, so it joins the buy button here.
+        //
+        // Secondary rather than a second gold plaque. Buying is what this page
+        // is for, and two solid plaques side by side leave a reader with no way
+        // to tell which one the page is asking for — the same rule CheckoutButton
+        // states for the upgrade offer, and the same reason.
+        if (courses.length === 1) {
+            return (
+                // Reversed while stacked, so on a phone "Ver curso" sits above
+                // the buy button. Beside it from `sm` up, in reading order:
+                // buying first, looking second.
+                //
+                // `items-start` because CheckoutButton is a column — the button
+                // plus its redirect notice and discount switch — and the link
+                // belongs level with the plaque at the top of it, not centred
+                // against the whole stack.
+                <div className="flex w-full flex-col-reverse gap-4 sm:w-auto sm:flex-row sm:items-start">
+                    <CheckoutButton productId={productId} />
+                    <PlaqueButton
+                        href={`/courses/${courses[0].id}`}
+                        variant="secondary"
+                        // Matching the buy button's own width rule, or the two
+                        // would be different widths in the stacked layout where
+                        // they sit directly on top of one another.
+                        className="w-full sm:w-auto"
+                    >
+                        Ver curso
+                    </PlaqueButton>
+                </div>
+            );
+        }
+
+        return <CheckoutButton productId={productId} />;
+    }
 
     // Nothing to open. A product that bundles no courses is unusual but
     // possible, and a button leading nowhere is worse than a sentence — so this
@@ -73,10 +111,30 @@ export async function ProductCallToAction({
 // Deliberately not the buy button: using that as the fallback would show
 // "Comprar ahora" to someone who already owns the product and then swap it,
 // which reads as a mistake being corrected.
-export function ProductCallToActionSkeleton() {
+export function ProductCallToActionSkeleton({
+    // Whether to stand in for a row of two plaques rather than one. How many
+    // courses a product bundles is cached data the page already holds, and it
+    // does not depend on who is asking — so the fallback can be the right shape
+    // from the first frame instead of sprouting a second button when the
+    // ownership check comes back.
+    withCourseLink = false,
+}: {
+    withCourseLink?: boolean;
+}) {
+    return (
+        <div className="flex w-full animate-pulse flex-col-reverse gap-4 sm:w-auto sm:flex-row">
+            <SkeletonPlaque />
+            {withCourseLink && <SkeletonPlaque />}
+        </div>
+    );
+}
+
+// Full width while stacked and fixed from `sm` up, which is what the plaques
+// themselves do — a fallback narrower than its button is a jump on a phone.
+function SkeletonPlaque() {
     return (
         <div
-            className="h-14 w-48 animate-pulse bg-yellow-200/10"
+            className="h-14 w-full bg-yellow-200/10 sm:w-48"
             style={{ clipPath: bevelFace(10) }}
         />
     );

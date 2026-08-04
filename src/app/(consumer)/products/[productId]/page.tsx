@@ -26,6 +26,7 @@ import {
     ProductCallToActionSkeleton,
 } from "@/app/features/purchases/components/ProductCallToAction";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { BackLink } from "@/components/ui/BackToHomeLink";
 import { formatPlural } from "@/lib/formatters";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
@@ -46,6 +47,19 @@ export default function ProductPage({
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
             <div className="pt-32 px-4 max-w-6xl mx-auto pb-16">
+                {/* Outside the boundary below, and above everything the
+                    product itself draws. Where it goes does not depend on
+                    which product this is, so it paints with the frame rather
+                    than streaming in — and a way out is the one thing that
+                    should already be there while the page is still loading.
+                    On a wide screen it sits directly over the price, the
+                    first line of the column beneath it; on a phone, where the
+                    cover image comes first, it stays at the top of the page,
+                    which is where a way out is looked for. */}
+                <BackLink href="/products" className="mb-8">
+                    Volver al catálogo
+                </BackLink>
+
                 <Suspense fallback={<ProductSkeleton />}>
                     <ProductDetails params={params} />
                 </Suspense>
@@ -118,7 +132,13 @@ async function ProductDetails({
                         cookie, which is request-time data: the price, the title
                         and the syllabus below are all cached and must not wait
                         on a session lookup to appear. */}
-                    <Suspense fallback={<ProductCallToActionSkeleton />}>
+                    <Suspense
+                        fallback={
+                            <ProductCallToActionSkeleton
+                                withCourseLink={courseCount === 1}
+                            />
+                        }
+                    >
                         <ProductCallToAction
                             productId={product.id}
                             courses={product.courses}
@@ -135,10 +155,30 @@ async function ProductDetails({
                 </div>
             </div>
 
+            {/* Two columns only once there are two things to put in them. A
+                lone syllabus runs the full width of the page — from where the
+                description starts to where the cover image ends — because it
+                is the whole of what is below the hero, and half a page of
+                panel beside half a page of nothing reads as something that
+                failed to load. */}
             {courseCount > 0 && (
-                <div className="mt-12 grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
+                <div
+                    className={`mt-12 grid grid-cols-1 items-start gap-8 ${
+                        courseCount > 1 ? "lg:grid-cols-2" : ""
+                    }`}
+                >
                     {product.courses.map(course => (
-                        <CourseSyllabus key={course.id} course={course} />
+                        <CourseSyllabus
+                            key={course.id}
+                            course={course}
+                            // A single course has its "Ver curso" beside
+                            // "Comprar ahora" already, and one page offering
+                            // the same course twice is what moving it there
+                            // was meant to stop. With several courses the
+                            // panel's own button is the only way in, since the
+                            // control above cannot answer "which one".
+                            showCourseLink={courseCount > 1}
+                        />
                     ))}
                 </div>
             )}
@@ -147,8 +187,14 @@ async function ProductDetails({
 }
 
 // One bundled course: its own counts, then every section as a fold-out list of
-// lessons — and a way into the course itself.
-function CourseSyllabus({ course }: { course: ProductCourse }) {
+// lessons — and, where it is the only way in, a link to the course itself.
+function CourseSyllabus({
+    course,
+    showCourseLink,
+}: {
+    course: ProductCourse;
+    showCourseLink: boolean;
+}) {
     const lessonCount = sumBy(
         course.courseSections,
         section => section.lessons.length
@@ -177,11 +223,13 @@ function CourseSyllabus({ course }: { course: ProductCourse }) {
                 other lesson answers with a lock rather than its contents. So
                 nothing here depends on the session, and the whole card stays
                 cached data rendered in one pass. */}
-            <div className="mt-4">
-                <PlaqueButton href={`/courses/${course.id}`} size="sm">
-                    Ver curso
-                </PlaqueButton>
-            </div>
+            {showCourseLink && (
+                <div className="mt-4">
+                    <PlaqueButton href={`/courses/${course.id}`} size="sm">
+                        Ver curso
+                    </PlaqueButton>
+                </div>
+            )}
 
             <div className="mt-4 flex flex-col">
                 {course.courseSections.map(section => (

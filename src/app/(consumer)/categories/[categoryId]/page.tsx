@@ -17,6 +17,7 @@ import {
     CatalogueShell,
     CatalogueSkeleton,
 } from "@/app/features/products/components/ProductCatalogue";
+import { BackLink } from "@/components/ui/BackToHomeLink";
 
 // One page serving every category: the doorway clicked on the home page decides
 // which id lands in the URL, and the same template renders that category's
@@ -32,6 +33,17 @@ export default function CategoryPage({
 }) {
     return (
         <CatalogueShell>
+            {/* Back to the castle, which is where a category is chosen: the
+                doorways on the home page are what lead here. Outside the
+                boundary because the way out does not depend on which category
+                this is, so it is already there while the products stream in.
+
+                The pill nav below is sideways movement — between categories,
+                or out to the whole catalogue — and never back up. */}
+            <BackLink href="/" className="mb-8">
+                Volver a la página principal
+            </BackLink>
+
             <Suspense fallback={<CatalogueSkeleton />}>
                 <CategoryProducts params={params} />
             </Suspense>

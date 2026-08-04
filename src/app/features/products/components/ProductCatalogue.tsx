@@ -107,25 +107,93 @@ export function Catalogue({
 }
 
 // What stands in while a catalogue is still being read.
+//
+// It mirrors `Catalogue` above rather than approximating it: the same two
+// layouts at the same breakpoint, so nothing rearranges underneath the reader
+// when the real cards arrive. A single grid here was a desktop-only fallback —
+// on a phone it collapsed to one column of tall boxes, which is not what
+// replaced it, and the swap moved the whole page.
+//
+// The phone row is plain markup rather than a DraggableStrip: the strip
+// measures itself and parks its scroll position on mount, and there is no
+// reason to mount, hydrate and measure a client component for cards that are
+// about to be thrown away. It only has to *look* like the strip at rest, which
+// is a row clipped at the column's edge.
 export function CatalogueSkeleton() {
     return (
         <div className="animate-pulse">
-            <div className="mb-8 flex flex-wrap justify-center gap-2">
+            {/* Phone: plaques running off the right edge, left-aligned and at
+                the taller size CategoryNav gives them there. Uneven widths
+                because "Todos" is a short word standing next to category
+                names — a row of five identical pills reads as a placeholder
+                for something else. */}
+            <nav className="mb-6 flex gap-2 overflow-hidden px-1 pb-2 lg:hidden">
+                {["w-28", "w-64", "w-48"].map(width => (
+                    <div
+                        key={width}
+                        className={`h-12 shrink-0 rounded-full bg-yellow-200/10 ${width}`}
+                    />
+                ))}
+            </nav>
+
+            {/* Wide screens: the wrapped, centred row. */}
+            <nav className="mb-8 hidden flex-wrap justify-center gap-2 lg:flex">
                 {Array.from({ length: 5 }, (_, index) => (
                     <div
                         key={index}
                         className="h-10 w-40 rounded-full bg-yellow-200/10"
                     />
                 ))}
-            </div>
-            <div className="h-8 w-64 mx-auto rounded bg-yellow-200/20" />
-            <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
+            </nav>
+
+            <div className="mx-auto h-8 w-64 rounded bg-yellow-200/20" />
+
+            {/* The card widths the strip itself uses, so the sliver of the
+                next card past the right edge — the thing that says this row
+                moves sideways — is there before the products are. */}
+            <div className="mt-8 flex gap-4 overflow-hidden px-1 pb-2 lg:hidden">
                 {Array.from({ length: 3 }, (_, index) => (
-                    <div
-                        key={index}
-                        className="h-80 w-full max-w-125 mx-auto rounded-2xl border border-yellow-200/20 bg-[#0a1628]/40"
-                    />
+                    <div key={index} className="w-[85vw] max-w-125 shrink-0">
+                        <ProductCardSkeleton />
+                    </div>
                 ))}
+            </div>
+
+            <div className="mt-8 hidden grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 lg:grid">
+                {Array.from({ length: 3 }, (_, index) => (
+                    <ProductCardSkeleton key={index} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// A ProductCard with nothing in it yet, built from the same blocks in the same
+// order: the full-bleed cover, then the padded stack. Built that way rather
+// than given a fixed height because the height then follows the card's own at
+// every width, instead of being a number that quietly stops matching the first
+// time the card changes.
+function ProductCardSkeleton() {
+    return (
+        <div className="mx-auto flex w-full max-w-125 flex-col overflow-hidden rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70">
+            <div className="aspect-video w-full bg-yellow-200/10" />
+            <div className="flex flex-1 flex-col gap-3 p-5">
+                {/* Two lines for the title: these names run long enough to
+                    wrap on a card this wide, and the pair is spaced as two
+                    lines of one heading rather than as two separate things. */}
+                <div className="space-y-2">
+                    <div className="h-6 w-full rounded bg-yellow-200/20" />
+                    <div className="h-6 w-2/3 rounded bg-yellow-200/20" />
+                </div>
+                <div className="h-8 w-24 rounded bg-yellow-200/20" />
+                {/* Three lines, the most the description ever shows before
+                    `line-clamp-3` cuts it. */}
+                <div className="flex-1 space-y-3">
+                    <div className="h-4 w-full rounded bg-yellow-200/10" />
+                    <div className="h-4 w-full rounded bg-yellow-200/10" />
+                    <div className="h-4 w-3/4 rounded bg-yellow-200/10" />
+                </div>
+                <div className="mt-2 h-9 w-full rounded bg-yellow-200/20" />
             </div>
         </div>
     );

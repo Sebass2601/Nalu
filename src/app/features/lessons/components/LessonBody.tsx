@@ -78,8 +78,13 @@ function LessonText({
     const lead = hasLead ? paragraphs[0] : null;
     const rest = hasLead ? paragraphs.slice(1) : paragraphs;
 
+    // `select-none` covers the whole written lesson rather than each paragraph,
+    // so a drag that starts in one paragraph and ends in another still selects
+    // nothing. It discourages lifting the course text wholesale; it is not a
+    // lock — the words are in the HTML either way — so nothing here depends on
+    // it holding.
     return (
-        <div className="flex flex-col gap-4 text-gold-body">
+        <div className="flex select-none flex-col gap-4 text-gold-body">
             {lead && <p className="leading-relaxed">{lead}</p>}
 
             {/* The float and the text it wraps around must share one container,

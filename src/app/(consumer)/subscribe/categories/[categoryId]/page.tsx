@@ -13,6 +13,7 @@ import {
 } from "@/app/features/courses/db/subscriptionCourses";
 import { SubscriptionCourseCard } from "@/app/features/courses/components/SubscriptionCourseCard";
 import { DraggableStrip } from "@/components/ui/DraggableStrip";
+import { BackLink } from "@/components/ui/BackToHomeLink";
 
 // Rejects anything that is not a uuid before it reaches Postgres, which would
 // raise on the comparison rather than simply matching nothing. A 404 is the
@@ -32,6 +33,15 @@ export default function SubscriptionCategoryPage({
 }) {
     return (
         <CatalogueShell>
+            {/* Back to the offer, not to the castle: this page is reached from
+                the rows on /subscribe, and a visitor who followed one of them
+                into a category is still deciding whether to subscribe.
+                Outside the boundary, so the way out is there before the
+                courses are. */}
+            <BackLink href="/subscribe" className="mb-8">
+                Volver a la suscripción
+            </BackLink>
+
             <Suspense fallback={<CategoryCoursesSkeleton />}>
                 <CategoryCourses params={params} />
             </Suspense>

@@ -117,15 +117,73 @@ function CatalogueLink() {
     );
 }
 
+// The shelf before it is known what is on it. Both of the layouts above, at the
+// same breakpoint: the dragged row on a phone, the grid on a wide screen. A
+// grid alone was a desktop-only fallback — on a phone it became a column of
+// tall boxes that the horizontal row then replaced, and the page rearranged
+// itself at the swap.
+//
+// Plain markup rather than a DraggableStrip. The strip mounts, measures and
+// parks itself, and none of that is worth doing for cards about to be
+// discarded; at rest it is a row clipped at the column's edge, which is all
+// this has to look like.
 function MyCoursesSkeleton() {
     return (
-        <div className="grid animate-pulse grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
-            {Array.from({ length: 3 }, (_, index) => (
-                <div
-                    key={index}
-                    className="h-64 w-full rounded-2xl border border-yellow-200/20 bg-[#0a1628]/40"
-                />
-            ))}
+        <div className="animate-pulse">
+            {/* The strip's own card width, so the sliver of the next card
+                past the right edge is already there — a shelf holding one
+                course and a shelf holding several look different from the
+                first frame, and this one should not promise only one. */}
+            <div className="flex gap-4 overflow-hidden px-1 pb-2 lg:hidden">
+                {Array.from({ length: 3 }, (_, index) => (
+                    <div key={index} className="w-[85vw] max-w-125 shrink-0">
+                        <MyCourseCardSkeleton />
+                    </div>
+                ))}
+            </div>
+
+            <div className="hidden grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 lg:grid">
+                {Array.from({ length: 3 }, (_, index) => (
+                    <MyCourseCardSkeleton key={index} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// A MyCourseCard with nothing in it yet, block for block: cover, title, the
+// size line, the progress bar and the button. Assembled rather than given a
+// height, so it stays the height of the real card as that card changes.
+//
+// The cover is drawn even though `MyCourseCard` only draws one for a course
+// that has art. It has to guess one way or the other, and the courses on a
+// shelf are the ones someone bought or subscribed to — the ones most likely to
+// carry a picture.
+//
+// The upgrade plaque is left out for the same kind of reason in the other
+// direction: it appears on subscription cards only, so drawing it would add a
+// button to every card on the shelf to be right about some of them.
+function MyCourseCardSkeleton() {
+    return (
+        <div className="flex flex-col overflow-hidden rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70">
+            <div className="aspect-video w-full bg-yellow-200/10" />
+            <div className="flex flex-1 flex-col gap-3 p-5">
+                {/* Two lines, spaced as one wrapped heading rather than as two
+                    separate blocks. */}
+                <div className="space-y-2">
+                    <div className="h-6 w-full rounded bg-yellow-200/20" />
+                    <div className="h-6 w-2/3 rounded bg-yellow-200/20" />
+                </div>
+                {/* "1 clase · 3 secciones" */}
+                <div className="h-5 w-40 rounded bg-yellow-200/10" />
+                {/* The progress block: its line of text and its track, at the
+                    gap the real one uses. */}
+                <div className="flex flex-col gap-1.5">
+                    <div className="h-5 w-48 rounded bg-yellow-200/10" />
+                    <div className="h-1.5 w-full rounded-full bg-yellow-200/15" />
+                </div>
+                <div className="mt-auto h-9 w-full rounded bg-yellow-200/20" />
+            </div>
         </div>
     );
 }

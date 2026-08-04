@@ -19,11 +19,17 @@ export async function UserMenu() {
         // word inside a gold outline rather than a glyph with a label that a
         // phone would drop. The h-16 wrapper keeps it on the same baseline as
         // the tiles beside it, so removing the tile does not move the slot.
+        //
+        // Three sizes rather than two, because the pill is pinned over the
+        // corner of the row rather than sitting in it: the row only reserves
+        // right padding on a phone, so from `sm` up a full-sized pill leans on
+        // the last plaque. It stays at its phone size through the tablet range
+        // and only grows at `lg`, where the row has width to spare.
         return (
-            <span className="inline-flex h-16 items-center px-1.5 sm:px-4">
+            <span className="inline-flex h-16 items-center px-1.5 lg:px-4">
                 <Link
                     href="/login"
-                    className="inline-flex items-center rounded-full border border-yellow-200/70 px-3 py-1.5 text-xs font-medium tracking-widest whitespace-nowrap text-yellow-200 transition-colors duration-200 hover:border-yellow-200 hover:bg-yellow-200/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-200/60 sm:px-5 sm:py-2 sm:text-sm"
+                    className="inline-flex items-center rounded-full border border-yellow-200/70 px-2.5 py-1 text-[11px] font-medium tracking-widest whitespace-nowrap text-yellow-200 transition-colors duration-200 hover:border-yellow-200 hover:bg-yellow-200/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-200/60 sm:px-3 sm:py-1.5 sm:text-xs lg:px-5 lg:py-2 lg:text-sm"
                 >
                     Iniciar sesión
                 </Link>

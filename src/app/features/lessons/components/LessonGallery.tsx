@@ -37,15 +37,32 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
     return (
         <figure className="mb-4 w-full md:float-left md:mr-6 md:w-2/5">
             <div className="relative">
-                {/* object-contain, not cover: these are illustrations chosen by
-                    whoever wrote the lesson, and cropping one to fit a frame can
-                    cut out the very thing it was meant to show. */}
-                <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl border border-yellow-200/40 bg-[#0a1628]/70">
+                {/* The frame takes its shape from the picture instead of the
+                    other way round. There is no fixed ratio and no `fill` here:
+                    the image is a normal block at the full width of the figure
+                    with its height left to `auto`, so it keeps its own
+                    proportions and the bordered box, having nothing else in it,
+                    ends up exactly the same shape. A square illustration gets a
+                    square frame, a tall one a tall frame, and neither is
+                    cropped or padded out with empty margins to reach a shape it
+                    never had.
+
+                    `block` matters: an inline image sits on the text baseline
+                    and leaves a few pixels of descender gap beneath it, which
+                    would show up as precisely the sliver of dead space this is
+                    meant to remove.
+
+                    `width`/`height` are required for a remote src and are only
+                    a ratio — Next.js reserves space with them until the real
+                    image arrives, after which the natural proportions win. 4:3
+                    keeps that reservation close to the old layout. */}
+                <div className="relative overflow-hidden rounded-xl border border-yellow-200/40 bg-[#0a1628]/70">
                     <Image
                         src={image.url}
                         alt={image.caption ?? ""}
-                        fill
-                        className="object-contain"
+                        width={1200}
+                        height={900}
+                        className="block h-auto w-full"
                         sizes="(max-width: 768px) 100vw, 40vw"
                     />
                 </div>
