@@ -79,10 +79,25 @@ export function CourseNav({
             }`}
         >
             {/* Only on wide screens. On a phone this list is the course page,
-                whose own heading already names the course directly above it. */}
-            <p className="mb-4 hidden text-xl tracking-wide text-gold-bright lg:block">
-                {courseName}
-            </p>
+                whose own heading already names the course directly above it.
+
+                While a lesson is open the name is the way back out to the
+                course — the one page the contents panel cannot otherwise reach,
+                since every row in it leads to another lesson. On the course
+                page itself it stays plain text: a link to the page you are
+                already on is a link that does nothing. */}
+            {isLessonOpen ? (
+                <Link
+                    href={`/courses/${courseId}`}
+                    className="mb-4 hidden text-xl tracking-wide text-gold-bright transition-colors hover:text-gold lg:block"
+                >
+                    {courseName}
+                </Link>
+            ) : (
+                <p className="mb-4 hidden text-xl tracking-wide text-gold-bright lg:block">
+                    {courseName}
+                </p>
+            )}
 
             <nav aria-label="Contenido del curso" className="flex flex-col">
                 {sections.map(section => (

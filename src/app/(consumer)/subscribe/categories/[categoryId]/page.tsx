@@ -12,6 +12,7 @@ import {
     UNCATEGORIZED_SLUG,
 } from "@/app/features/courses/db/subscriptionCourses";
 import { SubscriptionCourseCard } from "@/app/features/courses/components/SubscriptionCourseCard";
+import { DraggableStrip } from "@/components/ui/DraggableStrip";
 
 // Rejects anything that is not a uuid before it reaches Postgres, which would
 // raise on the comparison rather than simply matching nothing. A 404 is the
@@ -78,14 +79,46 @@ async function CategoryCourses({
                     suscripción.
                 </p>
             ) : (
-                <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6">
-                    {courses.map(course => (
-                        <SubscriptionCourseCard
-                            key={course.id}
-                            course={course}
-                        />
-                    ))}
-                </div>
+                <>
+                    {/* Phone: one dragged row rather than a column of
+                        full-width cards, so the size of the category is
+                        visible without scrolling past it. It does not loop —
+                        unlike the sampler rows on /subscribe this is every
+                        course in the category, and the end of the row is the
+                        answer to "how many are there". */}
+                    <div className="mt-8 lg:hidden">
+                        <DraggableStrip
+                            label="Cursos de la categoría"
+                            previousLabel="Ver cursos anteriores"
+                            nextLabel="Ver más cursos"
+                        >
+                            {courses.map(course => (
+                                // Nearly the whole screen, matching the other
+                                // listings. Capped so a large phone or a
+                                // tablet does not stretch one card wider than
+                                // the grid ever draws them.
+                                <div
+                                    key={course.id}
+                                    className="w-[85vw] max-w-125 shrink-0 snap-start"
+                                >
+                                    <SubscriptionCourseCard course={course} />
+                                </div>
+                            ))}
+                        </DraggableStrip>
+                    </div>
+
+                    {/* Wide screens keep the grid: this is the full listing
+                        for the category, and there is room to lay it out at
+                        once. */}
+                    <div className="mt-8 hidden grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6 lg:grid">
+                        {courses.map(course => (
+                            <SubscriptionCourseCard
+                                key={course.id}
+                                course={course}
+                            />
+                        ))}
+                    </div>
+                </>
             )}
         </>
     );

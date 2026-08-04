@@ -4,10 +4,12 @@ import { getMyCourses } from "@/app/features/courses/db/myCourses";
 import { MyCourseCard } from "@/app/features/courses/components/MyCourseCard";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { DraggableStrip } from "@/components/ui/DraggableStrip";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
-// The shelf: everything this person can open, in one grid.
+// The shelf: everything this person can open — a grid on a wide screen, a
+// dragged row on a phone.
 //
 // No category navigation, unlike the catalogue pages. Those pills exist to move
 // around a shop with more in it than fits on a screen; here they would filter a
@@ -44,11 +46,39 @@ async function MyCourses() {
     if (courses.length === 0) return <Empty />;
 
     return (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
-            {courses.map(course => (
-                <MyCourseCard key={course.id} course={course} />
-            ))}
-        </div>
+        <>
+            {/* Phone: a dragged row, not looping. A shelf is a finite thing and
+                reaching its end is part of what it tells you — that these are
+                the courses you have. */}
+            <div className="lg:hidden">
+                <DraggableStrip
+                    label="Mis cursos"
+                    previousLabel="Ver cursos anteriores"
+                    nextLabel="Ver más cursos"
+                >
+                    {courses.map(course => (
+                        // Nearly the full width of the screen, the size these
+                        // cards were before the strip — but not quite all of
+                        // it: the sliver of the next card showing past the
+                        // edge is what says the row moves sideways. Capped so
+                        // a large phone or a tablet does not stretch one card
+                        // wider than the grid ever draws them.
+                        <div
+                            key={course.id}
+                            className="w-[85vw] max-w-125 shrink-0 snap-start"
+                        >
+                            <MyCourseCard course={course} />
+                        </div>
+                    ))}
+                </DraggableStrip>
+            </div>
+
+            <div className="hidden grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 lg:grid">
+                {courses.map(course => (
+                    <MyCourseCard key={course.id} course={course} />
+                ))}
+            </div>
+        </>
     );
 }
 

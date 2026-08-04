@@ -5,6 +5,7 @@ import {
     type SubscriptionCategoryRow,
 } from "../db/subscriptionCourses";
 import { SubscriptionCourseCard } from "./SubscriptionCourseCard";
+import { DraggableStrip } from "@/components/ui/DraggableStrip";
 
 // A row is a sampler, not a catalogue. Past this many, "Ver todos" is the way
 // through — a strip nobody reaches the end of is worse than a shorter one.
@@ -43,14 +44,8 @@ export async function SubscriptionCourseRows({
 
 // One category: its heading, its "Ver todos", and the strip.
 //
-// The strip scrolls with CSS alone — no client JavaScript, so it works before
-// hydration and on any input a browser already handles. That costs one thing:
-// a scrollable box is not reachable by keyboard unless it is focusable, hence
-// `tabIndex`. Without it, arrow keys never reach the row and every card past
-// the fold is unreachable without a mouse.
-//
-// The cut-off card at the container's right edge is the whole affordance. Do
-// not add padding or a fade that hides it.
+// The strip itself is a client component: scrolling is still CSS, but mouse
+// drag needs JavaScript. See `DraggableStrip` for what that costs.
 function CourseRow({
     slug,
     row,
@@ -79,11 +74,21 @@ function CourseRow({
                 </Link>
             </div>
 
-            <div
-                tabIndex={0}
-                role="group"
-                aria-labelledby={headingId}
-                className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2"
+            {/* The one place that loops. A row here is a sampler capped at
+                MAX_CARDS_PER_ROW with "Ver todos" beside it for the rest, so
+                its end is an arbitrary cut rather than the end of anything —
+                nothing is lost by running past it back to the start. */}
+            {/* No mouse dragging: on a desktop these rows are paged with the
+                arrows and nothing else. Every card is a link, and pressing one
+                to slide the row past it is a gesture that starts on top of the
+                thing you might have meant to open. A finger still swipes the
+                row, which is untouched by this — see `mouseDrag`. */}
+            <DraggableStrip
+                headingId={headingId}
+                previousLabel="Ver cursos anteriores"
+                nextLabel="Ver más cursos"
+                mouseDrag={false}
+                loop
             >
                 {row.courses.slice(0, MAX_CARDS_PER_ROW).map(course => (
                     <div
@@ -93,7 +98,7 @@ function CourseRow({
                         <SubscriptionCourseCard course={course} />
                     </div>
                 ))}
-            </div>
+            </DraggableStrip>
         </section>
     );
 }

@@ -15,8 +15,8 @@ import { CourseUpgradeButton } from "./CourseUpgradeOffer";
 // What is never done is borrowing a picture from whichever product happens to
 // bundle this course: that artwork sells the product, and the course is not the
 // product. Absent its own image, the card leads instead with the things that
-// actually distinguish one course from another here — its category, its size,
-// and how far through it you are.
+// actually distinguish one course from another here — its name, its size, and
+// how far through it you are.
 export function MyCourseCard({ course }: { course: MyCourse }) {
     const isStarted = course.completedCount > 0;
 
@@ -39,12 +39,6 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
             )}
 
             <div className="flex flex-1 flex-col gap-3 p-5">
-                {course.categoryName && (
-                    <p className="text-sm tracking-widest text-gold-meta uppercase">
-                        {course.categoryName}
-                    </p>
-                )}
-
                 <h2 className="text-xl tracking-wide text-gold-bright">
                     {course.name}
                 </h2>
@@ -61,10 +55,6 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
                     })}
                 </p>
 
-                <p className="line-clamp-3 flex-1 text-base text-gold-body">
-                    {course.description}
-                </p>
-
                 {/* Only once there is progress to report. An untouched course
                     shows nothing here rather than an empty bar: a bar at zero
                     looks like a course that stalled, when in fact it has not
@@ -78,7 +68,11 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
 
                 <PlaqueButton
                     href={`/courses/${course.id}`}
-                    className="mt-1 block w-full"
+                    // `mt-auto` rather than a fixed margin: it takes over the
+                    // job the description used to do as the card's flex filler,
+                    // so cards of differing heights in a row still line their
+                    // buttons up along the bottom.
+                    className="mt-auto block w-full"
                     size="sm"
                 >
                     Ver curso
@@ -91,8 +85,8 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
                     is for; this is an offer, not the errand.
                     The button alone, with none of the copy it carries
                     elsewhere: a card is a summary, and this one already holds a
-                    category, a title, a size, a description, a progress bar and
-                    another button before this one arrives. The two places with
+                    title, a size, a progress bar and another button before this
+                    one arrives. The two places with
                     room to explain the offer — the course page and the product
                     page — still do. */}
                 {course.upgradeProductId && (

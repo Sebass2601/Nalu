@@ -1,5 +1,6 @@
 import { CategoryNav } from "@/app/features/categories/components/CategoryNav";
 import { ProductCard } from "./ProductCard";
+import { DraggableStrip } from "@/components/ui/DraggableStrip";
 import { Cinzel } from "next/font/google";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
@@ -62,11 +63,44 @@ export function Catalogue({
                     {emptyMessage}
                 </p>
             ) : (
-                <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
-                    {products.map(product => (
-                        <ProductCard key={product.id} {...product} />
-                    ))}
-                </div>
+                <>
+                    {/* Phone: one dragged row rather than a column of
+                        full-width cards, so the size of the catalogue is
+                        visible without scrolling past it. It does not loop —
+                        this is every product in the category, and the end of
+                        the row is the answer to "how many are there". */}
+                    <div className="mt-8 lg:hidden">
+                        <DraggableStrip
+                            label="Cursos"
+                            previousLabel="Ver cursos anteriores"
+                            nextLabel="Ver más cursos"
+                        >
+                            {products.map(product => (
+                                // Nearly the whole screen, as these cards were
+                                // before the strip, with the next one just
+                                // showing past the edge so the row reads as
+                                // something you drag. `max-w-125` is the
+                                // ProductCard's own cap, repeated here so the
+                                // wrapper never gets wider than the card
+                                // inside it and leaves a gap on its right.
+                                <div
+                                    key={product.id}
+                                    className="w-[85vw] max-w-125 shrink-0 snap-start"
+                                >
+                                    <ProductCard {...product} />
+                                </div>
+                            ))}
+                        </DraggableStrip>
+                    </div>
+
+                    {/* Wide screens keep the grid: the cards are the page
+                        here, and there is room to lay them out in full. */}
+                    <div className="mt-8 hidden grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 lg:grid">
+                        {products.map(product => (
+                            <ProductCard key={product.id} {...product} />
+                        ))}
+                    </div>
+                </>
             )}
         </>
     );
@@ -80,7 +114,7 @@ export function CatalogueSkeleton() {
                 {Array.from({ length: 5 }, (_, index) => (
                     <div
                         key={index}
-                        className="h-7 w-32 rounded-full bg-yellow-200/10"
+                        className="h-10 w-40 rounded-full bg-yellow-200/10"
                     />
                 ))}
             </div>

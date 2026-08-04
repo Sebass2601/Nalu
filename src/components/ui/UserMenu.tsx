@@ -1,5 +1,5 @@
+import Link from "next/link"
 import { getCurrentUser } from "@/app/features/users/actions/currentUser"
-import { NavItem } from "./NavItem"
 import { UserMenuButton } from "./UserMenuButton"
 
 // The last item in either navbar: the avatar when someone is signed in, the
@@ -14,14 +14,20 @@ export async function UserMenu() {
     const { user } = await getCurrentUser()
 
     if (user == null) {
+        // No icon and no plaque here: a doorway out of the app is the one item
+        // in the bar that has to name itself at every width, so it is a single
+        // word inside a gold outline rather than a glyph with a label that a
+        // phone would drop. The h-16 wrapper keeps it on the same baseline as
+        // the tiles beside it, so removing the tile does not move the slot.
         return (
-            <NavItem
-                href="/login"
-                label="Iniciar sesión"
-                icon={
-                    <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 13 16h-2a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 12 21Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                }
-            />
+            <span className="inline-flex h-16 items-center px-1.5 sm:px-4">
+                <Link
+                    href="/login"
+                    className="inline-flex items-center rounded-full border border-yellow-200/70 px-3 py-1.5 text-xs font-medium tracking-widest whitespace-nowrap text-yellow-200 transition-colors duration-200 hover:border-yellow-200 hover:bg-yellow-200/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-200/60 sm:px-5 sm:py-2 sm:text-sm"
+                >
+                    Iniciar sesión
+                </Link>
+            </span>
         )
     }
 

@@ -75,10 +75,12 @@ async function CourseOverview({
                         plural: "secciones",
                     })}
                 </p>
-                {/* Hidden on a phone, where this page is the contents list and
-                    the space is better spent getting the next lesson and the
-                    sections above the fold. */}
-                <p className="hidden text-xl text-gold-body lg:block">
+                {/* Shown at every width. On a phone it is a step smaller: this
+                    screen is also the contents list, and the description is
+                    what the course is rather than where you are going next, so
+                    it should not push the Up Next card further down the screen
+                    than it has to. */}
+                <p className="text-base text-gold-body lg:text-xl">
                     {course.description}
                 </p>
             </header>
