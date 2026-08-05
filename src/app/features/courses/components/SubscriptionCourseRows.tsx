@@ -23,7 +23,7 @@ export async function SubscriptionCourseRows({
 
     if (rows.length === 0) {
         return (
-            <p className="text-center text-base text-gold-meta">
+            <p className="text-center text-base text-ink-meta">
                 {emptyMessage}
             </p>
         );
@@ -60,7 +60,7 @@ function CourseRow({
             <div className="flex items-baseline justify-between gap-4 px-1">
                 <h2
                     id={headingId}
-                    className="text-2xl tracking-widest text-gold"
+                    className="text-2xl tracking-widest text-ink"
                 >
                     {row.categoryName}
                 </h2>
@@ -68,7 +68,7 @@ function CourseRow({
                     headings stop lining up down the page. */}
                 <Link
                     href={`/subscribe/categories/${slug}`}
-                    className="shrink-0 text-sm tracking-widest text-gold-meta uppercase underline hover:text-gold"
+                    className="shrink-0 text-sm tracking-widest text-ink-meta uppercase underline hover:text-ink"
                 >
                     Ver todos
                 </Link>
@@ -109,12 +109,12 @@ export function SubscriptionCourseRowsSkeleton() {
         <div className="flex animate-pulse flex-col gap-12">
             {Array.from({ length: 2 }, (_, rowIndex) => (
                 <div key={rowIndex} className="flex flex-col gap-4">
-                    <div className="h-6 w-48 rounded bg-yellow-200/20" />
+                    <div className="h-6 w-48 rounded bg-gold/20" />
                     <div className="flex gap-4 overflow-hidden">
                         {Array.from({ length: 5 }, (_, cardIndex) => (
                             <div
                                 key={cardIndex}
-                                className="h-56 w-60 shrink-0 rounded-2xl border border-yellow-200/20 bg-[#0a1628]/40"
+                                className="h-56 w-60 shrink-0 rounded-2xl border border-gold/20 bg-[#0a1628]/40"
                             />
                         ))}
                     </div>

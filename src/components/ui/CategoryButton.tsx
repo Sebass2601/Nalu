@@ -77,8 +77,11 @@ export default function CategoryButton({
           className="absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/10 blur-md transition-transform duration-700 ease-out group-hover:translate-x-[400%]"
         />
         <span
-          className="relative block text-center text-base leading-tight tracking-[0.24em] text-yellow-200 uppercase transition-colors duration-200 group-hover:text-white"
-          style={{ textShadow: "0 0 12px rgba(254,240,138,0.35)" }}
+          className="relative block text-center text-base leading-tight tracking-[0.24em] text-gold uppercase transition-colors duration-200 group-hover:text-white"
+          // The glow has to be written out rather than reading `--color-gold`,
+          // because `textShadow` needs an rgba to fade and a CSS variable
+          // cannot be given an alpha inline. Keep it in step with the token.
+          style={{ textShadow: "0 0 12px rgba(250,206,73,0.35)" }}
         >
           {twoLines(children).map((line, index) => (
             // The indent cancels the trailing space letter-spacing adds after
@@ -93,12 +96,12 @@ export default function CategoryButton({
       {/* Gold rules sit on top, so the glass underneath stays see-through. */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-yellow-200 transition-colors duration-200 group-hover:bg-white"
+        className="pointer-events-none absolute inset-0 bg-gold transition-colors duration-200 group-hover:bg-white"
         style={{ clipPath: BORDER }}
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-yellow-200 opacity-40"
+        className="pointer-events-none absolute inset-0 bg-gold opacity-40"
         style={{ clipPath: HAIRLINE }}
       />
 

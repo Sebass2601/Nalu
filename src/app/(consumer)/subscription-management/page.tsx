@@ -49,15 +49,15 @@ async function SubscriptionDetails() {
     return (
         <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-2">
-                <p className="text-sm tracking-[0.3em] text-gold-body uppercase">
+                <p className="text-sm tracking-[0.3em] text-ink-body uppercase">
                     Tu suscripción
                 </p>
-                <h1 className="text-4xl tracking-wide text-gold-bright">
+                <h1 className="text-4xl tracking-wide text-ink-bright">
                     Plan {subscription.interval === "month" ? "mensual" : "anual"}
                 </h1>
             </div>
 
-            <div className="flex flex-col gap-4 rounded-2xl border border-yellow-200/30 bg-[#0a1628]/60 p-6">
+            <div className="flex flex-col gap-4 rounded-2xl border border-gold/30 bg-[#0a1628]/60 p-6">
                 <Row label="Estado" value={statusLabel(subscription.status)} />
                 <Row
                     // Wording follows the actual state: a subscription set to
@@ -72,7 +72,7 @@ async function SubscriptionDetails() {
                 />
 
                 {subscription.cancelAtPeriodEnd && (
-                    <p className="text-sm text-gold-meta">
+                    <p className="text-sm text-ink-meta">
                         Tu suscripción está cancelada, pero conservas el acceso
                         hasta esa fecha.
                     </p>
@@ -83,7 +83,7 @@ async function SubscriptionDetails() {
                         Gestionar suscripción
                     </PlaqueSubmitButton>
                 </form>
-                <p className="text-sm text-gold-meta">
+                <p className="text-sm text-ink-meta">
                     Cambia de plan, actualiza tu tarjeta o cancela desde el
                     portal seguro de Stripe.
                 </p>
@@ -94,7 +94,7 @@ async function SubscriptionDetails() {
                 for from here, and they are what that page has been left with. */}
             <Link
                 href="/subscription"
-                className="text-sm tracking-widest text-gold-meta uppercase underline hover:text-gold-body"
+                className="text-sm tracking-widest text-ink-meta uppercase underline hover:text-ink-body"
             >
                 Ver cursos incluidos
             </Link>
@@ -105,8 +105,8 @@ async function SubscriptionDetails() {
 function Row({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex items-baseline justify-between gap-4">
-            <span className="text-base text-gold-meta">{label}</span>
-            <span className="text-gold-bright">{value}</span>
+            <span className="text-base text-ink-meta">{label}</span>
+            <span className="text-ink-bright">{value}</span>
         </div>
     );
 }
@@ -130,7 +130,7 @@ function statusLabel(status: string) {
 function Skeleton() {
     return (
         <div className="flex animate-pulse flex-col gap-8">
-            <div className="h-8 w-56 rounded bg-yellow-200/20" />
+            <div className="h-8 w-56 rounded bg-gold/20" />
             <div className="h-48 rounded-2xl bg-[#0a1628]/40" />
         </div>
     );

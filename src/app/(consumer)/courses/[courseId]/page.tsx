@@ -61,10 +61,10 @@ async function CourseOverview({
     return (
         <article className="flex flex-col gap-6">
             <header className="flex flex-col gap-3">
-                <h1 className="text-5xl tracking-wide text-gold-bright">
+                <h1 className="text-5xl tracking-wide text-ink-bright">
                     {course.name}
                 </h1>
-                <p className="text-base tracking-widest text-gold-body uppercase">
+                <p className="text-base tracking-widest text-ink-body uppercase">
                     {formatPlural(course.courseSections.length, {
                         singular: "clase",
                         plural: "clases",
@@ -80,7 +80,7 @@ async function CourseOverview({
                     what the course is rather than where you are going next, so
                     it should not push the Up Next card further down the screen
                     than it has to. */}
-                <p className="text-base text-gold-body lg:text-xl">
+                <p className="text-base text-ink-body lg:text-xl">
                     {course.description}
                 </p>
             </header>
@@ -109,7 +109,7 @@ async function CourseOverview({
             )}
 
             {lessonCount === 0 && (
-                <p className="text-gold-body">
+                <p className="text-ink-body">
                     Este curso todavía no tiene secciones publicadas.
                 </p>
             )}
@@ -177,21 +177,21 @@ async function StartOrContinueButton({
                 <Suspense fallback={null}>
                     <CourseUpgradeOffer
                         courseId={courseId}
-                        className="mb-6 rounded-xl border border-yellow-200/25 bg-[#0a1628]/50 p-4"
+                        className="mb-6 rounded-xl border border-gold/25 bg-[#0a1628]/50 p-4"
                     />
                 </Suspense>
 
-                <p className="mb-2 text-center text-sm tracking-widest text-gold-meta uppercase">
+                <p className="mb-2 text-center text-sm tracking-widest text-ink-meta uppercase">
                     {isResuming ? "Siguiente" : "Empieza aquí"}
                 </p>
                 <Link
                     href={href}
-                    className="flex flex-col gap-3 rounded-xl border border-yellow-200/60 bg-[#0a1628]/70 p-4 backdrop-blur-md"
+                    className="flex flex-col gap-3 rounded-xl border border-gold/60 bg-[#0a1628]/70 p-4 backdrop-blur-md"
                 >
-                    <span className="text-xl tracking-wide text-gold-bright">
+                    <span className="text-xl tracking-wide text-ink-bright">
                         {target.name}
                     </span>
-                    <span className="flex items-center gap-2 text-sm tracking-widest text-gold-meta uppercase">
+                    <span className="flex items-center gap-2 text-sm tracking-widest text-ink-meta uppercase">
                         <TypeIcon className="size-3.5" />
                         {target.type === "text" ? "Lectura" : "Vídeo"}
                         <span aria-hidden>·</span>
@@ -227,7 +227,7 @@ async function StartOrContinueButton({
 function StartButtonSkeleton() {
     return (
         <div
-            className="h-14 w-48 animate-pulse self-start bg-yellow-200/10"
+            className="h-14 w-48 animate-pulse self-start bg-gold/10"
             style={{ clipPath: bevelFace(10) }}
         />
     );
@@ -251,7 +251,7 @@ async function CourseProgress({
 
     return (
         <div className="flex flex-col gap-2">
-            <p className="text-base text-gold-body">
+            <p className="text-base text-ink-body">
                 {/* formatPlural prefixes the count itself, so this reads
                     "8 de 12 secciones completadas". */}
                 {completed} de{" "}
@@ -261,14 +261,14 @@ async function CourseProgress({
                 })}
             </p>
             <div
-                className="h-1.5 w-full max-w-md overflow-hidden rounded-full bg-yellow-200/15"
+                className="h-1.5 w-full max-w-md overflow-hidden rounded-full bg-gold/15"
                 role="progressbar"
                 aria-valuenow={percent}
                 aria-valuemin={0}
                 aria-valuemax={100}
             >
                 <div
-                    className="h-full rounded-full bg-yellow-200 transition-[width]"
+                    className="h-full rounded-full bg-gold transition-[width]"
                     style={{ width: `${percent}%` }}
                 />
             </div>
@@ -279,10 +279,10 @@ async function CourseProgress({
 function CourseSkeleton() {
     return (
         <div className="flex animate-pulse flex-col gap-4">
-            <div className="h-10 w-96 max-w-full rounded bg-yellow-200/20" />
-            <div className="h-4 w-56 rounded bg-yellow-200/10" />
-            <div className="h-20 w-full rounded bg-yellow-200/10" />
-            <div className="mt-2 h-14 w-40 rounded-lg bg-yellow-200/10" />
+            <div className="h-10 w-96 max-w-full rounded bg-gold/20" />
+            <div className="h-4 w-56 rounded bg-gold/10" />
+            <div className="h-20 w-full rounded bg-gold/10" />
+            <div className="mt-2 h-14 w-40 rounded-lg bg-gold/10" />
         </div>
     );
 }

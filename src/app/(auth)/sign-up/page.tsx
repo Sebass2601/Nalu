@@ -12,21 +12,21 @@ export default function SignUpPage() {
             <BackToHomeLink />
 
             <div
-                className={`${cinzel.className} w-full max-w-sm rounded-2xl border border-yellow-200/50 bg-[#0a1628]/70 backdrop-blur-md p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col gap-5`}
+                className={`${cinzel.className} w-full max-w-sm rounded-2xl border border-gold/50 bg-[#0a1628]/70 backdrop-blur-md p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col gap-5`}
             >
                 <SignUpForm />
 
-                <div className="flex items-center gap-3 text-yellow-200/50 text-xs tracking-widest">
-                    <span className="h-px flex-1 bg-yellow-200/30" />
+                <div className="flex items-center gap-3 text-ink-faint text-xs tracking-widest">
+                    <span className="h-px flex-1 bg-gold/30" />
                     O
-                    <span className="h-px flex-1 bg-yellow-200/30" />
+                    <span className="h-px flex-1 bg-gold/30" />
                 </div>
 
                 <GoogleSignInButton />
 
-                <p className="text-sm text-center text-yellow-200/80">
+                <p className="text-sm text-center text-ink-body">
                     ¿Ya tienes cuenta?{" "}
-                    <Link href="/login" className="text-yellow-200 underline hover:text-white">
+                    <Link href="/login" className="text-ink-bright underline hover:text-white">
                         Inicia sesión aquí
                     </Link>
                 </p>

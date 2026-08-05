@@ -39,7 +39,7 @@ export function DiscountCodeSubmit({ children }: { children: React.ReactNode }) 
             aria-busy={busy}
             onClick={() => setClicked(true)}
             className={cn(
-                "cursor-pointer text-sm text-gold-body underline underline-offset-2 transition-colors hover:text-gold",
+                "cursor-pointer text-sm text-ink-body underline underline-offset-2 transition-colors hover:text-ink",
                 // Locked while the buy button above is working, and visibly so
                 // — but never faded when it is the one being waited on.
                 "disabled:pointer-events-none disabled:opacity-50",

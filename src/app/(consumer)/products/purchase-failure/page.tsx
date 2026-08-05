@@ -17,13 +17,13 @@ export default function PurchaseFailurePage() {
         >
             <div className="mx-auto flex max-w-2xl flex-col items-center gap-8 px-4 pt-32 pb-16 text-center">
                 <div className="flex flex-col gap-3">
-                    <p className="text-sm tracking-[0.3em] text-gold-body uppercase">
+                    <p className="text-sm tracking-[0.3em] text-ink-body uppercase">
                         Algo salió mal
                     </p>
-                    <h1 className="text-5xl tracking-wide text-gold-bright">
+                    <h1 className="text-5xl tracking-wide text-ink-bright">
                         No pudimos confirmar tu compra
                     </h1>
-                    <p className="text-xl text-gold-body">
+                    <p className="text-xl text-ink-body">
                         Si el cobro se realizó, tu acceso se activará en unos
                         minutos de forma automática. Revisa tus cursos antes de
                         intentar pagar de nuevo.

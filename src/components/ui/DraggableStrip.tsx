@@ -471,7 +471,7 @@ function PageButton({
             type="button"
             onClick={onClick}
             aria-label={label}
-            className={`absolute top-0 bottom-2 z-10 hidden w-12 items-center justify-center bg-[#0a1628]/80 text-gold opacity-0 backdrop-blur-sm transition-opacity pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-yellow-200 pointer-fine:flex ${
+            className={`absolute top-0 bottom-2 z-10 hidden w-12 items-center justify-center bg-[#0a1628]/80 text-gold opacity-0 backdrop-blur-sm transition-opacity pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-gold pointer-fine:flex ${
                 direction === 1
                     ? "right-0 rounded-l-2xl"
                     : "left-0 rounded-r-2xl"

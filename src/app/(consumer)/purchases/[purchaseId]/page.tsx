@@ -67,13 +67,13 @@ async function Receipt({
         <div className="flex flex-col gap-6">
             <Link
                 href="/purchases"
-                className="text-sm tracking-widest text-gold-meta uppercase hover:text-gold-body"
+                className="text-sm tracking-widest text-ink-meta uppercase hover:text-ink-body"
             >
                 ← Mis compras
             </Link>
 
             <div className="flex flex-wrap items-center justify-between gap-4">
-                <h1 className="text-4xl tracking-wide text-gold-bright">
+                <h1 className="text-4xl tracking-wide text-ink-bright">
                     {purchase.productDetails.name}
                 </h1>
 
@@ -91,22 +91,22 @@ async function Receipt({
                 )}
             </div>
 
-            <div className="flex flex-col rounded-2xl border border-yellow-200/30 bg-[#0a1628]/60 backdrop-blur-md">
+            <div className="flex flex-col rounded-2xl border border-gold/30 bg-[#0a1628]/60 backdrop-blur-md">
                 <div className="flex items-start justify-between gap-4 p-6">
                     <div className="flex min-w-0 flex-col gap-1">
-                        <h2 className="text-xl tracking-wide text-gold-bright">
+                        <h2 className="text-xl tracking-wide text-ink-bright">
                             Recibo
                         </h2>
-                        <p className="truncate text-sm text-gold-meta">
+                        <p className="truncate text-sm text-ink-meta">
                             ID: {purchase.id}
                         </p>
                     </div>
-                    <span className="shrink-0 rounded-full border border-yellow-200/40 px-3 py-1 text-sm tracking-widest text-gold-body uppercase">
+                    <span className="shrink-0 rounded-full border border-gold/40 px-3 py-1 text-sm tracking-widest text-ink-body uppercase">
                         {isRefunded ? "Reembolsada" : "Pagada"}
                     </span>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 border-t border-yellow-200/20 p-6 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 border-t border-gold/20 p-6 sm:grid-cols-2">
                     <Field label="Fecha" value={formatDate(purchase.createdAt)} />
                     <Field
                         label="Producto"
@@ -116,14 +116,14 @@ async function Receipt({
                     <Field label="Vendedor" value="Nalu" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-8 gap-y-3 border-t border-yellow-200/20 p-6">
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 border-t border-gold/20 p-6">
                     {pricingRows.map(({ label, amountInDollars, isBold }) => (
                         <Fragment key={label}>
                             <span
                                 className={
                                     isBold
-                                        ? "text-gold-bright"
-                                        : "text-gold-body"
+                                        ? "text-ink-bright"
+                                        : "text-ink-body"
                                 }
                             >
                                 {label}
@@ -131,8 +131,8 @@ async function Receipt({
                             <span
                                 className={`justify-self-end ${
                                     isBold
-                                        ? "text-gold-bright"
-                                        : "text-gold-body"
+                                        ? "text-ink-bright"
+                                        : "text-ink-body"
                                 }`}
                             >
                                 {/* `showZeroAsNumber` because on a receipt a
@@ -154,10 +154,10 @@ async function Receipt({
 function Field({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex flex-col gap-1">
-            <span className="text-sm tracking-widest text-gold-meta uppercase">
+            <span className="text-sm tracking-widest text-ink-meta uppercase">
                 {label}
             </span>
-            <span className="wrap-break-words text-gold-bright">{value}</span>
+            <span className="wrap-break-words text-ink-bright">{value}</span>
         </div>
     );
 }
@@ -188,9 +188,9 @@ async function getPurchase({ userId, id }: { userId: string; id: string }) {
 function ReceiptSkeleton() {
     return (
         <div className="flex animate-pulse flex-col gap-6">
-            <div className="h-4 w-32 rounded bg-yellow-200/10" />
-            <div className="h-9 w-72 max-w-full rounded bg-yellow-200/20" />
-            <div className="h-80 rounded-2xl border border-yellow-200/20 bg-[#0a1628]/40" />
+            <div className="h-4 w-32 rounded bg-gold/10" />
+            <div className="h-9 w-72 max-w-full rounded bg-gold/20" />
+            <div className="h-80 rounded-2xl border border-gold/20 bg-[#0a1628]/40" />
         </div>
     );
 }

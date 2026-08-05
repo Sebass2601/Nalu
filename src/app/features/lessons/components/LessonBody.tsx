@@ -27,7 +27,7 @@ export function LessonBody({
     if (type === "video") {
         return (
             <div className="flex flex-col gap-6">
-                <div className="aspect-video w-full overflow-hidden rounded-xl border border-yellow-200/40">
+                <div className="aspect-video w-full overflow-hidden rounded-xl border border-gold/40">
                     {youtubeVideoId ? (
                         <YouTubeVideoPlayer
                             videoId={youtubeVideoId}
@@ -37,7 +37,7 @@ export function LessonBody({
                         // An unfinished lesson rather than a broken one: the
                         // admin form allows saving a video lesson before its
                         // video id is filled in.
-                        <div className="flex h-full w-full items-center justify-center bg-[#0a1628]/70 text-base text-gold-meta">
+                        <div className="flex h-full w-full items-center justify-center bg-[#0a1628]/70 text-base text-ink-meta">
                             Este vídeo aún no está disponible.
                         </div>
                     )}
@@ -84,7 +84,7 @@ function LessonText({
     // lock — the words are in the HTML either way — so nothing here depends on
     // it holding.
     return (
-        <div className="flex select-none flex-col gap-4 text-gold-body">
+        <div className="flex select-none flex-col gap-4 text-ink-body">
             {lead && <p className="leading-relaxed">{lead}</p>}
 
             {/* The float and the text it wraps around must share one container,

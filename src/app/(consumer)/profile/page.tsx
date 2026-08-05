@@ -16,7 +16,7 @@ export default function ProfilePage() {
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
             <div className="mx-auto w-full max-w-2xl px-4 pt-28 pb-16 sm:pt-32">
-                <h1 className="mb-8 text-4xl tracking-wide text-gold-bright">
+                <h1 className="mb-8 text-4xl tracking-wide text-ink-bright">
                     Editar perfil
                 </h1>
 

@@ -57,7 +57,7 @@ async function SubscriberGate() {
     if (subscription == null) redirect("/subscribe");
 
     return (
-        <p className="mb-6 text-sm tracking-[0.3em] text-gold-body uppercase">
+        <p className="mb-6 text-sm tracking-[0.3em] text-ink-body uppercase">
             Incluido en tu plan
         </p>
     );
@@ -65,6 +65,6 @@ async function SubscriberGate() {
 
 function EyebrowSkeleton() {
     return (
-        <div className="mb-6 h-4 w-40 animate-pulse rounded bg-yellow-200/20" />
+        <div className="mb-6 h-4 w-40 animate-pulse rounded bg-gold/20" />
     );
 }

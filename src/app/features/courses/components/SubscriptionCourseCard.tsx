@@ -20,7 +20,7 @@ export function SubscriptionCourseCard({
     return (
         <Link
             href={`/courses/${course.id}`}
-            className="flex h-full flex-col overflow-hidden rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70 backdrop-blur-md transition-colors hover:border-yellow-200/80"
+            className="flex h-full flex-col overflow-hidden rounded-2xl border border-gold/40 bg-[#0a1628]/70 backdrop-blur-md transition-colors hover:border-gold/80"
         >
             {/* Always present, image or not, so every card in a row is the
                 same height and the strip keeps one baseline. */}
@@ -56,11 +56,11 @@ export function SubscriptionCourseCard({
             <div className="flex flex-1 flex-col gap-2 p-4">
                 {/* Clamped so a three-line name cannot push the meta line out
                     of alignment with the cards beside it. */}
-                <h3 className="line-clamp-2 text-base tracking-wide text-gold-bright">
+                <h3 className="line-clamp-2 text-base tracking-wide text-ink-bright">
                     {course.name}
                 </h3>
 
-                <p className="mt-auto text-sm tracking-widest text-gold-meta uppercase">
+                <p className="mt-auto text-sm tracking-widest text-ink-meta uppercase">
                     {formatPlural(course.sectionCount, {
                         singular: "clase",
                         plural: "clases",
@@ -82,7 +82,7 @@ export function SubscriptionCourseCard({
 function TypographicCover({ name }: { name: string }) {
     return (
         <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-[#16294a] via-[#0f1f38] to-[#0a1628] p-4">
-            <span className="line-clamp-3 text-center text-sm tracking-[0.2em] text-gold-body uppercase">
+            <span className="line-clamp-3 text-center text-sm tracking-[0.2em] text-ink-body uppercase">
                 {name}
             </span>
         </div>

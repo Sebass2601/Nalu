@@ -49,17 +49,17 @@ export function Catalogue({
     return (
         <>
             <CategoryNav current={current} />
-            <h1 className="text-4xl tracking-widest text-gold mb-2 text-center">
+            <h1 className="text-4xl tracking-widest text-ink mb-2 text-center">
                 {title}
             </h1>
             {description && (
-                <p className="text-base text-gold-body mb-8 text-center max-w-2xl mx-auto">
+                <p className="text-base text-ink-body mb-8 text-center max-w-2xl mx-auto">
                     {description}
                 </p>
             )}
 
             {products.length === 0 ? (
-                <p className="mt-12 text-center text-gold-body">
+                <p className="mt-12 text-center text-ink-body">
                     {emptyMessage}
                 </p>
             ) : (
@@ -131,7 +131,7 @@ export function CatalogueSkeleton() {
                 {["w-28", "w-64", "w-48"].map(width => (
                     <div
                         key={width}
-                        className={`h-12 shrink-0 rounded-full bg-yellow-200/10 ${width}`}
+                        className={`h-12 shrink-0 rounded-full bg-gold/10 ${width}`}
                     />
                 ))}
             </nav>
@@ -141,12 +141,12 @@ export function CatalogueSkeleton() {
                 {Array.from({ length: 5 }, (_, index) => (
                     <div
                         key={index}
-                        className="h-10 w-40 rounded-full bg-yellow-200/10"
+                        className="h-10 w-40 rounded-full bg-gold/10"
                     />
                 ))}
             </nav>
 
-            <div className="mx-auto h-8 w-64 rounded bg-yellow-200/20" />
+            <div className="mx-auto h-8 w-64 rounded bg-gold/20" />
 
             {/* The card widths the strip itself uses, so the sliver of the
                 next card past the right edge — the thing that says this row
@@ -175,25 +175,25 @@ export function CatalogueSkeleton() {
 // time the card changes.
 function ProductCardSkeleton() {
     return (
-        <div className="mx-auto flex w-full max-w-125 flex-col overflow-hidden rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70">
-            <div className="aspect-video w-full bg-yellow-200/10" />
+        <div className="mx-auto flex w-full max-w-125 flex-col overflow-hidden rounded-2xl border border-gold/40 bg-[#0a1628]/70">
+            <div className="aspect-video w-full bg-gold/10" />
             <div className="flex flex-1 flex-col gap-3 p-5">
                 {/* Two lines for the title: these names run long enough to
                     wrap on a card this wide, and the pair is spaced as two
                     lines of one heading rather than as two separate things. */}
                 <div className="space-y-2">
-                    <div className="h-6 w-full rounded bg-yellow-200/20" />
-                    <div className="h-6 w-2/3 rounded bg-yellow-200/20" />
+                    <div className="h-6 w-full rounded bg-gold/20" />
+                    <div className="h-6 w-2/3 rounded bg-gold/20" />
                 </div>
-                <div className="h-8 w-24 rounded bg-yellow-200/20" />
+                <div className="h-8 w-24 rounded bg-gold/20" />
                 {/* Three lines, the most the description ever shows before
                     `line-clamp-3` cuts it. */}
                 <div className="flex-1 space-y-3">
-                    <div className="h-4 w-full rounded bg-yellow-200/10" />
-                    <div className="h-4 w-full rounded bg-yellow-200/10" />
-                    <div className="h-4 w-3/4 rounded bg-yellow-200/10" />
+                    <div className="h-4 w-full rounded bg-gold/10" />
+                    <div className="h-4 w-full rounded bg-gold/10" />
+                    <div className="h-4 w-3/4 rounded bg-gold/10" />
                 </div>
-                <div className="mt-2 h-9 w-full rounded bg-yellow-200/20" />
+                <div className="mt-2 h-9 w-full rounded bg-gold/20" />
             </div>
         </div>
     );

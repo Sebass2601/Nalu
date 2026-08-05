@@ -82,7 +82,7 @@ export function NavItem({
             <span
                 aria-hidden
                 className={cn(
-                    "pointer-events-none absolute inset-0 bg-yellow-200 transition-opacity duration-200",
+                    "pointer-events-none absolute inset-0 bg-gold transition-opacity duration-200",
                     current ? "opacity-100" : "opacity-0 group-hover:opacity-70"
                 )}
                 style={{ clipPath: RULE }}
@@ -90,7 +90,7 @@ export function NavItem({
             {current && (
                 <span
                     aria-hidden
-                    className="pointer-events-none absolute inset-0 bg-yellow-200 opacity-40"
+                    className="pointer-events-none absolute inset-0 bg-gold opacity-40"
                     style={{ clipPath: HAIRLINE }}
                 />
             )}
@@ -134,14 +134,14 @@ export function NavItem({
         // and the logo have to share 360px. That keeps the icon growing while
         // the tile stays the width it already was.
         "group relative inline-flex h-16 items-center justify-center px-1.5 select-none",
-        "text-yellow-200 transition-[color,transform] duration-200 ease-out",
+        "text-gold transition-[color,transform] duration-200 ease-out",
         // `hover:active:` so a phone tap changes nothing — a bare `active:`
         // translate made iOS Safari drop clip-path'd layers mid-press.
         // See the same line in PlaqueButton.
         "hover:-translate-y-0.5 hover:text-white hover:active:translate-y-0",
         "focus-visible:outline-none focus-visible:-translate-y-0.5",
         "sm:px-4",
-        current && "text-yellow-100"
+        current && "text-gold-bright"
     )
 
     if (href == null) {

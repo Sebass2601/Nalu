@@ -129,14 +129,14 @@ async function Receipt({
                         <Fragment key={label}>
                             <span
                                 className={
-                                    isBold ? "font-semibold" : "text-muted-foreground"
+                                    isBold ? "font-bold" : "text-muted-foreground"
                                 }
                             >
                                 {label}
                             </span>
                             <span
                                 className={`justify-self-end ${
-                                    isBold ? "font-semibold" : "text-muted-foreground"
+                                    isBold ? "font-bold" : "text-muted-foreground"
                                 }`}
                             >
                                 {/* `showZeroAsNumber` because on a receipt a

@@ -99,13 +99,13 @@ async function CourseNavigation({
 
 function CourseNavSkeleton() {
     return (
-        <div className="order-2 animate-pulse rounded-2xl border border-yellow-200/20 bg-[#0a1628]/40 p-4 lg:order-0 lg:sticky lg:top-32 lg:self-start">
-            <div className="mb-4 h-6 w-40 rounded bg-yellow-200/20" />
+        <div className="order-2 animate-pulse rounded-2xl border border-gold/20 bg-[#0a1628]/40 p-4 lg:order-0 lg:sticky lg:top-32 lg:self-start">
+            <div className="mb-4 h-6 w-40 rounded bg-gold/20" />
             <div className="flex flex-col gap-3">
                 {Array.from({ length: 4 }, (_, index) => (
                     <div
                         key={index}
-                        className="h-4 w-full rounded bg-yellow-200/10"
+                        className="h-4 w-full rounded bg-gold/10"
                     />
                 ))}
             </div>

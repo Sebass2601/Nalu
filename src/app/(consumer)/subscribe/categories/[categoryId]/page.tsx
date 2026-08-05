@@ -72,11 +72,11 @@ async function CategoryCourses({
 
     return (
         <>
-            <h1 className="mb-2 text-center text-4xl tracking-widest text-gold">
+            <h1 className="mb-2 text-center text-4xl tracking-widest text-ink">
                 {category?.name ?? UNCATEGORIZED_ROW_NAME}
             </h1>
             {category?.description && (
-                <p className="mx-auto mb-8 max-w-2xl text-center text-base text-gold-body">
+                <p className="mx-auto mb-8 max-w-2xl text-center text-base text-ink-body">
                     {category.description}
                 </p>
             )}
@@ -84,7 +84,7 @@ async function CategoryCourses({
             {/* Not a 404: the category exists, it simply has nothing in the
                 plan yet, and those are different things to say. */}
             {courses.length === 0 ? (
-                <p className="mt-12 text-center text-gold-body">
+                <p className="mt-12 text-center text-ink-body">
                     Aún no hay cursos de esta categoría incluidos en la
                     suscripción.
                 </p>
@@ -147,12 +147,12 @@ async function getCategory(id: string) {
 function CategoryCoursesSkeleton() {
     return (
         <div className="animate-pulse">
-            <div className="mx-auto h-8 w-64 rounded bg-yellow-200/20" />
+            <div className="mx-auto h-8 w-64 rounded bg-gold/20" />
             <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6">
                 {Array.from({ length: 6 }, (_, index) => (
                     <div
                         key={index}
-                        className="h-56 rounded-2xl border border-yellow-200/20 bg-[#0a1628]/40"
+                        className="h-56 rounded-2xl border border-gold/20 bg-[#0a1628]/40"
                     />
                 ))}
             </div>

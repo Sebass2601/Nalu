@@ -29,7 +29,7 @@ export async function UserMenu() {
             <span className="inline-flex h-16 items-center px-1.5 lg:px-4">
                 <Link
                     href="/login"
-                    className="inline-flex items-center rounded-full border border-yellow-200/70 px-2.5 py-1 text-[11px] font-medium tracking-widest whitespace-nowrap text-yellow-200 transition-colors duration-200 hover:border-yellow-200 hover:bg-yellow-200/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-200/60 sm:px-3 sm:py-1.5 sm:text-xs lg:px-5 lg:py-2 lg:text-sm"
+                    className="inline-flex items-center rounded-full border border-gold/70 px-2.5 py-1 text-[11px] font-semibold tracking-widest whitespace-nowrap text-gold transition-colors duration-200 hover:border-gold hover:bg-gold/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 sm:px-3 sm:py-1.5 sm:text-xs lg:px-5 lg:py-2 lg:text-sm"
                 >
                     Iniciar sesión
                 </Link>

@@ -63,7 +63,7 @@ export function ProductTable({
                                     alt={product.name}
                                 />
                                 <div className="flex flex-col gap-1">
-                                    <div className="font-semibold">{product.name}</div>
+                                    <div className="font-bold">{product.name}</div>
                                     <div className="text-muted-foreground">
                                         {formatPlural(product.coursesCount, {
                                             singular: "curso",

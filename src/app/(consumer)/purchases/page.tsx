@@ -18,7 +18,7 @@ export default function PurchasesPage() {
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
             <div className="mx-auto w-full max-w-4xl px-4 pt-32 pb-16">
-                <h1 className="mb-8 text-center text-4xl tracking-widest text-gold">
+                <h1 className="mb-8 text-center text-4xl tracking-widest text-ink">
                     Mis compras
                 </h1>
 
@@ -56,7 +56,7 @@ async function PurchaseList() {
 function Empty() {
     return (
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <p className="text-gold-body">
+            <p className="text-ink-body">
                 Todavía no has hecho ninguna compra. Cuando compres un curso,
                 aparecerá aquí con su recibo.
             </p>
@@ -68,7 +68,7 @@ function Empty() {
 function SignedOut() {
     return (
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <p className="text-gold-body">
+            <p className="text-ink-body">
                 Inicia sesión para ver tus compras.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
@@ -91,7 +91,7 @@ function PurchasesSkeleton() {
             {Array.from({ length: 3 }, (_, index) => (
                 <div
                     key={index}
-                    className="h-32 w-full rounded-2xl border border-yellow-200/20 bg-[#0a1628]/40"
+                    className="h-32 w-full rounded-2xl border border-gold/20 bg-[#0a1628]/40"
                 />
             ))}
         </div>

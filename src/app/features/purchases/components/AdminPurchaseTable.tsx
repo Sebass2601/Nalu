@@ -56,7 +56,7 @@ export function AdminPurchaseTable({
                                     alt=""
                                 />
                                 <div className="flex flex-col gap-1">
-                                    <div className="font-semibold">
+                                    <div className="font-bold">
                                         {purchase.productName}
                                     </div>
                                     {/* The date lives under the product rather

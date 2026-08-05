@@ -81,8 +81,8 @@ export function CheckoutButton({
             </PlaqueSubmitButton>
             {showDetails && (
                 <>
-                    {hint && <p className="text-sm text-gold-body">{hint}</p>}
-                    <p className="text-sm text-gold-meta">
+                    {hint && <p className="text-sm text-ink-body">{hint}</p>}
+                    <p className="text-sm text-ink-meta">
                         Serás redirigido a Stripe para completar el pago de
                         forma segura.
                     </p>
@@ -119,7 +119,7 @@ async function DiscountCodeSwitch() {
     const percentOff = Math.round(coupon.discountPercentage * 100);
 
     return (
-        <div className="mt-2 flex flex-col items-start gap-1 border-t border-yellow-200/15 pt-3">
+        <div className="mt-2 flex flex-col items-start gap-1 border-t border-gold/15 pt-3">
             <DiscountCodeSubmit>
                 ¿Tienes un código de descuento?
             </DiscountCodeSubmit>
@@ -129,7 +129,7 @@ async function DiscountCodeSwitch() {
                 small code — and they would not find out until the payment page
                 showed a higher number. Naming the percentage here is what makes
                 this a real choice instead of a trap. */}
-            <p className="text-sm text-gold-faint">
+            <p className="text-sm text-ink-faint">
                 Solo se puede usar un descuento por compra: al aplicar un código
                 se reemplaza tu precio regional ({percentOff}% de descuento,{" "}
                 {coupon.countryGroupName}).

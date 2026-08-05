@@ -38,7 +38,7 @@ export default async function CountryGroupsPage() {
                     <TableBody>
                         {countryGroups.map(group => (
                             <TableRow key={group.id}>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-semibold">
                                     {group.name}
                                 </TableCell>
                                 <TableCell>{group.countryCount}</TableCell>

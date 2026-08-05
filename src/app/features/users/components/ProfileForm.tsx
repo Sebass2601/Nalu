@@ -43,11 +43,11 @@ export function ProfileForm({
                 </>
             ) : (
                 <Section title="Cuenta">
-                    <p className="text-sm text-gold-meta">
+                    <p className="text-sm text-ink-meta">
                         Tu cuenta inicia sesión con Google, así que tu email y
                         tu contraseña se gestionan desde ahí.
                     </p>
-                    <p className="font-sans text-base text-gold-body">
+                    <p className="font-sans text-base text-ink-body">
                         {email}
                     </p>
                 </Section>
@@ -104,10 +104,10 @@ function EmailSection({ email }: { email: string }) {
                 either box with the current address would just mean clearing it
                 first — worse, it would make the second box look pre-agreed. */}
             <div className="flex flex-col gap-1">
-                <span className="text-xs tracking-widest text-gold-meta uppercase">
+                <span className="text-xs tracking-widest text-ink-meta uppercase">
                     Email actual
                 </span>
-                <span className="font-sans text-base text-gold-body">
+                <span className="font-sans text-base text-ink-body">
                     {email}
                 </span>
             </div>
@@ -136,7 +136,7 @@ function EmailSection({ email }: { email: string }) {
                     autoComplete="current-password"
                     errors={state?.fieldErrors?.currentPassword}
                 />
-                <p className="text-xs text-gold-meta">
+                <p className="text-xs text-ink-meta">
                     A partir de ahora iniciarás sesión con este email. No
                     enviamos ningún mensaje de confirmación, así que revisa que
                     esté bien escrito.
@@ -194,8 +194,8 @@ function Section({
     children: React.ReactNode
 }) {
     return (
-        <section className="flex flex-col gap-5 rounded-2xl border border-yellow-200/30 bg-[#0a1628]/60 p-6">
-            <h2 className="text-sm tracking-[0.3em] text-gold-body uppercase">
+        <section className="flex flex-col gap-5 rounded-2xl border border-gold/30 bg-[#0a1628]/60 p-6">
+            <h2 className="text-sm tracking-[0.3em] text-ink-body uppercase">
                 {title}
             </h2>
             {children}
@@ -220,7 +220,7 @@ function Field({
         <div className="flex flex-col gap-1.5">
             <label
                 htmlFor={id}
-                className="text-xs tracking-widest text-yellow-200/90"
+                className="text-xs tracking-widest text-ink-body"
             >
                 {label}
             </label>
@@ -228,7 +228,7 @@ function Field({
                 id={id}
                 name={id}
                 type="text"
-                className="font-sans rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
+                className="font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
                 {...props}
             />
             {errors?.map(message => (
@@ -247,7 +247,7 @@ function Feedback({ state }: { state: ProfileState | undefined }) {
         return <p className="text-sm text-red-400">{state.error}</p>
     }
     if (state?.success) {
-        return <p className="text-sm text-yellow-200">{state.success}</p>
+        return <p className="text-sm text-ink-bright">{state.success}</p>
     }
     return null
 }
@@ -263,7 +263,7 @@ function Submit({
         <button
             type="submit"
             disabled={pending}
-            className="cursor-pointer self-start rounded-md bg-yellow-200 px-4 py-2 text-sm font-semibold tracking-widest text-[#0a1628] transition-colors hover:bg-yellow-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="cursor-pointer self-start rounded-md bg-gold px-4 py-2 text-sm font-bold tracking-widest text-[#0a1628] transition-colors hover:bg-gold-bright disabled:cursor-not-allowed disabled:opacity-50"
         >
             {pending ? "Guardando..." : children}
         </button>

@@ -21,7 +21,7 @@ export default function MyCoursesPage() {
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
             <div className="mx-auto max-w-6xl px-4 pt-32 pb-16">
-                <h1 className="mb-8 text-center text-4xl tracking-widest text-gold">
+                <h1 className="mb-8 text-center text-4xl tracking-widest text-ink">
                     Mis cursos
                 </h1>
 
@@ -88,7 +88,7 @@ async function MyCourses() {
 function Empty() {
     return (
         <div className="flex flex-col items-center gap-4 text-center">
-            <p className="text-gold-body">
+            <p className="text-ink-body">
                 Todavía no tienes cursos. Cuando compres uno o empieces uno de
                 tu suscripción, aparecerá aquí.
             </p>
@@ -100,7 +100,7 @@ function Empty() {
 function SignedOut() {
     return (
         <div className="flex flex-col items-center gap-4 text-center">
-            <p className="text-gold-body">
+            <p className="text-ink-body">
                 Inicia sesión para ver tus cursos.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
@@ -165,24 +165,24 @@ function MyCoursesSkeleton() {
 // button to every card on the shelf to be right about some of them.
 function MyCourseCardSkeleton() {
     return (
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70">
-            <div className="aspect-video w-full bg-yellow-200/10" />
+        <div className="flex flex-col overflow-hidden rounded-2xl border border-gold/40 bg-[#0a1628]/70">
+            <div className="aspect-video w-full bg-gold/10" />
             <div className="flex flex-1 flex-col gap-3 p-5">
                 {/* Two lines, spaced as one wrapped heading rather than as two
                     separate blocks. */}
                 <div className="space-y-2">
-                    <div className="h-6 w-full rounded bg-yellow-200/20" />
-                    <div className="h-6 w-2/3 rounded bg-yellow-200/20" />
+                    <div className="h-6 w-full rounded bg-gold/20" />
+                    <div className="h-6 w-2/3 rounded bg-gold/20" />
                 </div>
                 {/* "1 clase · 3 secciones" */}
-                <div className="h-5 w-40 rounded bg-yellow-200/10" />
+                <div className="h-5 w-40 rounded bg-gold/10" />
                 {/* The progress block: its line of text and its track, at the
                     gap the real one uses. */}
                 <div className="flex flex-col gap-1.5">
-                    <div className="h-5 w-48 rounded bg-yellow-200/10" />
-                    <div className="h-1.5 w-full rounded-full bg-yellow-200/15" />
+                    <div className="h-5 w-48 rounded bg-gold/10" />
+                    <div className="h-1.5 w-full rounded-full bg-gold/15" />
                 </div>
-                <div className="mt-auto h-9 w-full rounded bg-yellow-200/20" />
+                <div className="mt-auto h-9 w-full rounded bg-gold/20" />
             </div>
         </div>
     );

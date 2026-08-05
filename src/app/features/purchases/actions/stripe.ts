@@ -119,7 +119,9 @@ export async function startCheckout(productId: string, formData: FormData) {
         // page, which is why leaving the embed cost no branding.
         branding_settings: {
             border_style: "rounded",
-            button_color: "#fef08a", // yellow-200, the site's accent
+            // `--color-gold` written out: Stripe's page is not ours, so the
+            // token cannot reach it and the hex has to be kept in step by hand.
+            button_color: "#face49",
             display_name: "Nalu",
         },
         customer_email: user.email,

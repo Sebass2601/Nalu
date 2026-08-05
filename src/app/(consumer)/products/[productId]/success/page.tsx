@@ -40,13 +40,13 @@ async function SuccessDetails({
     return (
         <div className="flex flex-col items-center gap-8 text-center">
             <div className="flex flex-col gap-3">
-                <p className="text-sm tracking-[0.3em] text-gold-body uppercase">
+                <p className="text-sm tracking-[0.3em] text-ink-body uppercase">
                     Compra completada
                 </p>
-                <h1 className="text-5xl tracking-wide text-gold-bright">
+                <h1 className="text-5xl tracking-wide text-ink-bright">
                     ¡Gracias por tu compra!
                 </h1>
-                <p className="text-xl text-gold-body">
+                <p className="text-xl text-ink-body">
                     Ya tienes acceso permanente a {product.name}.
                 </p>
             </div>
@@ -70,10 +70,10 @@ async function SuccessDetails({
 function SuccessSkeleton() {
     return (
         <div className="flex animate-pulse flex-col items-center gap-8">
-            <div className="h-4 w-40 rounded bg-yellow-200/10" />
-            <div className="h-10 w-96 max-w-full rounded bg-yellow-200/20" />
+            <div className="h-4 w-40 rounded bg-gold/10" />
+            <div className="h-10 w-96 max-w-full rounded bg-gold/20" />
             <div className="aspect-video w-full max-w-md rounded-xl bg-[#0a1628]/40" />
-            <div className="h-14 w-48 rounded-lg bg-yellow-200/10" />
+            <div className="h-14 w-48 rounded-lg bg-gold/10" />
         </div>
     );
 }

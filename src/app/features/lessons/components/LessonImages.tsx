@@ -66,7 +66,7 @@ export function LessonImages({
     return (
         <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Imágenes</span>
+                <span className="text-sm font-semibold">Imágenes</span>
                 {/* A plain count, not "3/3". There is no ceiling to count
                     towards any more, so the number is just information about
                     the lesson rather than a budget being spent. */}
@@ -198,7 +198,7 @@ function LessonImageEditor({
             <div className="flex min-w-0 flex-col gap-2">
                 <label
                     htmlFor={`lesson-image-caption-${image.id}`}
-                    className="text-sm font-medium"
+                    className="text-sm font-semibold"
                 >
                     Texto de la imagen{" "}
                     <span className="text-muted-foreground">(opcional)</span>

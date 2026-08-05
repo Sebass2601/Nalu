@@ -14,7 +14,7 @@ export function PurchaseRow({ purchase }: { purchase: UserPurchase }) {
 
     return (
         <li
-            className={`flex flex-col gap-4 rounded-2xl border border-yellow-200/30 bg-[#0a1628]/70 p-4 backdrop-blur-md sm:flex-row sm:items-center sm:gap-5 ${
+            className={`flex flex-col gap-4 rounded-2xl border border-gold/30 bg-[#0a1628]/70 p-4 backdrop-blur-md sm:flex-row sm:items-center sm:gap-5 ${
                 // Dimmed, but still legible and still readable by a screen
                 // reader. A refund is a real event in this history, so it is
                 // pushed back rather than taken away.
@@ -33,15 +33,15 @@ export function PurchaseRow({ purchase }: { purchase: UserPurchase }) {
 
             <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <h2 className="text-xl tracking-wide text-gold-bright">
+                    <h2 className="text-xl tracking-wide text-ink-bright">
                         {purchase.productName}
                     </h2>
                     {isRefunded && <RefundedBadge />}
                 </div>
-                <p className="text-sm tracking-widest text-gold-meta uppercase">
+                <p className="text-sm tracking-widest text-ink-meta uppercase">
                     {formatDate(purchase.purchasedAt)}
                 </p>
-                <p className="text-gold">
+                <p className="text-ink">
                     {formatPrice(purchase.pricePaidInCents / 100)}
                 </p>
             </div>
@@ -94,7 +94,7 @@ function ReceiptLink({ purchaseId }: { purchaseId: string }) {
 
 function RefundedBadge() {
     return (
-        <span className="rounded-full border border-yellow-200/40 px-2 py-0.5 text-xs tracking-widest text-gold-body uppercase">
+        <span className="rounded-full border border-gold/40 px-2 py-0.5 text-xs tracking-widest text-ink-body uppercase">
             Reembolsada
         </span>
     );

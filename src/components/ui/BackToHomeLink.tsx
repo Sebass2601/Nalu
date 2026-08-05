@@ -3,11 +3,11 @@ import { ArrowLeftIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { cinzel } from "./fonts"
 
-// The way back out of a page: an arrow and a line of gold naming where it goes.
+// The way back out of a page: an arrow and a line of text naming where it goes.
 //
-// `text-gold`, not a hand-picked yellow: the scale in globals.css reserves that
+// `text-ink`, not a hand-picked shade: the scale in globals.css reserves that
 // step for emphasis that is not a heading, which is what a way out is. Hover
-// lifts it the last step to `gold-bright`.
+// lifts it the last step to `ink-bright`.
 //
 // The arrow travels a few pixels left on hover — the same gesture the navbar
 // plaques make upward, which is the site's way of saying a thing is pressable.
@@ -35,7 +35,7 @@ export function BackLink({
     return (
         <Link
             href={href}
-            className={`${cinzel.className} group inline-flex items-center gap-3 text-base tracking-widest text-gold transition-colors hover:text-gold-bright sm:text-lg ${className}`}
+            className={`${cinzel.className} group inline-flex items-center gap-3 text-base tracking-widest text-ink transition-colors hover:text-ink-bright sm:text-lg ${className}`}
         >
             <ArrowLeftIcon
                 aria-hidden
@@ -43,7 +43,12 @@ export function BackLink({
                 // lucide's default 2px stroke reads as spindly next to Cinzel
                 // once the glyphs are 18px.
                 strokeWidth={2.25}
-                className="size-5 transition-transform duration-200 ease-out group-hover:-translate-x-1 sm:size-6"
+                // Gold, so it does not inherit the link's white. The words say
+                // where you are going and the arrow says it is a way out —
+                // different jobs, and the colour split is what separates them.
+                // `group-hover` rather than `hover`, because the whole link is
+                // the target and the arrow has to brighten with the text.
+                className="size-5 text-gold transition-[color,transform] duration-200 ease-out group-hover:-translate-x-1 group-hover:text-gold-bright sm:size-6"
             />
             {children}
         </Link>

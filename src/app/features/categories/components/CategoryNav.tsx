@@ -8,8 +8,12 @@ import { DraggableStrip } from "@/components/ui/DraggableStrip";
 
 // Row of outlined plaques so a visitor can move sideways between categories,
 // and back out to the whole catalogue, without going back to the castle. The
-// plaque being viewed is rendered in full gold and marked `aria-current`,
-// while the rest stay dim until hovered.
+// plaque being viewed is lit to full white and marked `aria-current`, while the
+// rest stay dim until hovered.
+//
+// The letters are white and the outlines stayed gold. This row sits above the
+// catalogue as part of the page rather than in the bar at the top, so it reads
+// with the page; the gold border and fill are what still tie it to the navbars.
 //
 // It fetches its own list rather than taking one as a prop, so dropping it onto
 // another page costs a single line.
@@ -53,8 +57,8 @@ export async function CategoryNav({ current }: { current: string }) {
             <span
                 key={plaque.id}
                 aria-current="page"
-                className={`${shared} shrink-0 snap-start border-yellow-200 bg-yellow-200/10 text-yellow-200`}
-                style={{ textShadow: "0 0 12px rgba(254,240,138,0.35)" }}
+                className={`${shared} shrink-0 snap-start border-gold bg-gold/10 text-ink-bright`}
+                style={{ textShadow: "0 0 12px rgba(255,255,255,0.35)" }}
             >
                 {plaque.name}
             </span>
@@ -64,10 +68,10 @@ export async function CategoryNav({ current }: { current: string }) {
                 href={plaque.href}
                 // Brighter at rest than the /60 these sat at while they were
                 // small text — an unselected category is still something you
-                // are meant to be able to read across the row, and the gold
-                // fill plus the glow is what marks the current one, not the
+                // are meant to be able to read across the row, and the filled
+                // border plus the glow is what marks the current one, not the
                 // others being dimmed to the edge of legibility.
-                className={`${shared} shrink-0 snap-start border-yellow-200/40 text-yellow-200/80 hover:border-yellow-200/80 hover:text-yellow-100`}
+                className={`${shared} shrink-0 snap-start border-gold/40 text-ink-body hover:border-gold/80 hover:text-ink-bright`}
             >
                 {plaque.name}
             </Link>

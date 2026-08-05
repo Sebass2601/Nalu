@@ -33,7 +33,7 @@ export function CourseTable({
                 <TableRow key={course.id}>
                     <TableCell>
                         <div className="flex flex-col gap-1">
-                            <div className="font-semibold">{course.name}</div>
+                            <div className="font-bold">{course.name}</div>
                             <div className="text-muted-foreground">
                                 {formatPlural(course.sectionsCount, {
                                     singular: "clase",

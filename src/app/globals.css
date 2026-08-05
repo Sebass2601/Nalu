@@ -48,7 +48,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* The gold the consumer side is written in.
+/* The ink the consumer side is written in.
  *
  * Every piece of text out there used to name its own shade, and there were nine
  * of them — yellow-100, yellow-200, and the same yellow-200 at seven different
@@ -61,25 +61,69 @@
  * job follows, which is the whole point: making the page warmer or cooler is
  * now five numbers in one file rather than a hunt through every component.
  *
+ * That is exactly what happened: the page is now written in WHITE, and it was
+ * these five numbers rather than a hundred edits. The scale below is the old
+ * gold one with its chroma set to zero and nothing else touched — same five
+ * lightnesses, same three opacities — so every step reads against its
+ * neighbours the way it always did, just drained of the yellow.
+ *
+ * The gold did not leave the building. It is now reserved for the things that
+ * are the site's identity rather than its reading: the navbars, the category
+ * doorways, and the plaque buttons below. Text stopped competing with them,
+ * which is the point — an accent that everything is written in is not an
+ * accent. So: `ink-*` for anything you READ, gold for anything you PRESS or
+ * navigate by. A new gold heading is almost certainly a mistake.
+ *
  * Deliberately NOT `@theme inline` like the block above. Plain `@theme` emits
  * these as real CSS variables on :root and has the utilities reference them, so
  * they can also be overridden at runtime — per section, or by a future theme —
  * rather than being baked into each class at build time.
  *
  * Ordered brightest to faintest. The three that carry a percentage are the same
- * yellow-200 seen through varying amounts of the navy behind it.
+ * white seen through varying amounts of the navy behind it.
  */
 @theme {
   /* Headings — the course title, the lesson title, a product name. */
-  --color-gold-bright: oklch(98.7% 0.026 102.212);
+  --color-ink-bright: oklch(98.7% 0 0);
   /* Emphasis that is not a heading: prices, the lesson you are on. */
-  --color-gold: oklch(97.3% 0.071 103.193);
+  --color-ink: oklch(97.3% 0 0);
   /* Descriptions and running prose — the bulk of the reading. */
-  --color-gold-body: oklch(94.5% 0.129 101.54 / 90%);
+  --color-ink-body: oklch(94.5% 0 0 / 90%);
   /* Meta lines: "3 clases · 7 secciones", dates, captions under a control. */
-  --color-gold-meta: oklch(94.5% 0.129 101.54 / 75%);
+  --color-ink-meta: oklch(94.5% 0 0 / 75%);
   /* The quietest thing on screen. Fine print that must not compete. */
-  --color-gold-faint: oklch(94.5% 0.129 101.54 / 60%);
+  --color-ink-faint: oklch(94.5% 0 0 / 60%);
+
+  /* The gold. Everything on the site that is not ink is cast in these three.
+   *
+   * The five above are what you READ; these are what you PRESS or navigate by
+   * — plaque faces, navbar rules, the category doorways, every border and ring
+   * and glow. That split is the whole colour system: two scales, one job each.
+   *
+   * They started life as the plaque button's alone, while the rest of the site
+   * ran on Tailwind's `yellow-200`. Two golds a few shades apart is worse than
+   * either one on its own — it reads as a mistake rather than a choice — so the
+   * pale one is gone and these three are what is left. There is no `yellow-*`
+   * class anywhere in the consumer side any more, and adding one back is how
+   * the drift starts again.
+   *
+   * Three values rather than one because gold has to sit on gold. A rule around
+   * a gold face is invisible unless it is DARKER, and a hover has to be
+   * brighter, so a single value cannot do the job however well chosen.
+   *
+   * Hue 90 rather than the 101 they started at, chroma pushed up — that shift
+   * from lemon towards amber is most of what makes it read as cast metal, more
+   * than the drop in lightness does.
+   *
+   * Written in oklch to match the scale above, with the sRGB each one lands on
+   * in the comment, since a hex is the thing you can actually picture.
+   */
+  /* The face, the fill, the border, the letter. The default. */
+  --color-gold: oklch(86.7% 0.153 90); /* #face49 */
+  /* The lift: hover, the current item, anything momentarily louder. */
+  --color-gold-bright: oklch(90.9% 0.136 92.6); /* #ffde6f */
+  /* The edge: a rule that has to stay visible against a gold face. */
+  --color-gold-deep: oklch(79.2% 0.16 87.2); /* #e7b30e */
 }
 
 :root {
@@ -155,8 +199,33 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* The weight the whole site is set in.
+   *
+   * 500 rather than the browser's 400. Set on `body` and inherited, so it is
+   * one number for the entire page: nothing out there says `font-normal`, and
+   * Tailwind's reset already strips the browser's own bold off h1-h6 and makes
+   * them inherit too, which is why headings follow from here rather than
+   * needing their own rule.
+   *
+   * It lands as a real weight, not a faked one — every face the site loads
+   * (Cinzel, Geist, Geist Mono) is a variable font carrying the full range, so
+   * the browser draws 500 from the file instead of smearing 400 to imitate it.
+   * See the note in `components/ui/fonts.ts`.
+   *
+   * The handful of elements that ask for more moved up one rung with it: what
+   * was medium (500) is now semibold (600), and what was semibold is now bold
+   * (700). Otherwise a base of 500 would have swallowed the medium ones whole
+   * and left them no heavier than the prose they exist to stand out from. It
+   * is the ladder that matters, not the rungs' absolute height.
+   *
+   * A base of 600+ is the thing to resist. Cinzel is a display serif; past
+   * medium its thin strokes thicken faster than its thick ones and the caps
+   * start to close up, which costs more legibility at body size than the extra
+   * presence is worth.
+   */
   body {
     @apply bg-background text-foreground;
+    font-weight: 500;
   }
   html {
     @apply font-sans;

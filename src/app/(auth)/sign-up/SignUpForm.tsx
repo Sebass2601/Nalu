@@ -13,7 +13,7 @@ export default function SignUpForm() {
 
     return (
         <form action={action} className="flex flex-col gap-4 w-full">
-            <h1 className="text-2xl tracking-widest text-yellow-200 text-center">
+            <h1 className="text-2xl tracking-widest text-ink-bright text-center">
                 Crear cuenta
             </h1>
 
@@ -23,14 +23,14 @@ export default function SignUpForm() {
             )}
 
             <div className="flex flex-col gap-1">
-                <label htmlFor="name" className="text-xs tracking-widest text-yellow-200/90">
+                <label htmlFor="name" className="text-xs tracking-widest text-ink-body">
                     Nombre
                 </label>
                 <input
                     id="name"
                     name="name"
                     type="text"
-                    className="font-sans rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
+                    className="font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
                 />
                 {state?.fieldErrors?.name && (
                     <p className="text-sm text-red-400">
@@ -40,14 +40,14 @@ export default function SignUpForm() {
             </div>
 
             <div className="flex flex-col gap-1">
-                <label htmlFor="email" className="text-xs tracking-widest text-yellow-200/90">
+                <label htmlFor="email" className="text-xs tracking-widest text-ink-body">
                     Email
                 </label>
                 <input
                     id="email"
                     name="email"
                     type="text"
-                    className="font-sans rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
+                    className="font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
                 />
                 {state?.fieldErrors?.email && (
                     <p className="text-sm text-red-400">
@@ -57,14 +57,14 @@ export default function SignUpForm() {
             </div>
 
             <div className="flex flex-col gap-1">
-                <label htmlFor="password" className="text-xs tracking-widest text-yellow-200/90">
+                <label htmlFor="password" className="text-xs tracking-widest text-ink-body">
                     Contraseña
                 </label>
                 <input
                     id="password"
                     name="password"
                     type="password"
-                    className="font-sans rounded-md border border-yellow-200/40 bg-white/5 px-3 py-2 text-yellow-50 placeholder-yellow-200/30 outline-none focus:border-yellow-200 focus:ring-1 focus:ring-yellow-200/50"
+                    className="font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
                 />
                 {state?.fieldErrors?.password && (
                     <ul className="text-sm text-red-400">
@@ -78,7 +78,7 @@ export default function SignUpForm() {
             <button
                 type="submit"
                 disabled={pending}
-                className="mt-2 rounded-md bg-yellow-200 px-4 py-2 font-semibold tracking-widest text-[#0a1628] hover:bg-yellow-100 disabled:opacity-50 cursor-pointer"
+                className="mt-2 rounded-md bg-gold px-4 py-2 font-bold tracking-widest text-[#0a1628] hover:bg-gold-bright disabled:opacity-50 cursor-pointer"
             >
                 {pending ? "Creando..." : "Crear cuenta"}
             </button>

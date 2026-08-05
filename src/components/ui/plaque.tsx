@@ -77,16 +77,20 @@ export function Diamond({
             aria-hidden
             className={cn(
                 "pointer-events-none absolute left-1/2 grid size-2.5 -translate-x-1/2 rotate-45 place-items-center",
+                // Both tones now draw on the same `gold`, which is the point of
+                // there being one: the ring around the navy diamond and the
+                // face it straddles are the same colour, so it reads as cut out
+                // of the plaque rather than laid on top of it.
                 tone === "gold"
-                    ? "bg-yellow-200"
-                    : "bg-[#0a1628] ring-1 ring-yellow-200",
+                    ? "bg-gold"
+                    : "bg-[#0a1628] ring-1 ring-gold",
                 className
             )}
         >
             <span
                 className={cn(
                     "size-1",
-                    tone === "gold" ? "bg-[#0a1628]" : "bg-yellow-200"
+                    tone === "gold" ? "bg-[#0a1628]" : "bg-gold"
                 )}
             />
         </span>

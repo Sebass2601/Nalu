@@ -79,7 +79,7 @@ export async function ProductCallToAction({
     // says what is true and stops there.
     if (courses.length === 0) {
         return (
-            <p className="text-xl tracking-widest text-gold uppercase">
+            <p className="text-xl tracking-widest text-ink uppercase">
                 Ya tienes este producto
             </p>
         );
@@ -134,7 +134,7 @@ export function ProductCallToActionSkeleton({
 function SkeletonPlaque() {
     return (
         <div
-            className="h-14 w-full bg-yellow-200/10 sm:w-48"
+            className="h-14 w-full bg-gold/10 sm:w-48"
             style={{ clipPath: bevelFace(10) }}
         />
     );

@@ -101,13 +101,13 @@ async function ProductDetails({
                                 className="text-3xl"
                             />
                         </Suspense>
-                        <h1 className="text-5xl tracking-wide text-gold-bright">
+                        <h1 className="text-5xl tracking-wide text-ink-bright">
                             {product.name}
                         </h1>
                         {/* formatPlural picks the singular or plural wording
                             from the count, so a product with a single course
                             reads "1 curso · 8 secciones". */}
-                        <p className="text-base tracking-widest text-gold-body uppercase">
+                        <p className="text-base tracking-widest text-ink-body uppercase">
                             {formatPlural(courseCount, {
                                 singular: "curso",
                                 plural: "cursos",
@@ -119,7 +119,7 @@ async function ProductDetails({
                             })}
                         </p>
                     </div>
-                    <p className="text-xl text-gold-body">
+                    <p className="text-xl text-ink-body">
                         {product.description}
                     </p>
                     {/* Sells the product, or opens it if this visitor already
@@ -201,11 +201,11 @@ function CourseSyllabus({
     );
 
     return (
-        <div className="rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70 p-5 backdrop-blur-md">
-            <h2 className="text-2xl tracking-wide text-gold-bright">
+        <div className="rounded-2xl border border-gold/40 bg-[#0a1628]/70 p-5 backdrop-blur-md">
+            <h2 className="text-2xl tracking-wide text-ink-bright">
                 {course.name}
             </h2>
-            <p className="mt-1 text-sm tracking-widest text-gold-meta uppercase">
+            <p className="mt-1 text-sm tracking-widest text-ink-meta uppercase">
                 {formatPlural(course.courseSections.length, {
                     singular: "clase",
                     plural: "clases",
@@ -238,15 +238,15 @@ function CourseSyllabus({
                     // component and still works before JavaScript loads.
                     <details
                         key={section.id}
-                        className="group border-t border-yellow-200/20 py-3"
+                        className="group border-t border-gold/20 py-3"
                     >
                         <summary className="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
-                            <ChevronRight className="size-4 shrink-0 text-gold-body transition-transform group-open:rotate-90" />
+                            <ChevronRight className="size-4 shrink-0 text-gold transition-transform group-open:rotate-90" />
                             <span className="flex flex-1 flex-col">
-                                <span className="text-lg text-gold-bright">
+                                <span className="text-lg text-ink-bright">
                                     {section.name}
                                 </span>
-                                <span className="text-sm text-gold-meta">
+                                <span className="text-sm text-ink-meta">
                                     {formatPlural(section.lessons.length, {
                                         singular: "sección",
                                         plural: "secciones",
@@ -284,14 +284,14 @@ function LessonRow({
     lesson: ProductCourse["courseSections"][number]["lessons"][number];
     courseId: string;
 }) {
-    const rowClassName = "flex items-center gap-2 text-base text-gold-body";
+    const rowClassName = "flex items-center gap-2 text-base text-ink-body";
 
     const content = (
         <>
             <LessonIcon type={lesson.type} />
             <span className="flex-1">{lesson.name}</span>
             {lesson.status === "preview" && (
-                <span className="rounded border border-yellow-200/50 px-2 py-0.5 text-xs tracking-widest text-gold uppercase">
+                <span className="rounded border border-gold/50 px-2 py-0.5 text-xs tracking-widest text-ink uppercase">
                     Vista previa
                 </span>
             )}
@@ -305,7 +305,7 @@ function LessonRow({
     return (
         <Link
             href={`/courses/${courseId}/lessons/${lesson.id}`}
-            className={`${rowClassName} rounded transition-colors hover:text-gold-bright`}
+            className={`${rowClassName} rounded transition-colors hover:text-ink-bright`}
         >
             {content}
         </Link>
@@ -314,7 +314,7 @@ function LessonRow({
 
 function LessonIcon({ type }: { type: LessonType }) {
     const Icon = type === "text" ? FileText : Video;
-    return <Icon className="size-4 shrink-0 text-gold-meta" />;
+    return <Icon className="size-4 shrink-0 text-ink-meta" />;
 }
 
 function ProductSkeleton() {
@@ -322,10 +322,10 @@ function ProductSkeleton() {
         <div className="animate-pulse">
             <div className="flex flex-col-reverse gap-10 md:flex-row md:gap-16">
                 <div className="flex flex-col gap-4 md:flex-1">
-                    <div className="h-7 w-28 rounded bg-yellow-200/20" />
-                    <div className="h-10 w-72 rounded bg-yellow-200/20" />
-                    <div className="h-4 w-48 rounded bg-yellow-200/10" />
-                    <div className="mt-4 h-14 w-48 rounded-lg bg-yellow-200/10" />
+                    <div className="h-7 w-28 rounded bg-gold/20" />
+                    <div className="h-10 w-72 rounded bg-gold/20" />
+                    <div className="h-4 w-48 rounded bg-gold/10" />
+                    <div className="mt-4 h-14 w-48 rounded-lg bg-gold/10" />
                 </div>
                 <div className="aspect-video w-full rounded-xl bg-[#0a1628]/40 md:max-w-lg md:flex-1" />
             </div>

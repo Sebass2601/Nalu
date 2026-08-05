@@ -71,7 +71,10 @@ export async function startSubscriptionCheckout(interval: string) {
         discounts: coupon ? [{ coupon: coupon.stripeCouponId }] : undefined,
         branding_settings: {
             border_style: "rounded",
-            button_color: "#fef08a",
+            // `--color-gold` written out — see the same line in
+            // `purchases/actions/stripe.ts`. Stripe's page cannot read our
+            // tokens, so these two hexes are kept in step by hand.
+            button_color: "#face49",
             display_name: "Nalu",
         },
         // Read back by the webhook. Stripe returns it unchanged, which makes it

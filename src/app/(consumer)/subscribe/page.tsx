@@ -24,13 +24,13 @@ export default function SubscribePage() {
         >
             <div className="mx-auto w-full max-w-4xl px-4 pt-28 pb-8 sm:pt-32">
                 <div className="flex flex-col items-center gap-3 text-center">
-                    <p className="text-sm tracking-[0.3em] text-gold-body uppercase">
+                    <p className="text-sm tracking-[0.3em] text-ink-body uppercase">
                         Suscripción
                     </p>
-                    <h1 className="text-5xl tracking-wide text-gold-bright">
+                    <h1 className="text-5xl tracking-wide text-ink-bright">
                         Acceso a toda la biblioteca
                     </h1>
-                    <p className="max-w-xl text-gold-body">
+                    <p className="max-w-xl text-ink-body">
                         Un solo pago recurrente para entrar a los cursos
                         incluidos. Cancela cuando quieras.
                     </p>
@@ -49,10 +49,10 @@ export default function SubscribePage() {
                     <SubscriptionCourseRows emptyMessage="Aún no hay cursos incluidos en la suscripción." />
                 </Suspense>
 
-                <p className="mt-12 text-center text-sm text-gold-faint">
+                <p className="mt-12 text-center text-sm text-ink-faint">
                     <Link
                         href="/products"
-                        className="underline hover:text-gold-body"
+                        className="underline hover:text-ink-body"
                     >
                         Ver también los cursos disponibles para compra
                         individual
@@ -151,16 +151,16 @@ function PlanCard({
         <div
             className={`flex flex-col gap-4 rounded-2xl border p-6 ${
                 highlighted
-                    ? "border-yellow-200/60 bg-[#0a1628]/80"
-                    : "border-yellow-200/25 bg-[#0a1628]/50"
+                    ? "border-gold/60 bg-[#0a1628]/80"
+                    : "border-gold/25 bg-[#0a1628]/50"
             }`}
         >
             <div className="flex items-center justify-between gap-3">
-                <h2 className="text-2xl tracking-wide text-gold-bright">
+                <h2 className="text-2xl tracking-wide text-ink-bright">
                     {title}
                 </h2>
                 {badge && (
-                    <span className="rounded border border-yellow-200/50 px-2 py-0.5 text-xs tracking-widest text-gold uppercase">
+                    <span className="rounded border border-gold/50 px-2 py-0.5 text-xs tracking-widest text-ink uppercase">
                         {badge}
                     </span>
                 )}
@@ -168,19 +168,19 @@ function PlanCard({
 
             <div className="flex flex-col gap-1">
                 <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-semibold text-gold">
+                    <span className="text-4xl font-bold text-ink">
                         {formatPrice(discounted)}
                     </span>
                     {/* Only when it differs — a coupon that rounds to the same
                         whole dollar would otherwise print the identical figure
                         struck through beside itself. */}
                     {discounted !== priceInDollars && (
-                        <span className="text-base text-gold-meta line-through">
+                        <span className="text-base text-ink-meta line-through">
                             {formatPrice(priceInDollars)}
                         </span>
                     )}
                 </div>
-                <span className="text-sm text-gold-meta">{caption}</span>
+                <span className="text-sm text-ink-meta">{caption}</span>
             </div>
 
             {/* A plain form + Server Action: no client JavaScript needed to

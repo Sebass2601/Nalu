@@ -47,13 +47,13 @@ export async function ProductPrice({
         <div className="flex items-baseline gap-2">
             <span
                 className={cn(
-                    "text-3xl font-semibold text-gold",
+                    "text-3xl font-bold text-ink",
                     className
                 )}
             >
                 {formatPrice(discounted)}
             </span>
-            <span className="text-base text-gold-meta line-through">
+            <span className="text-base text-ink-meta line-through">
                 {formatPrice(priceInDollars)}
             </span>
         </div>
@@ -71,7 +71,7 @@ export function FullPrice({
 }) {
     return (
         <span
-            className={cn("text-3xl font-semibold text-gold", className)}
+            className={cn("text-3xl font-bold text-ink", className)}
         >
             {formatPrice(priceInDollars)}
         </span>

@@ -74,7 +74,7 @@ export function CourseNav({
         // a phone, matching the order you read them in, and is reset at lg where
         // the grid places it in the left column instead.
         <div
-            className={`order-2 rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70 p-4 backdrop-blur-md lg:order-0 lg:sticky lg:top-32 lg:self-start ${
+            className={`order-2 rounded-2xl border border-gold/40 bg-[#0a1628]/70 p-4 backdrop-blur-md lg:order-0 lg:sticky lg:top-32 lg:self-start ${
                 isLessonOpen ? "hidden lg:block" : ""
             }`}
         >
@@ -89,12 +89,12 @@ export function CourseNav({
             {isLessonOpen ? (
                 <Link
                     href={`/courses/${courseId}`}
-                    className="mb-4 hidden text-xl tracking-wide text-gold-bright transition-colors hover:text-gold lg:block"
+                    className="mb-4 hidden text-xl tracking-wide text-ink-bright transition-colors hover:text-ink lg:block"
                 >
                     {courseName}
                 </Link>
             ) : (
-                <p className="mb-4 hidden text-xl tracking-wide text-gold-bright lg:block">
+                <p className="mb-4 hidden text-xl tracking-wide text-ink-bright lg:block">
                     {courseName}
                 </p>
             )}
@@ -104,11 +104,11 @@ export function CourseNav({
                     <details
                         key={section.id}
                         open={section.id === openSectionId}
-                        className="group border-t border-yellow-200/20 py-2 first:border-t-0"
+                        className="group border-t border-gold/20 py-2 first:border-t-0"
                     >
-                        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-base text-gold-bright [&::-webkit-details-marker]:hidden">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-base text-ink-bright [&::-webkit-details-marker]:hidden">
                             <span>{section.name}</span>
-                            <span className="text-sm text-gold-meta transition-transform group-open:rotate-90">
+                            <span className="text-sm text-ink-meta transition-transform group-open:rotate-90">
                                 ›
                             </span>
                         </summary>
@@ -151,23 +151,28 @@ function LessonLink({
             aria-current={isCurrent ? "page" : undefined}
             className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-base transition-colors ${
                 isCurrent
-                    ? "bg-yellow-200/15 text-gold-bright"
-                    : "text-gold-body hover:bg-yellow-200/10 hover:text-gold-bright"
+                    ? "bg-gold/15 text-ink-bright"
+                    : "text-ink-body hover:bg-gold/10 hover:text-ink-bright"
             }`}
         >
-            <Icon className="size-3.5 shrink-0 text-gold-meta" />
+            <Icon className="size-3.5 shrink-0 text-ink-meta" />
             <span className="flex-1">{lesson.name}</span>
             {/* The same badge the product page's syllabus carries, so a lesson
                 advertised as watchable there is recognisable here. `shrink-0`
                 keeps it whole: the name beside it is the flexible one, and a
                 badge broken across two lines reads as a second lesson. */}
             {lesson.isPreview && (
-                <span className="shrink-0 rounded border border-yellow-200/50 px-2 py-0.5 text-xs tracking-widest text-gold uppercase">
+                <span className="shrink-0 rounded border border-gold/50 px-2 py-0.5 text-xs tracking-widest text-ink uppercase">
                     Vista previa
                 </span>
             )}
             {lesson.isComplete && (
                 <Check
+                    // Gold rather than the row's white. A tick is not something
+                    // you read, it is a mark against the row — and in a list
+                    // where every lesson name is already white, a white tick is
+                    // one more white thing to scan past. The gold is what lets
+                    // you count the finished lessons without reading any of it.
                     className="size-3.5 shrink-0 text-gold"
                     aria-label="Completada"
                 />

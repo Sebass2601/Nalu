@@ -21,7 +21,7 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
     const isStarted = course.completedCount > 0;
 
     return (
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70 backdrop-blur-md">
+        <div className="flex flex-col overflow-hidden rounded-2xl border border-gold/40 bg-[#0a1628]/70 backdrop-blur-md">
             {/* Structured exactly like ProductCard: the cover is its own
                 full-bleed block flush against the card's top edge, and the
                 padding lives on the text below rather than on the card. The
@@ -39,11 +39,11 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
             )}
 
             <div className="flex flex-1 flex-col gap-3 p-5">
-                <h2 className="text-xl tracking-wide text-gold-bright">
+                <h2 className="text-xl tracking-wide text-ink-bright">
                     {course.name}
                 </h2>
 
-                <p className="text-sm tracking-widest text-gold-meta uppercase">
+                <p className="text-sm tracking-widest text-ink-meta uppercase">
                     {formatPlural(course.sectionCount, {
                         singular: "clase",
                         plural: "clases",
@@ -121,7 +121,7 @@ function CourseProgressBar({
 
     return (
         <div className="flex flex-col gap-1.5">
-            <p className="text-sm text-gold-body">
+            <p className="text-sm text-ink-body">
                 {done} de{" "}
                 {formatPlural(total, {
                     singular: "sección completada",
@@ -129,14 +129,14 @@ function CourseProgressBar({
                 })}
             </p>
             <div
-                className="h-1.5 w-full overflow-hidden rounded-full bg-yellow-200/15"
+                className="h-1.5 w-full overflow-hidden rounded-full bg-gold/15"
                 role="progressbar"
                 aria-valuenow={percent}
                 aria-valuemin={0}
                 aria-valuemax={100}
             >
                 <div
-                    className="h-full rounded-full bg-yellow-200"
+                    className="h-full rounded-full bg-gold"
                     style={{ width: `${percent}%` }}
                 />
             </div>

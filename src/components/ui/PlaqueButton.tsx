@@ -91,7 +91,7 @@ export function PlaqueButton({
                 className={cn(
                     "relative block transition-colors duration-300",
                     isPrimary
-                        ? "bg-yellow-200 group-hover/plaque:bg-yellow-100"
+                        ? "bg-gold group-hover/plaque:bg-gold-bright"
                         : "bg-[#0a1628]/70 backdrop-blur-md group-hover/plaque:bg-[#0a1628]/85",
                     size === "default" ? "px-8 py-3.5" : "px-5 py-2"
                 )}
@@ -115,7 +115,7 @@ export function PlaqueButton({
                             : "text-sm tracking-[0.18em]",
                         isPrimary
                             ? "text-[#0a1628]"
-                            : "text-yellow-200/70 group-hover/plaque:text-yellow-200"
+                            : "text-ink-body group-hover/plaque:text-ink-bright"
                     )}
                 >
                     {children}
@@ -132,8 +132,8 @@ export function PlaqueButton({
                 className={cn(
                     "pointer-events-none absolute inset-0 transition-colors duration-200",
                     isPrimary
-                        ? "bg-yellow-300 group-hover/plaque:bg-yellow-200"
-                        : "bg-yellow-200/40 group-hover/plaque:bg-yellow-200/70"
+                        ? "bg-gold-deep group-hover/plaque:bg-gold"
+                        : "bg-gold/40 group-hover/plaque:bg-gold/70"
                 )}
                 style={{ clipPath: shape.rule }}
             />
@@ -181,7 +181,7 @@ export function PlaqueButton({
         // clip-path has cut that box into an octagon — but removing it without
         // a replacement, which is what CategoryButton does, leaves a keyboard
         // user with no idea where they are.
-        "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-yellow-200",
+        "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold",
         "disabled:pointer-events-none disabled:opacity-50",
         className
     )

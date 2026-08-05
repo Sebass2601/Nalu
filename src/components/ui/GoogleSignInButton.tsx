@@ -13,7 +13,7 @@ export default function GoogleSignInButton() {
         >
             <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-3 rounded-md border border-yellow-200/40 bg-white/5 px-4 py-2 tracking-widest text-yellow-50 hover:bg-white/10 cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-3 rounded-md border border-gold/40 bg-white/5 px-4 py-2 tracking-widest text-ink-bright hover:bg-white/10 cursor-pointer"
             >
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                     <path

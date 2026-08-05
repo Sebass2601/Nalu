@@ -57,10 +57,10 @@ export function UserMenuButton({
                         // the circle and the picture would have to shrink to
                         // clear it. The ring is drawn outside the 44px, so the
                         // face stays the full width.
-                        "bg-[#0a1628] ring-2 ring-yellow-200 ring-offset-0",
+                        "bg-[#0a1628] ring-2 ring-gold ring-offset-0",
                         "transition-shadow duration-200",
-                        "group-hover:ring-yellow-100",
-                        "group-data-[state=open]:ring-yellow-100"
+                        "group-hover:ring-gold-bright",
+                        "group-data-[state=open]:ring-gold-bright"
                     )}
                 >
                     {image ? (
@@ -77,7 +77,7 @@ export function UserMenuButton({
                         // common case rather than the fallback.
                         <UserIcon
                             aria-hidden
-                            className="absolute inset-0 m-auto size-6 text-yellow-200"
+                            className="absolute inset-0 m-auto size-6 text-gold"
                         />
                     )}
                 </span>
@@ -91,7 +91,7 @@ export function UserMenuButton({
                     collisionPadding={8}
                     className={cn(
                         "z-50 w-60 overflow-hidden rounded-2xl p-1.5",
-                        "border border-yellow-200/30 bg-[#0a1628]/95 backdrop-blur-md",
+                        "border border-gold/30 bg-[#0a1628]/95 backdrop-blur-md",
                         "shadow-lg shadow-black/40",
                         "data-[state=open]:animate-in data-[state=closed]:animate-out",
                         "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
@@ -102,7 +102,7 @@ export function UserMenuButton({
                     {/* Whose menu this is. The trigger is a picture and, on a
                         phone, a small one — without this the menu could belong
                         to anybody. */}
-                    <p className="truncate px-3 pt-2 pb-3 text-xs tracking-widest text-gold-meta uppercase">
+                    <p className="truncate px-3 pt-2 pb-3 text-xs tracking-widest text-gold/75 uppercase">
                         {name}
                     </p>
 
@@ -122,7 +122,7 @@ export function UserMenuButton({
                         icon={<ReceiptTextIcon aria-hidden className="size-4" />}
                     />
 
-                    <DropdownMenu.Separator className="my-1.5 h-px bg-yellow-200/20" />
+                    <DropdownMenu.Separator className="my-1.5 h-px bg-gold/20" />
 
                     {/* The one item that acts rather than navigates, so it is a
                         form posting a Server Action. `asChild` hands the menu
@@ -152,11 +152,17 @@ export function UserMenuButton({
 
 // Shared by the links and the sign-out button so the red item differs from its
 // neighbours in colour alone and not in height or spacing.
+//
+// Written in gold rather than the `ink-*` scale, and is one of the few places
+// left that is. The page is written in white now; the navbars kept the gold,
+// and this menu hangs off one — it is the avatar in the bar opened up, not a
+// panel of page content. `gold/90` and `gold-bright` carry the same step
+// between rest and highlight the menu has always had.
 const ITEM = cn(
     "flex items-center gap-3 rounded-xl px-3 py-2.5",
-    "text-left text-sm tracking-wide text-gold-body",
+    "text-left text-sm tracking-wide text-gold/90",
     "outline-none transition-colors",
-    "data-highlighted:bg-yellow-200/10 data-highlighted:text-gold-bright"
+    "data-highlighted:bg-gold/10 data-highlighted:text-gold-bright"
 )
 
 function MenuLink({

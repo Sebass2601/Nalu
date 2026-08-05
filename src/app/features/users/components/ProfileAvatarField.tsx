@@ -39,7 +39,7 @@ export function ProfileAvatarField({
 
     return (
         <div className="flex items-center gap-5">
-            <span className="relative block size-24 shrink-0 overflow-hidden rounded-full bg-[#0a1628] ring-2 ring-yellow-200">
+            <span className="relative block size-24 shrink-0 overflow-hidden rounded-full bg-[#0a1628] ring-2 ring-gold">
                 {value ? (
                     // Plain <img>, as in the admin picker: the URL changes the
                     // moment an upload finishes, and routing a just-uploaded
@@ -53,13 +53,13 @@ export function ProfileAvatarField({
                 ) : (
                     <UserIcon
                         aria-hidden
-                        className="absolute inset-0 m-auto size-10 text-yellow-200"
+                        className="absolute inset-0 m-auto size-10 text-gold"
                     />
                 )}
 
                 {isUploading && (
                     <span className="absolute inset-0 flex items-center justify-center bg-[#0a1628]/70">
-                        <Loader2Icon className="size-6 animate-spin text-yellow-200" />
+                        <Loader2Icon className="size-6 animate-spin text-gold" />
                     </span>
                 )}
             </span>
@@ -83,7 +83,7 @@ export function ProfileAvatarField({
                     type="button"
                     disabled={disabled || isUploading}
                     onClick={() => inputRef.current?.click()}
-                    className="cursor-pointer rounded-md border border-yellow-200/40 px-3 py-1.5 text-xs tracking-widest text-yellow-200 transition-colors hover:border-yellow-200 hover:bg-yellow-200/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="cursor-pointer rounded-md border border-gold/40 px-3 py-1.5 text-xs tracking-widest text-ink-bright transition-colors hover:border-gold hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {isUploading
                         ? "Subiendo..."
@@ -97,7 +97,7 @@ export function ProfileAvatarField({
                         type="button"
                         disabled={disabled}
                         onClick={() => onChange(null)}
-                        className="cursor-pointer text-xs tracking-widest text-gold-meta underline transition-colors hover:text-gold-body disabled:opacity-50"
+                        className="cursor-pointer text-xs tracking-widest text-ink-meta underline transition-colors hover:text-ink-body disabled:opacity-50"
                     >
                         Quitar foto
                     </button>

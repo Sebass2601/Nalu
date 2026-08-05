@@ -56,7 +56,7 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
                     a ratio — Next.js reserves space with them until the real
                     image arrives, after which the natural proportions win. 4:3
                     keeps that reservation close to the old layout. */}
-                <div className="relative overflow-hidden rounded-xl border border-yellow-200/40 bg-[#0a1628]/70">
+                <div className="relative overflow-hidden rounded-xl border border-gold/40 bg-[#0a1628]/70">
                     <Image
                         src={image.url}
                         alt={image.caption ?? ""}
@@ -82,7 +82,7 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
                 rather than under the whole gallery — and the space collapses
                 entirely for images that have none. */}
             {image.caption && (
-                <figcaption className="mt-2 text-center text-sm text-gold-body">
+                <figcaption className="mt-2 text-center text-sm text-ink-body">
                     {image.caption}
                 </figcaption>
             )}
@@ -102,8 +102,8 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
                             aria-current={dotIndex === index}
                             className={`size-1.5 cursor-pointer rounded-full transition-colors ${
                                 dotIndex === index
-                                    ? "bg-yellow-200"
-                                    : "bg-yellow-200/30 hover:bg-yellow-200/60"
+                                    ? "bg-gold"
+                                    : "bg-gold/30 hover:bg-gold/60"
                             }`}
                         />
                     ))}
@@ -131,7 +131,7 @@ function GalleryArrow({
             type="button"
             onClick={onClick}
             aria-label={isPrevious ? "Imagen anterior" : "Imagen siguiente"}
-            className={`absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-full border border-yellow-200/50 bg-[#0a1628]/80 p-1.5 text-gold backdrop-blur-sm transition-colors hover:bg-yellow-200 hover:text-[#0a1628] ${
+            className={`absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-full border border-gold/50 bg-[#0a1628]/80 p-1.5 text-gold backdrop-blur-sm transition-colors hover:bg-gold hover:text-[#0a1628] ${
                 isPrevious ? "left-2" : "right-2"
             }`}
         >

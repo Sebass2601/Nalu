@@ -94,19 +94,19 @@ async function Lesson({
                     anywhere. */}
                 <Link
                     href={`/courses/${courseId}`}
-                    className="flex items-center gap-2 self-start text-base tracking-widest text-gold-body uppercase transition-colors hover:text-gold-bright lg:hidden"
+                    className="flex items-center gap-2 self-start text-base tracking-widest text-ink-body uppercase transition-colors hover:text-ink-bright lg:hidden"
                 >
-                    <ChevronLeft className="size-4" />
+                    <ChevronLeft className="size-4 text-gold" />
                     Contenido del curso
                 </Link>
-                <p className="text-sm tracking-widest text-gold-meta uppercase">
+                <p className="text-sm tracking-widest text-ink-meta uppercase">
                     {lesson.sectionName}
                 </p>
-                <h1 className="text-4xl tracking-wide text-gold-bright">
+                <h1 className="text-4xl tracking-wide text-ink-bright">
                     {lesson.name}
                 </h1>
                 {lesson.description && (
-                    <p className="text-gold-body">{lesson.description}</p>
+                    <p className="text-ink-body">{lesson.description}</p>
                 )}
             </header>
 
@@ -148,7 +148,7 @@ async function Lesson({
                 From `sm` up it goes back to being one flex row — there is room
                 for all three, and the grid placement is ignored outright once
                 the container is no longer a grid. */}
-            <footer className="mt-4 grid grid-cols-2 items-center gap-3 border-t border-yellow-200/20 pt-6 sm:flex sm:flex-wrap sm:justify-between">
+            <footer className="mt-4 grid grid-cols-2 items-center gap-3 border-t border-gold/20 pt-6 sm:flex sm:flex-wrap sm:justify-between">
                 <div className="col-start-1 row-start-1 justify-self-start">
                     <Suspense fallback={<NavigationPlaceholder />}>
                         <ToLessonButton
@@ -228,9 +228,9 @@ async function LockedLesson({ courseId }: { courseId: string }) {
     ]);
 
     return (
-        <div className="flex flex-col items-center gap-6 rounded-xl border border-yellow-200/40 bg-[#0a1628]/70 px-6 py-16 text-center backdrop-blur-md">
-            <Lock className="size-12 text-gold-meta" />
-            <p className="text-gold-body">
+        <div className="flex flex-col items-center gap-6 rounded-xl border border-gold/40 bg-[#0a1628]/70 px-6 py-16 text-center backdrop-blur-md">
+            <Lock className="size-12 text-ink-meta" />
+            <p className="text-ink-body">
                 Esta sección está bloqueada. Necesitas acceso al curso para
                 verla.
             </p>
@@ -263,7 +263,7 @@ async function LockedLesson({ courseId }: { courseId: string }) {
                             <PlaqueButton href="/subscribe">
                                 Suscribirme
                             </PlaqueButton>
-                            <p className="text-sm text-gold-meta">
+                            <p className="text-sm text-ink-meta">
                                 Incluye este curso y todos los demás de la
                                 suscripción.
                             </p>
@@ -288,11 +288,11 @@ function OrDivider() {
             aria-hidden
             className="flex items-center gap-3 sm:flex-col sm:self-stretch"
         >
-            <span className="h-px flex-1 bg-yellow-200/20 sm:h-auto sm:w-px" />
-            <span className="text-sm tracking-widest text-gold-faint uppercase">
+            <span className="h-px flex-1 bg-gold/20 sm:h-auto sm:w-px" />
+            <span className="text-sm tracking-widest text-ink-faint uppercase">
                 o
             </span>
-            <span className="h-px flex-1 bg-yellow-200/20 sm:h-auto sm:w-px" />
+            <span className="h-px flex-1 bg-gold/20 sm:h-auto sm:w-px" />
         </div>
     );
 }
@@ -344,8 +344,8 @@ function NavigationPlaceholder() {
 function LessonSkeleton() {
     return (
         <div className="flex animate-pulse flex-col gap-6">
-            <div className="h-4 w-32 rounded bg-yellow-200/10" />
-            <div className="h-9 w-80 rounded bg-yellow-200/20" />
+            <div className="h-4 w-32 rounded bg-gold/10" />
+            <div className="h-9 w-80 rounded bg-gold/20" />
             <div className="aspect-video w-full rounded-xl bg-[#0a1628]/40" />
         </div>
     );

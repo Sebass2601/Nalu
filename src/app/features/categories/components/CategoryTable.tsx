@@ -33,7 +33,7 @@ export function CategoryTable({
             {categories.map(category => (
                 <TableRow key={category.id}>
                     <TableCell>
-                        <div className="font-semibold">{category.name}</div>
+                        <div className="font-bold">{category.name}</div>
                     </TableCell>
                     <TableCell>
                         {formatPlural(category.coursesCount, {

@@ -37,7 +37,7 @@ export function LoadingTextSwap({
                 )}
             >
                 {/* Colour and size both inherit: `currentColor` makes it navy
-                    on a primary plaque and gold on a secondary one, and sizing
+                    on a primary plaque and white on a secondary one, and sizing
                     in `em` keeps it proportional to whatever label it replaced
                     — a full-size plaque, a small one, or a line of body text. */}
                 <Loader2Icon aria-hidden className="size-[1.25em] animate-spin" />

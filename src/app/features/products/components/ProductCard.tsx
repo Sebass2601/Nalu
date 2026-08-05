@@ -20,7 +20,7 @@ export function ProductCard({
     priceInDollars: number;
 }) {
     return (
-        <div className="rounded-2xl border border-yellow-200/40 bg-[#0a1628]/70 backdrop-blur-md overflow-hidden flex flex-col w-full max-w-125 mx-auto">
+        <div className="rounded-2xl border border-gold/40 bg-[#0a1628]/70 backdrop-blur-md overflow-hidden flex flex-col w-full max-w-125 mx-auto">
             <div className="relative aspect-video w-full">
                 <Image
                     src={imageUrl}
@@ -30,7 +30,7 @@ export function ProductCard({
                 />
             </div>
             <div className="p-5 flex flex-col gap-3 flex-1">
-                <h2 className="text-xl tracking-wide text-gold-bright">
+                <h2 className="text-xl tracking-wide text-ink-bright">
                     {name}
                 </h2>
                 {/* Full price streams instantly; the PPP-adjusted price
@@ -49,7 +49,7 @@ export function ProductCard({
                         className="text-2xl"
                     />
                 </Suspense>
-                <p className="text-base text-gold-body line-clamp-3 flex-1">
+                <p className="text-base text-ink-body line-clamp-3 flex-1">
                     {description}
                 </p>
                 <PlaqueButton

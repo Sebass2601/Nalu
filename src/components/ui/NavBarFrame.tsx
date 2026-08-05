@@ -18,11 +18,11 @@ export function NavBarFrame({ children }: { children?: ReactNode }) {
             {children}
             <span
                 aria-hidden
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-yellow-200"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-gold"
             />
             <span
                 aria-hidden
-                className="pointer-events-none absolute inset-x-0 bottom-1.25 h-px bg-yellow-200/40"
+                className="pointer-events-none absolute inset-x-0 bottom-1.25 h-px bg-gold/40"
             />
         </div>
     )
