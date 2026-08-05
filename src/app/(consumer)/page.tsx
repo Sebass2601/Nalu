@@ -18,22 +18,22 @@ const cinzel = Cinzel({ subsets: ["latin"] });
 // The arch itself now carries the lettering instead, which is why the way into
 // the castle moved down onto the open book.
 //
-// Three of the four lead back here for the moment. Their pages do not exist yet,
-// and a plaque that goes nowhere at all would be a plaque a visitor presses
-// twice before deciding the site is broken.
+// Sobre Nosotros still leads back here, its page not being written yet. A plaque
+// that goes nowhere at all would be one a visitor presses twice before deciding
+// the site is broken, so it returns to the room it was pressed in.
 const ENTRANCES: Entrance[] = [
   // The armillary globe, far left. Set a little right of its centre so the
   // plaque clears the edge of the painting: at this scale it is half a plaque
   // wide from the left border, and the artwork's own edge is the screen's on a
   // desktop.
-  { id: "anuncios", label: "Anuncios", href: "/", x: 0.078, y: 0.529 },
+  { id: "anuncios", label: "Anuncios", href: "/announcements", x: 0.078, y: 0.529 },
   // The pair of closed books, on their spines.
   { id: "sobre-nosotros", label: "Sobre Nosotros", href: "/", x: 0.262, y: 0.588 },
   // The gutter of the open book, where the two pages meet.
   { id: "cursos", label: "Explorar los Cursos", href: "/fetch-courses", x: 0.502, y: 0.592 },
   // The crystal cluster. The longest label on the page, so it is nudged left of
   // the crystal's centre to keep its far end off the lantern behind it.
-  { id: "lecciones", label: "Lecciones semanales gratis", href: "/", x: 0.845, y: 0.591 },
+  { id: "lecciones", label: "Lecciones semanales gratis", href: "/newsletter", x: 0.845, y: 0.591 },
 ];
 
 // Where the lettering hangs in the arch. Centred on the opening, which spans
