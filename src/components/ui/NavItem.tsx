@@ -133,7 +133,11 @@ export function NavItem({
         // Only the horizontal padding gives way on a phone, where six of these
         // and the logo have to share 360px. That keeps the icon growing while
         // the tile stays the width it already was.
-        "group relative inline-flex h-16 items-center justify-center px-1.5 select-none",
+        //
+        // 4px rather than 6 since the castle joined the row: an admin now
+        // carries five tiles, and at 6px they needed 236px of the 216px a
+        // 360px phone leaves between the logo and the avatar.
+        "group relative inline-flex h-16 items-center justify-center px-1 select-none",
         "text-gold transition-[color,transform] duration-200 ease-out",
         // `hover:active:` so a phone tap changes nothing — a bare `active:`
         // translate made iOS Safari drop clip-path'd layers mid-press.

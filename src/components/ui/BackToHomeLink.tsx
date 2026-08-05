@@ -62,16 +62,20 @@ export function BackLink({
 // — a visitor who opened one by accident, or who was bounced here by the proxy,
 // has nothing to press but the browser's back button. This is that door.
 //
+// It leads to the castle rather than to `/`, alongside the two catalogue pages'
+// own ways out: someone breaking off from signing in wants the room with the
+// courses in it, not the entrance hall they already walked through.
+//
 // Written once and placed on both pages rather than in an `(auth)/layout.tsx`:
 // both already paint their own full-screen background, and a layout would only
 // wrap them to add one absolutely positioned link.
-export function BackToHomeLink() {
+export function BackToCastleLink() {
     return (
         <BackLink
-            href="/"
+            href="/fetch-courses"
             className="absolute top-6 left-6 sm:top-8 sm:left-8"
         >
-            Volver a la página principal
+            Volver al castillo
         </BackLink>
     )
 }

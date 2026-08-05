@@ -1,74 +1,68 @@
 import MultiLayerParallax from "@/components/ui/MultiLayerParallax";
-import { HOTSPOTS, type Entrance } from "@/components/ui/parallaxEntrances";
+import { SalonHeading } from "@/components/ui/SalonHeading";
+import { type Entrance } from "@/components/ui/parallaxEntrances";
 import { Cinzel } from "next/font/google";
-import { cacheTag } from "next/cache";
-import { db } from "@/drizzle/db";
-import { CategoryTable } from "@/drizzle/schema";
-import { getCategoryGlobalTag } from "@/app/features/categories/db/cache/categories";
-import { asc } from "drizzle-orm";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
-// Doorways that are not categories at all: their wording and destination are
-// fixed here, and the category assignment skips straight past them.
-const FIXED_ENTRANCES: Record<string, { label: string; href: string }> = {
-  // The great central entrance leads to its own page rather than a category.
-  "4": { label: "Gran Salón del Conocimiento", href: "/" },
-};
+// El Salón del Conocimiento: the page everyone arrives on. A study looking out
+// through an arch, and what lies through the arch is the castle valley — so the
+// arch is the way in, and the only thing here you can press.
+//
+// This page asks the database nothing, which is the point of putting it in front
+// of everything else. It is not fully static all the same — the navbar in the
+// consumer layout awaits the session, so the route is partially prerendered:
+// artwork in the static shell, the bar streamed in after. What it does not do is
+// wait on categories the way the castle behind it does.
+// One doorway per object on the table, each sitting on the thing that names it.
+// The arch itself now carries the lettering instead, which is why the way into
+// the castle moved down onto the open book.
+//
+// Three of the four lead back here for the moment. Their pages do not exist yet,
+// and a plaque that goes nowhere at all would be a plaque a visitor presses
+// twice before deciding the site is broken.
+const ENTRANCES: Entrance[] = [
+  // The armillary globe, far left. Set a little right of its centre so the
+  // plaque clears the edge of the painting: at this scale it is half a plaque
+  // wide from the left border, and the artwork's own edge is the screen's on a
+  // desktop.
+  { id: "anuncios", label: "Anuncios", href: "/", x: 0.078, y: 0.529 },
+  // The pair of closed books, on their spines.
+  { id: "sobre-nosotros", label: "Sobre Nosotros", href: "/", x: 0.262, y: 0.588 },
+  // The gutter of the open book, where the two pages meet.
+  { id: "cursos", label: "Explorar los Cursos", href: "/fetch-courses", x: 0.502, y: 0.592 },
+  // The crystal cluster. The longest label on the page, so it is nudged left of
+  // the crystal's centre to keep its far end off the lantern behind it.
+  { id: "lecciones", label: "Lecciones semanales gratis", href: "/", x: 0.845, y: 0.591 },
+];
 
-export default async function Home() {
-  const categories = await getCategories();
+// Where the lettering hangs in the arch. Centred on the opening, which spans
+// x 0.238 to 0.759.
+//
+// 0.32 is the highest this can sit while still clearing the navbar on the
+// layouts that matter, measured with the camera at rest — which is the state the
+// page opens in, and the one the clearance is owed to. Panning may still carry
+// it behind the bar, and on an ultrawide-but-short window or a phone held
+// sideways it does so immediately; that is the trade for lettering this size.
+//
+// Clearance at rest, block top against the 96px bar: 165px at 1440x900, 128px at
+// 1536x864, 160px at 1920x1080, 171px on a portrait phone, 213px at 2560x1440.
+const INSCRIPTION_AT = { x: 0.5, y: 0.32 };
 
+// A shade under the castle's 0.86. Four plaques share this scene where Phase 1
+// had one, and the lettering above them is what the eye should reach first.
+const SALON_BUTTON_SCALE = 0.82;
+
+export default function Home() {
   return (
     <main className={cinzel.className}>
-      <MultiLayerParallax entrances={assignEntrances(categories)} />
+      <MultiLayerParallax
+        background="/parallax/layer_1_salon.webp"
+        foreground="/parallax/layer_2_salon.webp"
+        entrances={ENTRANCES}
+        buttonScale={SALON_BUTTON_SCALE}
+        inscription={{ node: <SalonHeading />, ...INSCRIPTION_AT }}
+      />
     </main>
   );
-}
-
-async function getCategories() {
-  "use cache";
-  cacheTag(getCategoryGlobalTag());
-
-  return db
-    .select({
-      id: CategoryTable.id,
-      name: CategoryTable.name,
-      doorway: CategoryTable.doorway,
-    })
-    .from(CategoryTable)
-    .orderBy(asc(CategoryTable.name));
-}
-
-type Category = { id: string; name: string; doorway: string | null };
-
-// Turns the categories into the plaques the castle draws. Each one goes to the
-// doorway stored on it, and a category without a doorway is simply not drawn —
-// it stays reachable from /products and the category nav.
-//
-// Nothing here depends on how many categories there are or on the order they
-// arrive in, which is the point: a category's plaque only ever moves when an
-// admin changes its doorway. Adding, renaming or deleting a category leaves
-// every other plaque exactly where it was.
-//
-// A doorway pointing at nothing is left as plain artwork, and a category
-// pointing at a doorway the artwork no longer has is dropped rather than drawn
-// off-screen.
-function assignEntrances(categories: Category[]): Entrance[] {
-  const byDoorway = new Map(
-    categories.flatMap((category) =>
-      category.doorway == null ? [] : [[category.doorway, category] as const]
-    )
-  );
-
-  return HOTSPOTS.flatMap(({ id }) => {
-    // A fixed doorway keeps its own wording and is never handed to a category.
-    const fixed = FIXED_ENTRANCES[id];
-    if (fixed) return [{ id, ...fixed }];
-
-    const category = byDoorway.get(id);
-    if (!category) return [];
-
-    return [{ id, label: category.name, href: `/categories/${category.id}` }];
-  });
 }

@@ -79,7 +79,10 @@ function Navbar() {
                         width={64}
                         height={64}
                         className="h-18 w-18 lg:h-22 lg:w-22"
-                        priority
+                        // See the consumer bar: `priority` is deprecated in
+                        // Next 16, and eager loading is what this mark actually
+                        // wanted.
+                        loading="eager"
                     />
                 </Link>
 

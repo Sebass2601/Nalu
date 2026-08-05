@@ -42,3 +42,8 @@ next-env.d.ts
 
 # superpowers SDD scratch
 .superpowers/
+
+# PNG masters for the parallax artwork. What ships is the WebP in
+# public/parallax, an eighth of the size; these are the originals those were
+# encoded from, kept out of the repo so the two never diverge in weight.
+/art

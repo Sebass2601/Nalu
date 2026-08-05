@@ -1,6 +1,7 @@
 import { ReactNode, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { CastleIcon } from "lucide-react";
 import { Cinzel } from "next/font/google";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { NavBarFrame } from "@/components/ui/NavBarFrame";
@@ -51,7 +52,15 @@ async function Navbar() {
                         width={64}
                         height={64}
                         className="h-18 w-18 lg:h-22 lg:w-22"
-                        priority
+                        // Next 16 deprecated `priority` in favour of `preload`,
+                        // but the docs steer to `loading="eager"` in most cases
+                        // and this is one: the mark is 88px wide and never the
+                        // largest thing painted, so it wants to skip lazy-loading
+                        // without taking a preload slot. On the two parallax
+                        // pages that slot belongs to the artwork, which is both
+                        // the hero and a CSS background the browser would
+                        // otherwise find late.
+                        loading="eager"
                     />
                 </Link>
 
@@ -62,13 +71,24 @@ async function Navbar() {
                     without the right side the row would drift into the avatar.
                     From `sm` up there is room and both give way, letting the
                     row centre in the bar proper. */}
-                <div className="mx-auto flex items-center gap-1 pr-16 pl-20 sm:gap-2 sm:pr-0 sm:pl-0 lg:gap-4">
+                <div className="mx-auto flex items-center gap-0.5 pr-16 pl-20 sm:gap-2 sm:pr-0 sm:pl-0 lg:gap-4">
                     <NavItem
                         href="/"
                         label="Inicio"
                         icon={
                             <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5"/></svg>
                         }
+                    />
+                    {/* The castle, which stopped being the root when the salon
+                        took `/` and would otherwise be reachable only through
+                        the arch. Called "Explorar" rather than "Cursos" because
+                        it sits next to "Mis Cursos": one is the catalogue and
+                        the other is what you already own, and two plaques a word
+                        apart would make a visitor stop and read. */}
+                    <NavItem
+                        href="/fetch-courses"
+                        label="Explorar"
+                        icon={<CastleIcon className="size-8" aria-hidden />}
                     />
                     {/* Visitors see the same doorways a member does. Both pages
                         behind these two greet a signed-out visitor with their own

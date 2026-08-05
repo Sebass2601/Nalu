@@ -124,6 +124,39 @@
   --color-gold-bright: oklch(90.9% 0.136 92.6); /* #ffde6f */
   /* The edge: a rule that has to stay visible against a gold face. */
   --color-gold-deep: oklch(79.2% 0.16 87.2); /* #e7b30e */
+
+  /* The two chevrons on the parallax pages' first-visit hint, drifting apart
+   * and back to say the scene carries on past both edges of the screen.
+   *
+   * Two keyframes rather than one mirrored with a negative scale: the arrows
+   * already carry a transform of their own, and a second one multiplying into
+   * it is the kind of thing that works until someone adds a third.
+   *
+   * The pause at either end is what makes it read as breathing rather than
+   * sliding — hence ease-in-out over a period long enough to notice.
+   */
+  --animate-drift-out-left: drift-out-left 2.2s ease-in-out infinite;
+  --animate-drift-out-right: drift-out-right 2.2s ease-in-out infinite;
+
+  @keyframes drift-out-left {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-0.3rem);
+    }
+  }
+
+  @keyframes drift-out-right {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(0.3rem);
+    }
+  }
 }
 
 :root {

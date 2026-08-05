@@ -15,9 +15,13 @@ type Hotspot = {
     reserved?: boolean;
 };
 
-// Entrances in the foreground artwork, as fractions of the image itself:
-// 0,0 is its top-left corner and 1,1 its bottom-right. Because they are
+// Entrances in the castle's foreground artwork, as fractions of the image
+// itself: 0,0 is its top-left corner and 1,1 its bottom-right. Because they are
 // fractions, they stay glued to their doorway at any screen size.
+//
+// This table describes one painting. The salon is a different painting with its
+// own doorway, which is why it is not listed here and why `Entrance` below
+// carries its own coordinates rather than an id to look up in this list.
 //
 // Ids are stored in the database, on each category's `doorway` column, so they
 // must never be renumbered: doing so would silently move categories to other
@@ -50,10 +54,21 @@ export function doorwayLabel(id: string | null | undefined) {
     return HOTSPOTS.find(hotspot => hotspot.id === id)?.label;
 }
 
-// What a doorway leads to. The page decides this, since it is the side that
-// knows about categories; the parallax only knows where the doorways are.
+// One doorway drawn over a scene: where it sits, what it says, where it leads.
+// The page decides all three, since it is the side that knows about categories;
+// the parallax only draws what it is handed.
+//
+// The position travels with the entrance rather than being looked up in
+// HOTSPOTS, so the parallax knows about neither painting and both pages can use
+// it. It also keeps the ids above private to the castle, where they carry a
+// meaning — a value stored on a category — that the salon's doorway has not got.
 export type Entrance = {
-    id: string;   // Must match a HOTSPOTS id.
+    // Only ever a React key. Ids in HOTSPOTS additionally mean a database value,
+    // but that is the castle's business, not this type's.
+    id: string;
     label: string;
     href: string;
+    // Fractions of the foreground image, measured exactly as HOTSPOTS is.
+    x: number;
+    y: number;
 };

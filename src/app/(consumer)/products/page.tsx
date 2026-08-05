@@ -22,8 +22,8 @@ export default async function ProductsPage() {
             {/* The same way out the category pages carry, to the same place:
                 the castle is where a visitor picks what to look at, and the
                 pill nav below only moves sideways between catalogues. */}
-            <BackLink href="/" className="mb-8">
-                Volver a la página principal
+            <BackLink href="/fetch-courses" className="mb-8">
+                Volver al castillo
             </BackLink>
 
             <Catalogue

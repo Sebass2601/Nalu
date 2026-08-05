@@ -33,15 +33,15 @@ export default function CategoryPage({
 }) {
     return (
         <CatalogueShell>
-            {/* Back to the castle, which is where a category is chosen: the
-                doorways on the home page are what lead here. Outside the
-                boundary because the way out does not depend on which category
-                this is, so it is already there while the products stream in.
+            {/* Back to the castle, which is where a category is chosen: its
+                doorways are what lead here. Outside the boundary because the way
+                out does not depend on which category this is, so it is already
+                there while the products stream in.
 
                 The pill nav below is sideways movement — between categories,
                 or out to the whole catalogue — and never back up. */}
-            <BackLink href="/" className="mb-8">
-                Volver a la página principal
+            <BackLink href="/fetch-courses" className="mb-8">
+                Volver al castillo
             </BackLink>
 
             <Suspense fallback={<CatalogueSkeleton />}>
