@@ -27,7 +27,7 @@ import type { productStatus } from "@/drizzle/schema";
 // archived in Stripe, which is the safe direction.
 // Stripe's tax classification for what this platform sells: on-demand online
 // courses delivered as pre-recorded, streamed audio/video. It matches the
-// YouTube-embedded lessons the courses are built from.
+// lessons the courses are built from, which stream from private storage.
 //
 // This is REQUIRED, not decorative. Managed Payments is enabled by default on
 // the account, which makes Stripe the merchant of record — it calculates and

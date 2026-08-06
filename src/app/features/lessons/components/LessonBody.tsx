@@ -1,4 +1,4 @@
-import { YouTubeVideoPlayer } from "./YouTubeVideoPlayer";
+import { LessonVideoPlayer } from "./LessonVideoPlayer";
 import { LessonGallery, type LessonImage } from "./LessonGallery";
 import type { LessonType } from "@/drizzle/schema";
 
@@ -11,13 +11,16 @@ import type { LessonType } from "@/drizzle/schema";
 // single picture placed partway down, the way a page in a book does.
 export function LessonBody({
     type,
-    youtubeVideoId,
+    videoUrl,
     content,
     images,
     onVideoFinished,
 }: {
     type: LessonType;
-    youtubeVideoId: string | null;
+    // A presigned R2 URL, or null when the viewer is not entitled to watch or
+    // the lesson has no video yet. Minted per request by the page — never
+    // cached, never stored.
+    videoUrl: string | null;
     content: string | null;
     images: LessonImage[];
     // Bound Server Action, absent when this lesson is already complete or the
@@ -27,10 +30,14 @@ export function LessonBody({
     if (type === "video") {
         return (
             <div className="flex flex-col gap-6">
-                <div className="aspect-video w-full overflow-hidden rounded-xl border border-gold/40">
-                    {youtubeVideoId ? (
-                        <YouTubeVideoPlayer
-                            videoId={youtubeVideoId}
+                {/* Portrait, not landscape. Lessons are shot 9:16, and the
+                    height cap is what stops a tall video running past the
+                    bottom of a desktop screen — `mx-auto` then keeps the
+                    narrow frame centred in the column. */}
+                <div className="mx-auto aspect-9/16 max-h-[80vh] w-full overflow-hidden rounded-xl border border-gold/40">
+                    {videoUrl ? (
+                        <LessonVideoPlayer
+                            src={videoUrl}
                             onFinishedVideo={onVideoFinished}
                         />
                     ) : (
