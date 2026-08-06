@@ -69,7 +69,6 @@ export function LessonForm({
     }
 
     const type = form.watch("type")
-    const videoKey = form.watch("videoKey")
 
 
     return ( <Form {...form}>
@@ -208,10 +207,10 @@ export function LessonForm({
                     name="videoKey"
                     render={({ field}) => (
                         <FormItem>
-                            <FormLabel>
-                                <RequiredLabelIcon/>
-                                Vídeo
-                            </FormLabel>
+                            {/* No RequiredLabelIcon: the video cannot be
+                                uploaded until the lesson exists, so it is
+                                genuinely optional at creation time. */}
+                            <FormLabel>Vídeo</FormLabel>
                             <FormControl>
                                 <VideoUploadField
                                     lessonId={lesson?.id ?? null}

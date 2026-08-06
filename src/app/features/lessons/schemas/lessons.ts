@@ -25,14 +25,16 @@ export const lessonSchema = z
             .nullable(),
     })
     .superRefine((data, ctx) => {
-        if (data.type === "video" && data.videoKey == null) {
-            ctx.addIssue({
-                code: "custom",
-                path: ["videoKey"],
-                message: "Sube un vídeo para esta lección",
-            });
-        }
-
+        // A video lesson is deliberately NOT required to have a video yet.
+        //
+        // The upload writes to a key namespaced under the lesson, so there is
+        // nowhere to put a file until the lesson has an id — which means
+        // requiring one here would make a video lesson impossible to create:
+        // no save without a video, no video without a save.
+        //
+        // The column is nullable and `LessonBody` already renders "Este vídeo
+        // aún no está disponible" for exactly this state. Keeping the lesson
+        // private until its video is uploaded is what `status` is for.
         if (data.type === "text" && data.content == null) {
             ctx.addIssue({
                 code: "custom",
