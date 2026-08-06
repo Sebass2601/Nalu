@@ -1,7 +1,14 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { MaximizeIcon, MinimizeIcon } from "lucide-react"
+import { MaximizeIcon, MinimizeIcon, PauseIcon, PlayIcon } from "lucide-react"
+
+// How long the centre button lingers before fading out again. Long enough to
+// aim at, short enough that it is not sitting over the picture for the rest of
+// the lesson. Only counted while the video is playing — a paused video keeps
+// the button up, since a paused video with no visible way to resume is a
+// puzzle rather than an interface.
+const CONTROL_VISIBLE_MS = 2500
 
 // The lesson video: a plain <video> pointed at a presigned R2 URL.
 //
@@ -23,6 +30,8 @@ export function LessonVideoPlayer({
 }) {
     const [failed, setFailed] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [isPaused, setIsPaused] = useState(true)
+    const [showControl, setShowControl] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -50,6 +59,23 @@ export function LessonVideoPlayer({
             video?.pause()
         }
     }, [src])
+
+    // The centre button fades itself out again while the video is playing.
+    //
+    // Not while it is paused: a paused video whose only visible control has
+    // just disappeared leaves nothing to press. Depending on `isPaused` also
+    // means pausing *through* the button keeps it on screen, which is what you
+    // want — the next thing anyone does with it is press it again.
+    useEffect(() => {
+        if (!showControl || isPaused) return
+
+        const timer = window.setTimeout(
+            () => setShowControl(false),
+            CONTROL_VISIBLE_MS
+        )
+
+        return () => window.clearTimeout(timer)
+    }, [showControl, isPaused])
 
     // Fullscreen is tracked rather than assumed, because it can be left by the
     // Escape key or a system gesture, with no button of ours involved.
@@ -185,31 +211,62 @@ export function LessonVideoPlayer({
                 // Without this, iOS Safari force-fullscreens every video, which
                 // takes the lesson page off screen the moment playback starts.
                 playsInline
-                onEnded={() => onFinishedVideo?.()}
+                // Playback state is read from the element rather than tracked
+                // alongside it. The native control strip, the keyboard and the
+                // system media keys can all start and stop the video without
+                // going through anything of ours, and an icon that says "play"
+                // over a playing video is worse than no icon.
+                onPlay={() => setIsPaused(false)}
+                onPause={() => setIsPaused(true)}
+                onEnded={() => {
+                    setIsPaused(true)
+                    onFinishedVideo?.()
+                }}
                 onError={() => setFailed(true)}
                 className="h-full w-full"
             />
 
-            {/* Tap anywhere on the picture to pause or resume, the way every
-                video app behaves on a phone.
+            {/* Tapping the picture reveals the centre button; it does not
+                pause anything by itself. Two taps to pause rather than one, on
+                purpose — a single tap that stops the video makes every stray
+                touch while watching an interruption, and on a phone held in one
+                hand there are a lot of stray touches.
 
-                It has to be a separate element rather than a click handler on
-                the <video>, because the browser's own controls live inside that
-                element and their clicks surface on it too — tapping the play
-                button would start playback and then this would immediately stop
-                it again.
+                It has to be a separate element rather than a handler on the
+                <video>, because the browser's own controls live inside that
+                element and their clicks surface on it too.
 
                 Stopping short of the bottom leaves the control strip to the
                 browser: scrubbing and volume still belong to it. Out of the tab
-                order because the native controls are already keyboard-reachable
-                and a second, invisible stop would only be confusing. */}
+                order because the centre button below is the real control and is
+                reachable on its own. */}
             <button
                 type="button"
-                aria-label="Pausar o reanudar el vídeo"
+                aria-label="Mostrar los controles del vídeo"
                 tabIndex={-1}
-                onClick={togglePlayback}
+                onClick={() => setShowControl(visible => !visible)}
                 className="absolute inset-x-0 top-0 bottom-16 cursor-pointer"
             />
+
+            {/* The control itself. Kept mounted and faded rather than added and
+                removed, so it does not appear from nowhere under a finger that
+                is already on its way down. */}
+            <button
+                type="button"
+                aria-label={isPaused ? "Reanudar el vídeo" : "Pausar el vídeo"}
+                aria-hidden={!showControl}
+                tabIndex={showControl ? 0 : -1}
+                onClick={togglePlayback}
+                className={`absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/60 p-5 text-white transition-opacity duration-200 hover:bg-black/75 ${
+                    showControl ? "opacity-100" : "pointer-events-none opacity-0"
+                }`}
+            >
+                {isPaused ? (
+                    <PlayIcon className="size-8" />
+                ) : (
+                    <PauseIcon className="size-8" />
+                )}
+            </button>
 
             <button
                 type="button"
