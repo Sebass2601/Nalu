@@ -30,11 +30,21 @@ export function LessonBody({
     if (type === "video") {
         return (
             <div className="flex flex-col gap-6">
-                {/* Portrait, not landscape. Lessons are shot 9:16, and the
-                    height cap is what stops a tall video running past the
-                    bottom of a desktop screen — `mx-auto` then keeps the
-                    narrow frame centred in the column. */}
-                <div className="mx-auto aspect-9/16 max-h-[80vh] w-full overflow-hidden rounded-xl border border-gold/40">
+                {/* Portrait, not landscape — lessons are shot 9:16.
+
+                    The height is capped by capping the WIDTH, which reads
+                    backwards but is the only way the frame ends up hugging the
+                    picture. `max-h` cannot do it: with `aspect-9/16 w-full` the
+                    width drives the height, so clamping the height afterwards
+                    leaves a box wider than 9:16 and the video letterboxes
+                    inside it, gold border around the bars rather than the
+                    video.
+
+                    45vh is 80vh of height, since 45 × 16/9 = 80. And because
+                    the cap is in vh, a short viewport shrinks it too, so the
+                    video can never run past the fold — no max-h needed, and
+                    nothing to fight with the aspect ratio. */}
+                <div className="mx-auto aspect-9/16 w-full max-w-[45vh] overflow-hidden rounded-xl border border-gold/40">
                     {videoUrl ? (
                         <LessonVideoPlayer
                             src={videoUrl}
