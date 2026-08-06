@@ -126,7 +126,11 @@ export function LessonVideoPlayer({
                     onFinishedVideo?.()
                 }}
                 onError={() => setFailed(true)}
-                className="h-full w-full"
+                // `lesson-video` is the hook for the control-size rules in
+                // globals.css. They reach into the browser's shadow DOM through
+                // non-standard pseudo-elements, so they are scoped to this one
+                // class rather than every <video> on the site.
+                className="lesson-video h-full w-full"
             />
 
             {/* A big target in the middle, and only that — deliberately not a
