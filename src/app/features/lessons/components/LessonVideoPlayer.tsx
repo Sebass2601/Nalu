@@ -30,9 +30,15 @@ export function LessonVideoPlayer({
     //
     // Removing a playing <video> from the DOM does not stop it — the element
     // goes on decoding, detached and invisible, and the lesson audio follows
-    // you around the site until the file runs out. Pausing is not enough
-    // either: the browser keeps the connection and the buffer, so the source is
-    // detached as well.
+    // you around the site until the file runs out.
+    //
+    // Pausing is all this does, deliberately. Detaching the source as well
+    // (`removeAttribute("src")` + `load()`) releases the buffer sooner, but
+    // React's Strict Mode mounts, tears down and remounts every effect in
+    // development — and on that fake teardown the source would be stripped for
+    // real, while React would not put it back, since from its side the prop
+    // never changed. The result is a video with nothing to play. `pause()` is
+    // idempotent and survives the same treatment untouched.
     //
     // Keyed on `src` so it runs when the lesson changes too, not only on
     // unmount. The ref is captured into a local because by cleanup time
@@ -41,11 +47,7 @@ export function LessonVideoPlayer({
         const video = videoRef.current
 
         return () => {
-            if (video == null) return
-
-            video.pause()
-            video.removeAttribute("src")
-            video.load()
+            video?.pause()
         }
     }, [src])
 
