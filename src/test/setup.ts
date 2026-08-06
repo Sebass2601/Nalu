@@ -20,7 +20,10 @@ const testEnv: Record<string, string> = {
     STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID: "price_dummy_monthly",
     STRIPE_ALL_ACCESS_YEARLY_PRICE_ID: "price_dummy_yearly",
     SERVER_URL: "http://localhost:3000",
-    R2_ACCOUNT_ID: "test-account-id",
+    // Shaped like the real thing — 32 hex characters — because the env schema
+    // rejects anything else, which is what stops the S3 endpoint URL being
+    // pasted here by mistake.
+    R2_ACCOUNT_ID: "0123456789abcdef0123456789abcdef",
     R2_ACCESS_KEY_ID: "test-access-key-id",
     R2_SECRET_ACCESS_KEY: "test-secret-access-key",
     R2_BUCKET_NAME: "test-bucket",
