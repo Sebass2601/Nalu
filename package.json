@@ -16,6 +16,7 @@
     "db:seed": "node --env-file=.env src/drizzle/seed.mjs",
     "db:backfill-coupons": "node --env-file=.env src/drizzle/backfillPppCoupons.mjs",
     "r2:orphans": "node --env-file=.env src/drizzle/findOrphanVideos.mjs",
+    "video:encode": "node scripts/encodeLessonVideo.mjs",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
