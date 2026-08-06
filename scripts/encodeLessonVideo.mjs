@@ -172,10 +172,37 @@ async function main() {
     console.log(`         ${source.video.width}x${source.video.height}, ${source.video.codec_name}, ${formatDuration(source.duration)}`);
     if (source.audio == null) console.log("         no audio track");
 
+    // Two things are worth saying before spending the encode, and neither
+    // stops it: the shape decides how much of the frame is black, and the
+    // resolution decides whether enlarging it will look soft.
+    const sourceRatio = source.video.width / source.video.height;
+    const targetRatio = WIDTH / HEIGHT;
+
     if (source.video.width > source.video.height) {
         console.log(
-            `\n⚠ This video is horizontal. It will still work, but the player\n` +
-            `  frame is portrait, so it will sit small between black bands.`
+            `\n⚠ This video is horizontal (${source.video.width}x${source.video.height}).\n` +
+            `  The player frame is portrait, so it will sit small between wide\n` +
+            `  black bands above and below.`
+        );
+    } else if (Math.abs(sourceRatio - targetRatio) > 0.02) {
+        // Anything portrait-but-not-9:16, square included. Padded rather than
+        // cropped, because cropping would decide for you what leaves the frame.
+        const scaledHeight = Math.round(WIDTH / sourceRatio);
+        const bandHeight = Math.round((HEIGHT - scaledHeight) / 2);
+
+        console.log(
+            `\n⚠ This video is ${source.video.width}x${source.video.height}, not 9:16.\n` +
+            `  It will be padded to fit, leaving black bands of about\n` +
+            `  ${bandHeight}px above and below the picture.`
+        );
+    }
+
+    if (source.video.width < WIDTH) {
+        console.log(
+            `\n⚠ The source is only ${source.video.width}px wide and will be enlarged to ${WIDTH}px.\n` +
+            `  Enlarging cannot add detail, so the result will look softer than\n` +
+            `  the original and the file will be larger for no gain. If you can\n` +
+            `  export the source at a higher resolution, do that instead.`
         );
     }
 
