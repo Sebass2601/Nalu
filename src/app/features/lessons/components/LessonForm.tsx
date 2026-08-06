@@ -218,10 +218,25 @@ export function LessonForm({
                                     onChange={field.onChange}
                                 />
                             </FormControl>
+                            {/* Says what the file has to be, not where to read
+                                about it. A path into the repository means
+                                nothing from inside a browser, and the one
+                                requirement that is easy to get wrong —
+                                faststart — is invisible until a lesson appears
+                                to hang on someone else's connection. */}
                             <FormDescription>
-                                MP4 vertical (9:16). Codifícalo con el comando de{" "}
-                                <code>docs/encoding-lesson-video.md</code> antes
-                                de subirlo.
+                                Archivo MP4 en vertical (9:16). Codifícalo antes
+                                de subirlo con:
+                                <br />
+                                <code className="text-xs">
+                                    ffmpeg -i entrada.mov -c:v libx264 -crf 23
+                                    -c:a aac -movflags +faststart salida.mp4
+                                </code>
+                                <br />
+                                Sin <code className="text-xs">
+                                    +faststart
+                                </code>{" "}
+                                el vídeo no empieza hasta descargarse entero.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
