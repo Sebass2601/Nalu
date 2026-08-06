@@ -200,12 +200,15 @@ export function LessonVideoPlayer({
                 // What actually limits the damage is the expiry and the fact
                 // that access ends when entitlement does.
                 //
-                // The browser's own fullscreen button stays. It fullscreens the
-                // <video> rather than the container, so tap-to-pause does not
-                // survive it — but it works everywhere, which matters more than
-                // the button beside it being the better of the two. If the
-                // container request fails, this is still here.
-                controlsList="nodownload"
+                // `nofullscreen` removes the browser's own fullscreen button,
+                // which fullscreens the <video> — and a fullscreen <video> is
+                // the only thing on screen, so the centre button would not be
+                // there to press.
+                //
+                // Safe to remove now in a way it was not before: the corner
+                // button falls back to the platform's own video fullscreen if
+                // the container request fails, so there is always a way in.
+                controlsList="nodownload nofullscreen"
                 onContextMenu={event => event.preventDefault()}
                 preload="metadata"
                 // Without this, iOS Safari force-fullscreens every video, which
