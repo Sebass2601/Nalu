@@ -1,14 +1,17 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { MaximizeIcon, MinimizeIcon } from "lucide-react"
 
 // The lesson video: a plain <video> pointed at a presigned R2 URL.
 //
 // This replaces a component that existed almost entirely to wrangle YouTube's
 // IFrame API — a global script loader, a mount-point swap because the API
 // replaces the element it is handed, and a teardown race when a lesson was left
-// before the player finished building. None of it has an equivalent here, which
-// is the point: the browser already knows how to play a video.
+// before the player finished building. None of it has an equivalent here.
+//
+// What it does keep from that component is the teardown itself. See the cleanup
+// effect below: a <video> is not silenced by being removed from the page.
 export function LessonVideoPlayer({
     src,
     onFinishedVideo,
@@ -19,7 +22,43 @@ export function LessonVideoPlayer({
     onFinishedVideo?: () => void
 }) {
     const [failed, setFailed] = useState(false)
+    const [isFullscreen, setIsFullscreen] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    // Stop playing when this leaves the page.
+    //
+    // Removing a playing <video> from the DOM does not stop it — the element
+    // goes on decoding, detached and invisible, and the lesson audio follows
+    // you around the site until the file runs out. Pausing is not enough
+    // either: the browser keeps the connection and the buffer, so the source is
+    // detached as well.
+    //
+    // Keyed on `src` so it runs when the lesson changes too, not only on
+    // unmount. The ref is captured into a local because by cleanup time
+    // `videoRef.current` is already null.
+    useEffect(() => {
+        const video = videoRef.current
+
+        return () => {
+            if (video == null) return
+
+            video.pause()
+            video.removeAttribute("src")
+            video.load()
+        }
+    }, [src])
+
+    // Fullscreen is tracked rather than assumed, because it can be left by the
+    // Escape key or a system gesture, with no button of ours involved.
+    useEffect(() => {
+        function handleChange() {
+            setIsFullscreen(document.fullscreenElement === containerRef.current)
+        }
+
+        document.addEventListener("fullscreenchange", handleChange)
+        return () => document.removeEventListener("fullscreenchange", handleChange)
+    }, [])
 
     function togglePlayback() {
         const video = videoRef.current
@@ -33,6 +72,28 @@ export function LessonVideoPlayer({
             video.play().catch(() => {})
         } else {
             video.pause()
+        }
+    }
+
+    // Fullscreens the container, not the <video>.
+    //
+    // This is the whole reason the native fullscreen button is turned off. When
+    // the video element itself goes fullscreen, it is the only thing on screen
+    // — the tap-to-pause overlay is a sibling and simply is not there any more,
+    // so a tap does nothing. With the container fullscreen, the overlay goes
+    // with it and keeps working.
+    //
+    // A fullscreen element is laid out at viewport size regardless of its
+    // parents, so the lesson frame's aspect ratio stops applying on its own and
+    // the video letterboxes inside the screen as you would expect.
+    function toggleFullscreen() {
+        const container = containerRef.current
+        if (container == null) return
+
+        if (document.fullscreenElement != null) {
+            void document.exitFullscreen().catch(() => {})
+        } else {
+            void container.requestFullscreen().catch(() => {})
         }
     }
 
@@ -51,7 +112,7 @@ export function LessonVideoPlayer({
     }
 
     return (
-        <div className="relative h-full w-full">
+        <div ref={containerRef} className="relative h-full w-full bg-black">
             <video
                 ref={videoRef}
                 // Keyed by src so moving between lessons builds a new element
@@ -70,7 +131,10 @@ export function LessonVideoPlayer({
                 // viewer can fetch it, and screen recording exists regardless.
                 // What actually limits the damage is the expiry and the fact
                 // that access ends when entitlement does.
-                controlsList="nodownload"
+                //
+                // `nofullscreen` because fullscreen is handled by the button
+                // below, which fullscreens the container instead.
+                controlsList="nodownload nofullscreen"
                 onContextMenu={event => event.preventDefault()}
                 preload="metadata"
                 // Without this, iOS Safari force-fullscreens every video, which
@@ -87,14 +151,13 @@ export function LessonVideoPlayer({
                 It has to be a separate element rather than a click handler on
                 the <video>, because the browser's own controls live inside that
                 element and their clicks surface on it too — tapping the play
-                button would start playback and then this would immediately
-                stop it again.
+                button would start playback and then this would immediately stop
+                it again.
 
                 Stopping short of the bottom leaves the control strip to the
-                browser: scrubbing, volume and fullscreen all still belong to
-                it. Out of the tab order because the native controls are already
-                keyboard-reachable and a second, invisible stop would only be
-                confusing. */}
+                browser: scrubbing and volume still belong to it. Out of the tab
+                order because the native controls are already keyboard-reachable
+                and a second, invisible stop would only be confusing. */}
             <button
                 type="button"
                 aria-label="Pausar o reanudar el vídeo"
@@ -102,6 +165,21 @@ export function LessonVideoPlayer({
                 onClick={togglePlayback}
                 className="absolute inset-x-0 top-0 bottom-16 cursor-pointer"
             />
+
+            <button
+                type="button"
+                aria-label={
+                    isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"
+                }
+                onClick={toggleFullscreen}
+                className="absolute top-2 right-2 rounded-md bg-black/50 p-2 text-white/90 transition-colors hover:bg-black/70 hover:text-white"
+            >
+                {isFullscreen ? (
+                    <MinimizeIcon className="size-5" />
+                ) : (
+                    <MaximizeIcon className="size-5" />
+                )}
+            </button>
         </div>
     )
 }
