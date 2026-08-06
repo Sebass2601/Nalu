@@ -1,6 +1,5 @@
 import { LessonStatusEnum, LessonTypeEnum } from "@/drizzle/schema";
 import { z } from "zod";
-import { extractYouTubeVideoId } from "../lib/youtubeVideoId";
 
 export const lessonSchema = z
     .object({
@@ -8,26 +7,14 @@ export const lessonSchema = z
         sectionId: z.string().min(1, "Required"),
         status: z.enum(LessonStatusEnum.enumValues),
         type: z.enum(LessonTypeEnum.enumValues),
-        // Normalised on the way in rather than on the way out, so the column
-        // holds what its name promises. Storing the pasted URL instead is what
-        // produced a lesson whose player silently loaded nothing: the value is
-        // handed straight to YouTube as an id, and a URL is not one.
+        // The R2 object key, set by the upload field rather than typed. There is
+        // nothing to validate beyond its presence: the value never comes from a
+        // human, it comes back from the upload that just succeeded.
         //
-        // Rejecting before transforming is what makes the difference between
-        // "you left this empty" and "that link is not a YouTube video" — after
-        // the transform both are just null and the message would be wrong.
-        youtubeVideoId: z
-            .string()
-            // Nullable on the INPUT side, matching the other optional fields:
-            // the form hands this field `null` for a lesson that never had a
-            // video, and dropping that would change the shape the resolver
-            // expects rather than just the validation.
-            .nullable()
-            .transform(v => (v ?? "").trim())
-            .refine(v => v === "" || extractYouTubeVideoId(v) != null, {
-                message: "Pega un enlace de YouTube válido o el ID del vídeo",
-            })
-            .transform(v => (v === "" ? null : extractYouTubeVideoId(v))),
+        // Kept nullable so a video lesson can be saved before its video exists —
+        // the same allowance the YouTube id had, and the reason `LessonBody`
+        // still has an "aún no está disponible" state to render.
+        videoKey: z.string().nullable(),
         content: z
             .string()
             .transform(v => (v === "" ? null : v))
@@ -38,14 +25,16 @@ export const lessonSchema = z
             .nullable(),
     })
     .superRefine((data, ctx) => {
-        if (data.type === "video" && data.youtubeVideoId == null) {
-            ctx.addIssue({
-                code: "custom",
-                path: ["youtubeVideoId"],
-                message: "Required for video lessons",
-            });
-        }
-
+        // A video lesson is deliberately NOT required to have a video yet.
+        //
+        // The upload writes to a key namespaced under the lesson, so there is
+        // nowhere to put a file until the lesson has an id — which means
+        // requiring one here would make a video lesson impossible to create:
+        // no save without a video, no video without a save.
+        //
+        // The column is nullable and `LessonBody` already renders "Este vídeo
+        // aún no está disponible" for exactly this state. Keeping the lesson
+        // private until its video is uploaded is what `status` is for.
         if (data.type === "text" && data.content == null) {
             ctx.addIssue({
                 code: "custom",

@@ -16,6 +16,7 @@ import { getUserLessonCompleteIdTag } from "@/app/features/lessons/db/cache/user
 import { updateLessonCompleteStatus } from "@/app/features/lessons/actions/userLessonComplete";
 import { canUpdateUserLessonCompleteStatus } from "@/app/features/lessons/permissions/userLessonComplete";
 import { LessonBody } from "@/app/features/lessons/components/LessonBody";
+import { getLessonVideoUrl } from "@/app/features/lessons/lib/lessonVideoUrl";
 import {
     courseIsInSubscription,
     userHasCourseAccess,
@@ -85,6 +86,18 @@ async function Lesson({
             ? false
             : await getIsLessonComplete({ lessonId: lesson.id, userId });
 
+    // Minted here rather than inside `getLesson`, and that placement is the
+    // whole security model. `getLesson` is a `"use cache"` function keyed on
+    // its arguments and replayed across requests; a signed URL produced in
+    // there would be this viewer's playback token handed to the next one.
+    //
+    // Out here it is request-time work that runs after `canView`, so revoking
+    // access stops the URL being made at all.
+    const videoUrl = await getLessonVideoUrl({
+        canView,
+        videoKey: lesson.videoKey,
+    });
+
     return (
         <article className="flex flex-col gap-6">
             <header className="flex flex-col gap-2">
@@ -113,7 +126,9 @@ async function Lesson({
             {canView ? (
                 <LessonBody
                     type={lesson.type}
-                    youtubeVideoId={lesson.youtubeVideoId}
+                    videoUrl={videoUrl}
+                    videoWidth={lesson.videoWidth}
+                    videoHeight={lesson.videoHeight}
                     content={lesson.content}
                     images={lesson.images}
                     // Finishing the video IS finishing the lesson, so there is
@@ -364,7 +379,12 @@ async function getLesson(id: string) {
             name: true,
             description: true,
             type: true,
-            youtubeVideoId: true,
+            // The key, never a URL. A key is a plain identifier — safe to
+            // cache, safe to log. The signed URL built from it is neither,
+            // which is why it is minted outside this cached scope.
+            videoKey: true,
+            videoWidth: true,
+            videoHeight: true,
             content: true,
             status: true,
             sectionId: true,

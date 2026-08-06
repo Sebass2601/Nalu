@@ -19,7 +19,7 @@ export function LessonFormDialog({
         name: string
         status: LessonStatus
         type: LessonType
-        youtubeVideoId: string | null
+        videoKey: string | null
         content: string | null
         description: string | null
         sectionId: string

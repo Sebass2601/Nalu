@@ -13,7 +13,7 @@ import { LessonStatus, lessonStatuses, LessonType, lessonTypes } from "@/drizzle
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createLesson, updateLesson } from "../actions/lessons";
 import { lessonSchema } from "../schemas/lessons";
-import { YouTubeVideoPlayer } from "./YouTubeVideoPlayer";
+import { VideoUploadField } from "./VideoUploadField";
 import { LessonImages } from "./LessonImages";
 
 // Display-only Spanish labels for the DB status enum (values stay in English).
@@ -33,7 +33,7 @@ export function LessonForm({
         name: string
         status: LessonStatus
         type: LessonType
-        youtubeVideoId: string | null
+        videoKey: string | null
         content: string | null
         description: string | null
         sectionId: string
@@ -50,7 +50,7 @@ export function LessonForm({
             name: lesson?.name ?? "",
             status: lesson?.status ?? "public",
             type: lesson?.type ?? "video",
-            youtubeVideoId: lesson?.youtubeVideoId ?? "",
+            videoKey: lesson?.videoKey ?? null,
             content: lesson?.content ?? "",
             description: lesson?.description ?? "",
             sectionId: lesson?.sectionId ?? defaultSectionId ?? sections
@@ -69,7 +69,6 @@ export function LessonForm({
     }
 
     const type = form.watch("type")
-    const videoId = form.watch("youtubeVideoId")
 
 
     return ( <Form {...form}>
@@ -205,23 +204,38 @@ export function LessonForm({
             {type === "video" ? (
                 <FormField
                     control={form.control}
-                    name="youtubeVideoId"
+                    name="videoKey"
                     render={({ field}) => (
                         <FormItem>
-                            <FormLabel>
-                                <RequiredLabelIcon/>
-                                Vídeo de YouTube
-                            </FormLabel>
+                            {/* No RequiredLabelIcon: the video cannot be
+                                uploaded until the lesson exists, so it is
+                                genuinely optional at creation time. */}
+                            <FormLabel>Vídeo</FormLabel>
                             <FormControl>
-                                <Input {...field} value={field.value ?? ""} />
+                                <VideoUploadField
+                                    lessonId={lesson?.id ?? null}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
                             </FormControl>
-                            {/* The old label asked for an id, so what got
-                                pasted was the link YouTube's share button
-                                gives you — and the lesson saved with a player
-                                that never loaded. Both are accepted now, and
-                                saying so is what stops the guessing. */}
+                            {/* One command to copy, rather than a path into the
+                                repository — which means nothing from inside a
+                                browser. The script also checks the file it
+                                produced, which matters because the requirement
+                                that is easiest to get wrong, faststart, is
+                                invisible until a lesson appears to hang on
+                                somebody else's connection. */}
                             <FormDescription>
-                                Pega el enlace del vídeo o solo su ID.
+                                Sube el MP4 que produce este comando, que además
+                                comprueba que el archivo esté listo:
+                                <br />
+                                <code className="text-xs">
+                                    pnpm video:encode ruta/al/video.mov
+                                </code>
+                                <br />
+                                El vídeo conserva su forma — vertical, cuadrada o
+                                apaisada — y el marco de la lección se ajusta a
+                                ella.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -265,11 +279,11 @@ export function LessonForm({
                     Guardar
                 </Button>
             </div>
-            {type === "video" && videoId && (
-                <div className="aspect-video">
-                    <YouTubeVideoPlayer videoId={videoId} />
-                </div>
-            )}
+            {/* No preview player here any more. The form holds an R2 object
+                key, and a key is not playable — turning one into a video needs
+                a signed URL, which only the server can mint. The upload field
+                marks itself done instead, and the lesson page is where the
+                video is actually watched. */}
         </form>
     </Form>
 )};

@@ -150,7 +150,7 @@ async function getCourse(id: string) {
                             status: true,
                             type: true,
                             description: true,
-                            youtubeVideoId: true,
+                            videoKey: true,
                             content: true,
                             sectionId: true,
                         },

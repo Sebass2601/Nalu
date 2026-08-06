@@ -4,10 +4,11 @@ import {
     activeSubscriptionStatuses,
     type SubscriptionStatus,
 } from "@/drizzle/schema";
-import { and, desc, eq, gt, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { getSubscriptionUserTag } from "./cache/subscriptions";
 import { expireSubscriptionCache } from "./cache/subscriptions";
+import { subscriptionGrantsAccess } from "../lib/subscriptionAccess";
 
 // Writes Stripe's view of a subscription into our mirror.
 //
@@ -59,30 +60,49 @@ export async function upsertSubscription(data: {
 //
 // The `currentPeriodEnd > now` check is the safety net. It means access ends on
 // the date the customer paid through even if the webhook announcing the
-// cancellation never arrives — the database expires them on its own rather than
-// granting access forever because an HTTP request was lost.
+// cancellation never arrives — the row expires on its own rather than granting
+// access forever because an HTTP request was lost.
+//
+// That check is applied by `getUserSubscription` below rather than in the query
+// here, and the split is deliberate. This function is cached; a comparison
+// against `new Date()` inside it would be made once, when the entry is filled,
+// and then replayed. The safety net would only re-arm when something happened
+// to regenerate the entry — with the default cache profile, up to fifteen
+// minutes late, and only on a read. A net that checks the time it last checked
+// the time is not a net.
 //
 // A user may own several rows — one per subscription Stripe ever created for
-// them — so this filters to the ones that still grant access and takes the
-// furthest-reaching. Ordering matters because during the overlap between a
-// resubscription and the old subscription's cancellation event both rows can
-// briefly qualify, and the renewal date shown on /subscription should be the
-// one the customer is actually paid through.
+// them — so this takes the furthest-reaching. Ordering matters because during
+// the overlap between a resubscription and the old subscription's cancellation
+// event both rows can briefly qualify, and the renewal date shown on
+// /subscription should be the one the customer is actually paid through.
+//
+// Dropping the date from the query does not change which row is chosen: the
+// furthest-reaching active row is still the only candidate, and if its period
+// has passed then no row's has not.
 //
 // Cached per user, so `userId` is part of the cache key and one user's answer
 // can never be served to another.
-export async function getUserSubscription(userId: string) {
+async function getLatestActiveSubscriptionRow(userId: string) {
     "use cache";
     cacheTag(getSubscriptionUserTag(userId));
 
     return db.query.SubscriptionTable.findFirst({
         where: and(
             eq(SubscriptionTable.userId, userId),
-            inArray(SubscriptionTable.status, [...activeSubscriptionStatuses]),
-            gt(SubscriptionTable.currentPeriodEnd, new Date())
+            inArray(SubscriptionTable.status, [...activeSubscriptionStatuses])
         ),
         orderBy: desc(SubscriptionTable.currentPeriodEnd),
     });
+}
+
+// The subscription that currently grants access, or undefined. The row comes
+// from cache; whether it is still live is decided here, at request time, on
+// every call.
+export async function getUserSubscription(userId: string) {
+    const subscription = await getLatestActiveSubscriptionRow(userId);
+
+    return subscriptionGrantsAccess(subscription) ? subscription : undefined;
 }
 
 export async function hasActiveSubscription(userId: string) {

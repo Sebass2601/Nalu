@@ -70,6 +70,24 @@ export const env = createEnv ({
         // be relative paths. Kept server-side (no NEXT_PUBLIC_) because only
         // server code ever builds a Checkout Session.
         SERVER_URL: z.url(),
+
+        // --- Cloudflare R2 ------------------------------------------------
+        // Lesson videos live in a private bucket and are only ever reachable
+        // through short-lived presigned URLs. The account id is not a secret —
+        // it is part of every endpoint URL — but the secret access key can
+        // write to the bucket, so it lives in .env and Vercel and nowhere else.
+        //
+        // The account id and access key id are both 32 hex characters and the
+        // secret is 64. The checks are here for the same reason the Stripe ones
+        // are: pasting the S3 endpoint URL where the account id belongs is the
+        // easy mistake, and without this the app boots fine and fails later
+        // with an opaque signing error instead of naming the variable.
+        R2_ACCOUNT_ID: z.string().regex(/^[0-9a-f]{32}$/, {
+            message: "Debe ser el ID de cuenta (32 hex), no la URL del endpoint",
+        }),
+        R2_ACCESS_KEY_ID: z.string().min(1),
+        R2_SECRET_ACCESS_KEY: z.string().min(1),
+        R2_BUCKET_NAME: z.string().min(1),
     },
     experimental__runtimeEnv: process.env
 });
