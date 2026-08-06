@@ -90,12 +90,52 @@ export function LessonVideoPlayer({
     // the video letterboxes inside the screen as you would expect.
     function toggleFullscreen() {
         const container = containerRef.current
+        const video = videoRef.current
         if (container == null) return
 
         if (document.fullscreenElement != null) {
             void document.exitFullscreen().catch(() => {})
+            return
+        }
+
+        // Safari names everything on this API differently, and iOS supports it
+        // on <video> only — never on a container. So the request is tried on
+        // the container first and falls back to handing the video itself to
+        // whatever fullscreen the platform does have.
+        //
+        // The fallback costs tap-to-pause, since a fullscreen <video> is the
+        // only thing on screen and the overlay goes with the container. That is
+        // the platform's boundary rather than a choice: on an iPhone the system
+        // player takes over and nothing of ours can sit on top of it.
+        const request =
+            container.requestFullscreen?.bind(container) ??
+            (
+                container as HTMLElement & {
+                    webkitRequestFullscreen?: () => Promise<void>
+                }
+            ).webkitRequestFullscreen?.bind(container)
+
+        if (request == null) {
+            enterNativeVideoFullscreen(video)
+            return
+        }
+
+        void Promise.resolve(request()).catch(() => {
+            enterNativeVideoFullscreen(video)
+        })
+    }
+
+    function enterNativeVideoFullscreen(video: HTMLVideoElement | null) {
+        if (video == null) return
+
+        const nativeVideo = video as HTMLVideoElement & {
+            webkitEnterFullscreen?: () => void
+        }
+
+        if (typeof nativeVideo.webkitEnterFullscreen === "function") {
+            nativeVideo.webkitEnterFullscreen()
         } else {
-            void container.requestFullscreen().catch(() => {})
+            void video.requestFullscreen?.().catch(() => {})
         }
     }
 
@@ -134,9 +174,12 @@ export function LessonVideoPlayer({
                 // What actually limits the damage is the expiry and the fact
                 // that access ends when entitlement does.
                 //
-                // `nofullscreen` because fullscreen is handled by the button
-                // below, which fullscreens the container instead.
-                controlsList="nodownload nofullscreen"
+                // The browser's own fullscreen button stays. It fullscreens the
+                // <video> rather than the container, so tap-to-pause does not
+                // survive it — but it works everywhere, which matters more than
+                // the button beside it being the better of the two. If the
+                // container request fails, this is still here.
+                controlsList="nodownload"
                 onContextMenu={event => event.preventDefault()}
                 preload="metadata"
                 // Without this, iOS Safari force-fullscreens every video, which
@@ -174,7 +217,12 @@ export function LessonVideoPlayer({
                     isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"
                 }
                 onClick={toggleFullscreen}
-                className="absolute top-2 right-2 rounded-md bg-black/50 p-2 text-white/90 transition-colors hover:bg-black/70 hover:text-white"
+                // Above the tap overlay explicitly. Both are absolutely
+                // positioned siblings, so paint order alone would put this on
+                // top — but "alone" is doing a lot of work in that sentence,
+                // and a fullscreen button that silently pauses the video
+                // instead is not a failure worth risking on source ordering.
+                className="absolute top-2 right-2 z-10 rounded-md bg-black/50 p-2 text-white/90 transition-colors hover:bg-black/70 hover:text-white"
             >
                 {isFullscreen ? (
                     <MinimizeIcon className="size-5" />
