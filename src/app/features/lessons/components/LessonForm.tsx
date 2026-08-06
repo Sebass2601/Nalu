@@ -218,25 +218,24 @@ export function LessonForm({
                                     onChange={field.onChange}
                                 />
                             </FormControl>
-                            {/* Says what the file has to be, not where to read
-                                about it. A path into the repository means
-                                nothing from inside a browser, and the one
-                                requirement that is easy to get wrong —
-                                faststart — is invisible until a lesson appears
-                                to hang on someone else's connection. */}
+                            {/* One command to copy, rather than a path into the
+                                repository — which means nothing from inside a
+                                browser. The script also checks the file it
+                                produced, which matters because the requirement
+                                that is easiest to get wrong, faststart, is
+                                invisible until a lesson appears to hang on
+                                somebody else's connection. */}
                             <FormDescription>
-                                Archivo MP4 en vertical (9:16). Codifícalo antes
-                                de subirlo con:
+                                Sube el MP4 que produce este comando, que además
+                                comprueba que el archivo esté listo:
                                 <br />
                                 <code className="text-xs">
-                                    ffmpeg -i entrada.mov -c:v libx264 -crf 23
-                                    -c:a aac -movflags +faststart salida.mp4
+                                    pnpm video:encode ruta/al/video.mov
                                 </code>
                                 <br />
-                                Sin <code className="text-xs">
-                                    +faststart
-                                </code>{" "}
-                                el vídeo no empieza hasta descargarse entero.
+                                El vídeo conserva su forma — vertical, cuadrada o
+                                apaisada — y el marco de la lección se ajusta a
+                                ella.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>

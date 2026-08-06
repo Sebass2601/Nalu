@@ -18,6 +18,8 @@ const saveSchema = z.object({
     lessonId: z.string().min(1),
     key: z.string().min(1),
     durationSeconds: z.number().int().positive(),
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
 });
 
 // Hands the browser a URL it can PUT the file to directly. The file never
@@ -53,6 +55,8 @@ export async function saveLessonVideo(
     await updateLessonDB(data.lessonId, {
         videoKey: data.key,
         videoDurationSeconds: data.durationSeconds,
+        videoWidth: data.width,
+        videoHeight: data.height,
     });
 
     return { error: false, message: "Vídeo guardado" };

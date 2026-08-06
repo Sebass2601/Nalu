@@ -120,6 +120,13 @@
       "when": 1786040127524,
       "tag": "0016_broken_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1786046814207,
+      "tag": "0017_clumsy_snowbird",
+      "breakpoints": true
     }
   ]
 }

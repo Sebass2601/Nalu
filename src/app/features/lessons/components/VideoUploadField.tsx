@@ -32,14 +32,26 @@ export function VideoUploadField({
     const inputRef = useRef<HTMLInputElement>(null)
     const [isUploading, setIsUploading] = useState(false)
 
-    async function readDurationSeconds(file: File) {
+    // Duration and dimensions both come from the same metadata load, so they
+    // are read together. The dimensions are what let the lesson page shape its
+    // frame to the picture rather than assuming every video is 9:16.
+    async function readVideoMetadata(file: File) {
         const url = URL.createObjectURL(file)
 
         try {
-            return await new Promise<number>((resolve, reject) => {
+            return await new Promise<{
+                durationSeconds: number
+                width: number
+                height: number
+            }>((resolve, reject) => {
                 const probe = document.createElement("video")
                 probe.preload = "metadata"
-                probe.onloadedmetadata = () => resolve(Math.round(probe.duration))
+                probe.onloadedmetadata = () =>
+                    resolve({
+                        durationSeconds: Math.round(probe.duration),
+                        width: probe.videoWidth,
+                        height: probe.videoHeight,
+                    })
                 probe.onerror = () => reject(new Error("No se pudo leer el vídeo"))
                 probe.src = url
             })
@@ -62,7 +74,7 @@ export function VideoUploadField({
         setIsUploading(true)
 
         try {
-            const durationSeconds = await readDurationSeconds(file)
+            const metadata = await readVideoMetadata(file)
 
             const requested = await requestLessonVideoUpload({
                 lessonId,
@@ -91,7 +103,9 @@ export function VideoUploadField({
             const saved = await saveLessonVideo({
                 lessonId,
                 key: requested.key,
-                durationSeconds,
+                durationSeconds: metadata.durationSeconds,
+                width: metadata.width,
+                height: metadata.height,
             })
 
             if (saved.error) {

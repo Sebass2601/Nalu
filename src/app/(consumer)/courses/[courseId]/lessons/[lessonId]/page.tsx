@@ -127,6 +127,8 @@ async function Lesson({
                 <LessonBody
                     type={lesson.type}
                     videoUrl={videoUrl}
+                    videoWidth={lesson.videoWidth}
+                    videoHeight={lesson.videoHeight}
                     content={lesson.content}
                     images={lesson.images}
                     // Finishing the video IS finishing the lesson, so there is
@@ -381,6 +383,8 @@ async function getLesson(id: string) {
             // cache, safe to log. The signed URL built from it is neither,
             // which is why it is minted outside this cached scope.
             videoKey: true,
+            videoWidth: true,
+            videoHeight: true,
             content: true,
             status: true,
             sectionId: true,

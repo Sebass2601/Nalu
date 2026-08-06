@@ -114,9 +114,20 @@ function runFfmpeg(input, output) {
     const args = [
         "-y",
         "-i", input,
+        // Fits inside 1080x1920 without padding and without enlarging.
+        //
+        // No padding, because the lesson page shapes its frame to the video's
+        // own dimensions — baking black bands into the file would put them
+        // inside that frame permanently, with the border drawn around them.
+        // The video keeps whatever shape it was shot in.
+        //
+        // The `min()` calls are what stop a small source being blown up:
+        // scaling to fit within its own size is a no-op, while a 4K source
+        // still comes down to 1080x1920. `force_divisible_by=2` because H.264
+        // cannot encode odd dimensions.
         "-vf",
-        `scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,` +
-            `pad=${WIDTH}:${HEIGHT}:(ow-iw)/2:(oh-ih)/2`,
+        `scale='min(${WIDTH},iw)':'min(${HEIGHT},ih)':` +
+            `force_original_aspect_ratio=decrease:force_divisible_by=2`,
         "-c:v", "libx264",
         "-profile:v", "high",
         "-crf", "23",
@@ -172,37 +183,30 @@ async function main() {
     console.log(`         ${source.video.width}x${source.video.height}, ${source.video.codec_name}, ${formatDuration(source.duration)}`);
     if (source.audio == null) console.log("         no audio track");
 
-    // Two things are worth saying before spending the encode, and neither
-    // stops it: the shape decides how much of the frame is black, and the
-    // resolution decides whether enlarging it will look soft.
-    const sourceRatio = source.video.width / source.video.height;
-    const targetRatio = WIDTH / HEIGHT;
-
+    // The shape is kept, not corrected — the lesson page draws its frame
+    // around whatever the video turns out to be. So this is a note about how
+    // the lesson will look, not a problem to fix.
     if (source.video.width > source.video.height) {
         console.log(
-            `\n⚠ This video is horizontal (${source.video.width}x${source.video.height}).\n` +
-            `  The player frame is portrait, so it will sit small between wide\n` +
-            `  black bands above and below.`
+            `\n· Horizontal video (${source.video.width}x${source.video.height}). The lesson frame will be\n` +
+            `  wide to match. Fine if that is what you want — most lessons here\n` +
+            `  are portrait.`
         );
-    } else if (Math.abs(sourceRatio - targetRatio) > 0.02) {
-        // Anything portrait-but-not-9:16, square included. Padded rather than
-        // cropped, because cropping would decide for you what leaves the frame.
-        const scaledHeight = Math.round(WIDTH / sourceRatio);
-        const bandHeight = Math.round((HEIGHT - scaledHeight) / 2);
-
+    } else if (source.video.width === source.video.height) {
         console.log(
-            `\n⚠ This video is ${source.video.width}x${source.video.height}, not 9:16.\n` +
-            `  It will be padded to fit, leaving black bands of about\n` +
-            `  ${bandHeight}px above and below the picture.`
+            `\n· Square video (${source.video.width}x${source.video.height}). The lesson frame will be square\n` +
+            `  to match, with no black bands.`
         );
     }
 
-    if (source.video.width < WIDTH) {
+    // This one is still worth flagging, because it is a real loss of quality
+    // that nothing downstream can recover.
+    if (source.video.width < 720 && source.video.height < 1280) {
         console.log(
-            `\n⚠ The source is only ${source.video.width}px wide and will be enlarged to ${WIDTH}px.\n` +
-            `  Enlarging cannot add detail, so the result will look softer than\n` +
-            `  the original and the file will be larger for no gain. If you can\n` +
-            `  export the source at a higher resolution, do that instead.`
+            `\n⚠ Low resolution source (${source.video.width}x${source.video.height}).\n` +
+            `  It is kept at its own size rather than enlarged — enlarging cannot\n` +
+            `  add detail — but it will look soft on a big screen. If you can\n` +
+            `  export the original at a higher resolution, do that instead.`
         );
     }
 
@@ -223,8 +227,14 @@ async function main() {
     if (result.video?.codec_name !== "h264") {
         problems.push(`video is ${result.video?.codec_name}, not h264`);
     }
-    if (result.video?.width !== WIDTH || result.video?.height !== HEIGHT) {
-        problems.push(`size is ${result.video?.width}x${result.video?.height}, not ${WIDTH}x${HEIGHT}`);
+    // Not "is it exactly 1080x1920" any more — the shape is deliberately the
+    // source's own. What matters is that nothing exceeds the cap, since past
+    // that the extra pixels cost storage and bandwidth without being visible
+    // in the lesson frame.
+    if (result.video?.width > WIDTH || result.video?.height > HEIGHT) {
+        problems.push(
+            `size is ${result.video?.width}x${result.video?.height}, larger than the ${WIDTH}x${HEIGHT} cap`
+        );
     }
     if (source.audio != null && result.audio?.codec_name !== "aac") {
         problems.push(`audio is ${result.audio?.codec_name}, not aac`);
