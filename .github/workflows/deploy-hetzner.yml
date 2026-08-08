@@ -119,6 +119,9 @@ jobs:
 
       - name: Run migrations on production database
         run: |
+          # The db service must be up before the app migrates — on a fresh
+          # server nothing is running until the first deploy.
+          ssh nalu "cd /opt/nalu && docker compose up -d --wait db"
           ssh -f -N -L 15432:127.0.0.1:5432 nalu
           DB_HOST=127.0.0.1 DB_PORT=15432 DB_USER=nalu DB_NAME=nalu \
             DB_PASSWORD='${{ secrets.NALU_DB_PASSWORD }}' \
