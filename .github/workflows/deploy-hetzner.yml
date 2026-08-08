@@ -123,9 +123,11 @@ jobs:
           # server nothing is running until the first deploy.
           ssh nalu "cd /opt/nalu && docker compose up -d --wait db"
           ssh -f -N -L 15432:127.0.0.1:5432 nalu
+          # Seed is idempotent baseline data (PPP country tiers) — running it
+          # every deploy guarantees a fresh database is never left empty.
           DB_HOST=127.0.0.1 DB_PORT=15432 DB_USER=nalu DB_NAME=nalu \
             DB_PASSWORD='${{ secrets.NALU_DB_PASSWORD }}' \
-            pnpm db:migrate
+            sh -c 'pnpm db:migrate && pnpm db:seed'
 
       - name: Sync app credentials
         # NALU_APP_ENV holds the third-party credential lines
