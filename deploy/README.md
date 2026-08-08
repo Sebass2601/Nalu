@@ -95,9 +95,16 @@ There are no passwords anywhere in this setup — do not go looking for one:
 - The server was provisioned through the Hetzner API with a cloud-init
   script that created a `deploy` user, installed an SSH public key, and
   **disabled password authentication**. Login is possible only with the
-  matching private key, which exists in exactly two places: the machine
-  that provisioned the server, and the `NALU_SSH_KEY` GitHub secret the
-  workflow uses.
+  matching private key.
+- **Current key holders** (registered in `/home/deploy/.ssh/authorized_keys`
+  as the key pair named `nalu-deploy`, created 2026-08-08):
+  1. Angel's dev machine — `~/.ssh/nalu_deploy_key`. This is the machine
+     that provisioned the server and can SSH and tunnel directly.
+  2. The `NALU_SSH_KEY` GitHub Actions secret — same private key, used by
+     the deploy workflow.
+
+  To grant another person access, append their own public key to
+  `authorized_keys` on the server (don't share the existing private key).
 - Production Postgres is published on the server's loopback only, never
   on the internet. To reach it (psql, drizzle-kit, seeds), tunnel through
   SSH and connect to the forwarded port:
