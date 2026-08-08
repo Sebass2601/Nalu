@@ -88,6 +88,28 @@ Set once, already configured:
 | `NALU_SSH_KEY` | private key of the `deploy` user |
 | `NALU_DB_PASSWORD` | production Postgres password (matches `/opt/nalu/.env`) |
 
+## How server access works
+
+There are no passwords anywhere in this setup — do not go looking for one:
+
+- The server was provisioned through the Hetzner API with a cloud-init
+  script that created a `deploy` user, installed an SSH public key, and
+  **disabled password authentication**. Login is possible only with the
+  matching private key, which exists in exactly two places: the machine
+  that provisioned the server, and the `NALU_SSH_KEY` GitHub secret the
+  workflow uses.
+- Production Postgres is published on the server's loopback only, never
+  on the internet. To reach it (psql, drizzle-kit, seeds), tunnel through
+  SSH and connect to the forwarded port:
+
+  ```bash
+  ssh -i <key> -f -N -L 15432:127.0.0.1:5432 deploy@<server-ip>
+  psql -h 127.0.0.1 -p 15432 -U nalu nalu   # password: DB_PASSWORD in /opt/nalu/.env
+  ```
+
+- If the private key is ever compromised: generate a new pair, replace
+  `/home/deploy/.ssh/authorized_keys` on the server, update `NALU_SSH_KEY`.
+
 ## Operating the server
 
 ```bash
