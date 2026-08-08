@@ -127,6 +127,20 @@ jobs:
             DB_PASSWORD='${{ secrets.NALU_DB_PASSWORD }}' \
             pnpm db:migrate
 
+      - name: Sync app credentials
+        # NALU_APP_ENV holds the third-party credential lines
+        # (AUTH_GOOGLE_*, STRIPE_*, UPLOADTHING_TOKEN, ARCJET_KEY, R2_*) as a
+        # plain env file. Whoever owns those credentials edits the secret in
+        # GitHub; each deploy rewrites /opt/nalu/app.env from it. When the
+        # secret is unset, an existing app.env is left alone.
+        env:
+          APP_ENV: ${{ secrets.NALU_APP_ENV }}
+        run: |
+          ssh nalu "touch /opt/nalu/app.env && chmod 600 /opt/nalu/app.env"
+          if [ -n "$APP_ENV" ]; then
+            printf '%s\n' "$APP_ENV" | ssh nalu "cat > /opt/nalu/app.env"
+          fi
+
       - name: Deploy
         run: |
           IMAGE=ghcr.io/${{ github.repository_owner }}/nalu

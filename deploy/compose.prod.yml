@@ -24,7 +24,14 @@ services:
   app:
     image: ${APP_IMAGE:-ghcr.io/sebass2601/nalu:latest}
     restart: unless-stopped
-    env_file: .env
+    # app.env holds the third-party credentials (Google, Stripe, UploadThing,
+    # Arcjet, R2). It is written by the deploy workflow from the NALU_APP_ENV
+    # repository secret, so whoever owns those credentials manages them in
+    # GitHub without needing SSH access to this server. Later files win, so
+    # app.env overrides the placeholders in .env.
+    env_file:
+      - .env
+      - app.env
     environment:
       # Inside the compose network the database is the `db` service, whatever
       # the tunnel-facing values in .env say.
