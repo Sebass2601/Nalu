@@ -1,0 +1,7 @@
+# DOMAIN comes from /opt/nalu/.env via compose. Caddy obtains and renews the
+# TLS certificate automatically once the domain's A record points at the
+# server.
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy app:3000
+}

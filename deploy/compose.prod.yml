@@ -1,0 +1,55 @@
+# Production stack for the Hetzner server. Lives at /opt/nalu/compose.yml
+# together with .env and Caddyfile. The GitHub Actions workflow pulls a new
+# app image and restarts; db and caddy stay up across deploys.
+services:
+  db:
+    image: postgres:17.0
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=${DB_NAME}
+    # Loopback-only publish: never reachable from the internet, but the
+    # deploy workflow can run drizzle migrations through an SSH tunnel.
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    image: ${APP_IMAGE:-ghcr.io/sebass2601/nalu:latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Inside the compose network the database is the `db` service, whatever
+      # the tunnel-facing values in .env say.
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

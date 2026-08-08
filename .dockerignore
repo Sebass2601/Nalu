@@ -1,0 +1,5 @@
+# Context for deploy/Dockerfile — only the build artifacts matter.
+*
+!.next/standalone
+!.next/static
+!public

@@ -1,0 +1,141 @@
+# Deploys to the Hetzner server on every push to main. Vercel deploys the
+# same push independently through its Git integration; the two share nothing
+# but the commit — the Hetzner stack has its own Postgres.
+#
+# Required repository secrets:
+#   NALU_SSH_KEY        private key whose public half is on the server
+#   NALU_SSH_HOST       server IP or hostname
+#   NALU_DB_PASSWORD    password of the server's Postgres (matches /opt/nalu/.env)
+name: Deploy to Hetzner
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hetzner
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # `next build` with cacheComponents prerenders pages that read the
+    # database, so give the build a migrated throwaway Postgres.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: nalu
+          POSTGRES_PASSWORD: nalu
+          POSTGRES_DB: nalu
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U nalu"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - run: pnpm install --frozen-lockfile
+
+      # Build-time env: DB is the service container; every third-party value
+      # is a format-valid placeholder. Nothing here is baked into the bundle —
+      # the app reads process.env at runtime (experimental__runtimeEnv), so
+      # the server's /opt/nalu/.env is what production actually uses.
+      - name: Write build env
+        run: |
+          cat > .env <<'EOF'
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_USER=nalu
+          DB_PASSWORD=nalu
+          DB_NAME=nalu
+          DB_SSL=false
+          AUTH_SECRET=build-time-placeholder-secret
+          AUTH_GOOGLE_ID=placeholder
+          AUTH_GOOGLE_SECRET=placeholder
+          UPLOADTHING_TOKEN=placeholder
+          STRIPE_SECRET_KEY=sk_test_placeholder
+          STRIPE_WEBHOOK_SECRET=whsec_placeholder
+          STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID=price_placeholder_monthly
+          STRIPE_ALL_ACCESS_YEARLY_PRICE_ID=price_placeholder_yearly
+          SERVER_URL=http://localhost:3000
+          R2_ACCOUNT_ID=0123456789abcdef0123456789abcdef
+          R2_ACCESS_KEY_ID=0123456789abcdef0123456789abcdef
+          R2_SECRET_ACCESS_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          R2_BUCKET_NAME=placeholder
+          EOF
+
+      - name: Migrate and seed build database
+        run: |
+          pnpm db:migrate
+          pnpm db:seed
+
+      - run: pnpm build
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/nalu
+          IMAGE=${IMAGE,,}
+          docker build -f deploy/Dockerfile -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" .
+          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:latest"
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.NALU_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          cat >> ~/.ssh/config <<EOF
+          Host nalu
+            HostName ${{ secrets.NALU_SSH_HOST }}
+            User deploy
+            StrictHostKeyChecking accept-new
+          EOF
+
+      - name: Run migrations on production database
+        run: |
+          ssh -f -N -L 15432:127.0.0.1:5432 nalu
+          DB_HOST=127.0.0.1 DB_PORT=15432 DB_USER=nalu DB_NAME=nalu \
+            DB_PASSWORD='${{ secrets.NALU_DB_PASSWORD }}' \
+            pnpm db:migrate
+
+      - name: Deploy
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/nalu
+          IMAGE=${IMAGE,,}
+          echo "${{ secrets.GITHUB_TOKEN }}" | ssh nalu "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
+          ssh nalu "cd /opt/nalu && \
+            APP_IMAGE=$IMAGE:${{ github.sha }} docker compose pull app -q && \
+            sed -i 's|^APP_IMAGE=.*|APP_IMAGE=$IMAGE:${{ github.sha }}|' .env && \
+            docker compose up -d --remove-orphans && \
+            docker image prune -f"
+
+      - name: Smoke test
+        run: |
+          sleep 5
+          ssh nalu "curl -sf -o /dev/null -w '%{http_code}\n' http://localhost:80 -H \"Host: \$(grep ^DOMAIN= /opt/nalu/.env | cut -d= -f2)\""
