@@ -23,6 +23,7 @@ On the server, `/opt/nalu` contains:
 | `Caddyfile` | copy of [`Caddyfile`](./Caddyfile): HTTPS + www redirect | repo |
 | `.env` | infrastructure env: DB password, `AUTH_SECRET`, domain | server admin |
 | `app.env` | third-party credentials | **the `NALU_APP_ENV` secret (see below)** |
+| `pgtls/` | Postgres TLS certs + `pg_hba.conf` for direct DB access | server admin |
 
 Caddy obtains and renews the Let's Encrypt certificates on its own.
 
@@ -105,14 +106,50 @@ There are no passwords anywhere in this setup — do not go looking for one:
 
   To grant another person access, append their own public key to
   `authorized_keys` on the server (don't share the existing private key).
-- Production Postgres is published on the server's loopback only, never
-  on the internet. To reach it (psql, drizzle-kit, seeds), tunnel through
-  SSH and connect to the forwarded port:
+- Production Postgres is reachable two ways. The deploy workflow (and
+  anyone with SSH) tunnels to the loopback publish:
 
   ```bash
   ssh -i <key> -f -N -L 15432:127.0.0.1:5432 deploy@<server-ip>
   psql -h 127.0.0.1 -p 15432 -U nalu nalu   # password: DB_PASSWORD in /opt/nalu/.env
   ```
+
+  Contributors without SSH access use the direct TLS port below.
+
+## Direct database access (Supabase-style)
+
+Postgres is also published on **`naluescuela.com:6543`**, protected the
+same way Supabase protects theirs: TLS is mandatory (`pg_hba.conf` rejects
+unencrypted remote connections outright), auth is scram-sha-256, and every
+person gets their own role — never the app's `nalu` user.
+
+Connect with the CA certificate from this repo
+([`certs/nalu-prod-ca.crt`](../certs/nalu-prod-ca.crt)):
+
+```bash
+psql "host=naluescuela.com port=6543 dbname=nalu user=<role> sslmode=verify-full sslrootcert=certs/nalu-prod-ca.crt"
+```
+
+GUI clients (TablePlus, DBeaver, pgAdmin) take the same five values; set
+SSL mode to *verify-full* and point the root/CA certificate at that file.
+
+To grant someone access, create them a role (through the SSH tunnel or any
+existing superuser connection):
+
+```sql
+CREATE ROLE <name> LOGIN PASSWORD '<long random password>';
+GRANT nalu TO <name>;  -- full access to the app schema, revocable per-person
+```
+
+To revoke: `DROP ROLE <name>;`. Schema changes must still go through
+drizzle migrations in the repo — the deploy runs them on every push, and
+hand-applied DDL will drift and conflict.
+
+The TLS material lives in `/opt/nalu/pgtls/` on the server: `server.crt` /
+`server.key` (what Postgres serves), `ca.crt` (the repo copy's source),
+`ca.key` (root-only; needed only to reissue certs — both expire 2036) and
+`pg_hba.conf` (the TLS-enforcement rules, mounted into the container by
+`compose.prod.yml`).
 
 - If the private key is ever compromised: generate a new pair, replace
   `/home/deploy/.ssh/authorized_keys` on the server, update `NALU_SSH_KEY`.
