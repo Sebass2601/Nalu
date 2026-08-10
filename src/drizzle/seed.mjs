@@ -34,7 +34,7 @@ const GROUPS = [
     },
     {
         name: "Eastern Europe & Emerging Europe",
-        discount: 0.25,
+        discount: 0,
         countries: [
             ["PL", "Poland"], ["CZ", "Czechia"], ["SK", "Slovakia"],
             ["HU", "Hungary"], ["RO", "Romania"], ["BG", "Bulgaria"],
@@ -47,7 +47,7 @@ const GROUPS = [
     },
     {
         name: "Latin America & Caribbean",
-        discount: 0.45,
+        discount: 0,
         countries: [
             ["MX", "Mexico"], ["BR", "Brazil"], ["AR", "Argentina"],
             ["CL", "Chile"], ["CO", "Colombia"], ["PE", "Peru"],
@@ -60,7 +60,7 @@ const GROUPS = [
     },
     {
         name: "Middle East & North Africa",
-        discount: 0.4,
+        discount: 0,
         countries: [
             ["TR", "Turkey"], ["EG", "Egypt"], ["MA", "Morocco"],
             ["DZ", "Algeria"], ["TN", "Tunisia"], ["JO", "Jordan"],
@@ -72,7 +72,7 @@ const GROUPS = [
     },
     {
         name: "Sub-Saharan Africa",
-        discount: 0.6,
+        discount: 0,
         countries: [
             ["NG", "Nigeria"], ["GH", "Ghana"], ["KE", "Kenya"],
             ["TZ", "Tanzania"], ["UG", "Uganda"], ["ET", "Ethiopia"],
@@ -84,7 +84,7 @@ const GROUPS = [
     },
     {
         name: "South & Southeast Asia",
-        discount: 0.55,
+        discount: 0,
         countries: [
             ["IN", "India"], ["PK", "Pakistan"], ["BD", "Bangladesh"],
             ["LK", "Sri Lanka"], ["NP", "Nepal"], ["ID", "Indonesia"],
