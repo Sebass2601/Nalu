@@ -64,8 +64,20 @@ One migration.
 | `purchases` | `stripeSessionId`, `stripePaymentIntentId` | `polarCheckoutId`, `polarOrderId` |
 | `users` | `stripeCustomerId` | *dropped* |
 | `subscriptions` | `stripeCustomerId`, `stripeSubscriptionId`, `stripePriceId` | `polarSubscriptionId`, `polarProductId` |
-| `country_groups` | `stripeCouponId` | `polarDiscountId` (stays null) |
+| `country_groups` | `stripeCouponId` | `polarDiscountId`, **values nulled** |
 | `purchases` | — | **new** `buyerCountry` (ISO code, nullable) |
+
+**No rows are deleted.** Dropping a column discards its values with it, and
+`purchases` and `subscriptions` are empty, so the `NOT NULL` renames have
+nothing to satisfy. The 8 users, 1 product and 4 courses all survive untouched.
+
+**`country_groups.stripeCouponId` must be nulled, not carried over.** Four of the
+six groups hold real Stripe sandbox coupon IDs (Eastern Europe, MENA, South &
+Southeast Asia, Sub-Saharan Africa). Renaming the column without clearing it
+would leave Stripe identifiers sitting in a column named `polarDiscountId` — a
+trap that only springs later, when PPP is wired and the code tries to apply a
+discount Polar has never heard of. The migration must `UPDATE country_groups SET
+"polarDiscountId" = NULL`.
 
 Two columns disappear:
 
@@ -225,7 +237,6 @@ webhook endpoint registered with signing secret; all five keys in `.env`.
 
 **Outstanding:**
 
-- Rename `Sucripción` → `Suscripción` on both products (customer-facing).
 - Support email at the domain — blocked on Angel, who holds the Squarespace
   account. Gates *submitting* for review only.
 - Submit for review. Gates payouts only; sales work meanwhile.
