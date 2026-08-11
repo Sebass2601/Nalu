@@ -157,6 +157,94 @@
       transform: translateX(0.3rem);
     }
   }
+
+  /* The curtain over the two parallax pages while their artwork downloads.
+   *
+   * Animations rather than transitions, and deliberately: the curtain has to
+   * be able to leave WITHOUT JavaScript. It is drawn into the server's HTML —
+   * it has to be, or it would arrive too late to cover the first paint — so if
+   * the bundle never runs there is nothing to take it away again, and a
+   * curtain that cannot leave hides the entire site. `curtain-hold` is that
+   * safety net: it starts the moment the browser parses this file, holds the
+   * curtain opaque, and drops it at 8s whatever else happens.
+   *
+   * Eight seconds because it is a backstop and not a schedule. Anything that
+   * has not painted by then is not about to, and a visitor who has watched a
+   * ring turn for eight seconds is better served by whatever the page managed
+   * to load than by more of the ring.
+   *
+   * When JavaScript IS running it swaps `curtain-hold` for `curtain-leave` the
+   * instant both layers decode. Swapping the animation-name restarts cleanly
+   * from opacity 1, which is the state `curtain-hold` was holding — so the
+   * handover is invisible. A transition could not be relied on here: its
+   * starting value would have to be read off a running animation, and browsers
+   * disagree about whether it can be.
+   *
+   * The mark leaves on the same curve over half the time, so it is gone before
+   * the navy is rather than hanging over the painting as a ghost.
+   */
+  --animate-curtain-hold: curtain-hold 8s linear forwards;
+  --animate-curtain-leave: curtain-fade 800ms ease-out forwards;
+  --animate-curtain-mark-leave: curtain-fade 450ms ease-out forwards;
+
+  /* Two shapes, not one, and the difference is the whole point.
+   *
+   * `curtain-hold` is a plateau with a fade stapled to the end: it has to stay
+   * opaque for as long as it plausibly might be needed, then give up. The 92%
+   * stop is what makes that — 7.36s of cover, 0.64s of leaving.
+   *
+   * `curtain-fade` is a fade and nothing else. It once shared the keyframe
+   * above, which was a mistake worth recording: a percentage plateau scales
+   * with whatever duration uses it, so at 800ms that same 92% meant 736ms
+   * frozen at full opacity followed by a 64ms cut. It looked exactly like the
+   * hard cut the curtain exists to avoid.
+   */
+  @keyframes curtain-hold {
+    0%,
+    92% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes curtain-fade {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  /* The ring under the mark. Slower than the stock 1s spinner, which is the
+   * pace of something working; this is the pace of the rest of the page.
+   *
+   * The pulse is what reduced motion gets instead. A ring that has stopped
+   * turning says nothing at all, and the alternative most spinners reach for —
+   * simply removing the animation — leaves a static ornament that reads as
+   * broken. Opacity is not movement, so it carries the same message without
+   * the thing reduced motion is asking us not to do.
+   */
+  --animate-ring-spin: ring-spin 1.4s linear infinite;
+  --animate-ring-pulse: ring-pulse 1.8s ease-in-out infinite;
+
+  @keyframes ring-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes ring-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
 }
 
 :root {

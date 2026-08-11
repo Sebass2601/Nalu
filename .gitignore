@@ -47,3 +47,4 @@ next-env.d.ts
 # public/parallax, an eighth of the size; these are the originals those were
 # encoded from, kept out of the repo so the two never diverge in weight.
 /art
+.repro/

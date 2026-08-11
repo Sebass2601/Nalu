@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, type ReactNode } from "react";
 import ReactDOM from "react-dom";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 import CategoryButton from "@/components/ui/CategoryButton";
+import ParallaxCurtain from "@/components/ui/ParallaxCurtain";
 import { type Entrance } from "@/components/ui/parallaxEntrances";
 import { cinzel } from "@/components/ui/fonts";
 import { cn } from "@/lib/utils";
@@ -270,6 +271,25 @@ export default function MultiLayerParallax({
     const imageTop = (viewport.height - imageHeight) * (pos.y / 100);
 
     return (
+        <>
+        {/* Covers the scene until both layers above can be painted, then fades
+            off it. A sibling rather than a child: it is `fixed` and covers the
+            navbar too, so nesting it inside the container would only put it
+            inside gesture handlers it has no business hearing.
+
+            Keyed on the artwork it is covering, so a change of scene is a new
+            curtain rather than the old one carrying its state over. Without
+            this, the salon and the castle are the same component in the same
+            position of the tree, which is React's definition of the same
+            element — so a curtain that had already finished and unmounted
+            itself on one painting would stay finished on the next, and the
+            second scene would load with nothing over it at all. */}
+        <ParallaxCurtain
+            key={`${background}|${foreground}`}
+            background={background}
+            foreground={foreground}
+        />
+
         <div
             ref={containerRef}
             onMouseMove={handleMouseMove}
@@ -439,5 +459,6 @@ export default function MultiLayerParallax({
                 </div>
             </div>
         </div>
+        </>
     );
 }
