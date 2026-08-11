@@ -47,13 +47,17 @@ export async function ProductPrice({
         <div className="flex items-baseline gap-2">
             <span
                 className={cn(
-                    "text-3xl font-bold text-ink",
+                    "text-3xl font-bold text-gold",
                     className
                 )}
             >
                 {formatPrice(discounted)}
             </span>
-            <span className="text-base text-ink-meta line-through">
+            {/* The same gold, dimmed. The struck-through original has to
+                recede behind the price actually being charged, and dropping
+                its opacity keeps that hierarchy without introducing a second
+                colour into a pair of figures that are the same thing. */}
+            <span className="text-base text-gold/60 line-through">
                 {formatPrice(priceInDollars)}
             </span>
         </div>
@@ -71,7 +75,7 @@ export function FullPrice({
 }) {
     return (
         <span
-            className={cn("text-3xl font-bold text-ink", className)}
+            className={cn("text-3xl font-bold text-gold", className)}
         >
             {formatPrice(priceInDollars)}
         </span>

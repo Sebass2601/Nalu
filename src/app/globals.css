@@ -74,6 +74,14 @@
  * accent. So: `ink-*` for anything you READ, gold for anything you PRESS or
  * navigate by. A new gold heading is almost certainly a mistake.
  *
+ * With one carve-out, added deliberately: the FIGURES. Prices, and the
+ * "3 clases · 7 secciones" size lines, are now written in `gold` rather than in
+ * this scale. They are the two things on a card a visitor is actually scanning
+ * for — what it costs and how much of it there is — and both were previously
+ * indistinguishable from the prose around them. This is a narrow exception for
+ * numbers, not a reopening of gold for text: a gold sentence is still a
+ * mistake, and so is a gold heading.
+ *
  * Deliberately NOT `@theme inline` like the block above. Plain `@theme` emits
  * these as real CSS variables on :root and has the utilities reference them, so
  * they can also be overridden at runtime — per section, or by a future theme —
@@ -85,11 +93,13 @@
 @theme {
   /* Headings — the course title, the lesson title, a product name. */
   --color-ink-bright: oklch(98.7% 0 0);
-  /* Emphasis that is not a heading: prices, the lesson you are on. */
+  /* Emphasis that is not a heading: the lesson you are on. (Prices used to
+   * live here; they are gold now — see the carve-out above.) */
   --color-ink: oklch(97.3% 0 0);
   /* Descriptions and running prose — the bulk of the reading. */
   --color-ink-body: oklch(94.5% 0 0 / 90%);
-  /* Meta lines: "3 clases · 7 secciones", dates, captions under a control. */
+  /* Meta lines: dates, captions under a control. (The size lines that used to
+   * be the example here — "3 clases · 7 secciones" — are gold now.) */
   --color-ink-meta: oklch(94.5% 0 0 / 75%);
   /* The quietest thing on screen. Fine print that must not compete. */
   --color-ink-faint: oklch(94.5% 0 0 / 60%);
@@ -98,7 +108,8 @@
    *
    * The five above are what you READ; these are what you PRESS or navigate by
    * — plaque faces, navbar rules, the category doorways, every border and ring
-   * and glow. That split is the whole colour system: two scales, one job each.
+   * and glow — plus the figures noted above. That split is the whole colour
+   * system: two scales, one job each.
    *
    * They started life as the plaque button's alone, while the rest of the site
    * ran on Tailwind's `yellow-200`. Two golds a few shades apart is worse than

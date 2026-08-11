@@ -60,7 +60,7 @@ export function SubscriptionCourseCard({
                     {course.name}
                 </h3>
 
-                <p className="mt-auto text-sm tracking-widest text-ink-meta uppercase">
+                <p className="mt-auto text-sm tracking-widest text-gold uppercase">
                     {formatPlural(course.sectionCount, {
                         singular: "clase",
                         plural: "clases",

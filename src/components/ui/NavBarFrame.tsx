@@ -14,7 +14,15 @@ export function NavBarFrame({ children }: { children?: ReactNode }) {
         // shared token, so the height and those paddings move together: `pt-32`
         // on the consumer pages, `pt-24` on admin's white surface, `lg:top-32`
         // on the two sticky course panels. Change one, change all of them.
-        <div className="fixed top-0 left-0 z-50 h-24 w-full bg-[#0a1628]/70 backdrop-blur-md">
+        // `overflow-x-clip`, not `overflow-hidden`: the row inside reserves a
+        // slot for whichever corner item it has, and on a narrow phone that
+        // reserve can run a few pixels past the bar. It is empty padding, so
+        // nothing is lost by clipping it — but left unclipped it would hand the
+        // whole page a horizontal scrollbar. Clipping the X axis alone is what
+        // keeps the Y axis `visible`, which matters: the current plaque's
+        // diamonds overhang the tile top and bottom, and `overflow-hidden`
+        // would force the other axis to scroll and shear them off.
+        <div className="fixed top-0 left-0 z-50 h-24 w-full overflow-x-clip bg-[#0a1628]/70 backdrop-blur-md">
             {children}
             <span
                 aria-hidden

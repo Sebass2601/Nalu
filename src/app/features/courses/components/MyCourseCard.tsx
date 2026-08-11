@@ -43,7 +43,7 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
                     {course.name}
                 </h2>
 
-                <p className="text-sm tracking-widest text-ink-meta uppercase">
+                <p className="text-sm tracking-widest text-gold uppercase">
                     {formatPlural(course.sectionCount, {
                         singular: "clase",
                         plural: "clases",

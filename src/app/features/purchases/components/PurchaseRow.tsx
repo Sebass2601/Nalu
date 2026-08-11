@@ -41,7 +41,7 @@ export function PurchaseRow({ purchase }: { purchase: UserPurchase }) {
                 <p className="text-sm tracking-widest text-ink-meta uppercase">
                     {formatDate(purchase.purchasedAt)}
                 </p>
-                <p className="text-ink">
+                <p className="text-gold">
                     {formatPrice(purchase.pricePaidInCents / 100)}
                 </p>
             </div>

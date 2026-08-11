@@ -852,7 +852,213 @@ git commit -m "feat: handle Polar webhooks, replacing the Stripe route"
 
 ---
 
-### Task 7: Remove Stripe entirely
+### Task 7: Receipts, purchase history and refunds
+
+The one part of this migration that is a rewrite rather than a rename.
+`receiptDetails.ts` performs deep Stripe expansion, reads a hosted receipt URL
+off the charge, computes partial-refund amounts, and fetches coupons by ID to
+name discount rows. None of that translates.
+
+The good news is that Polar's order is richer, so this gets simpler: an order
+carries `subtotal`, `discount`, `tax`, `net` and `total` directly, and discounts
+appear as line items in that breakdown — no expansion, no second call to name a
+coupon.
+
+**Files:**
+- Modify: `src/app/features/purchases/lib/receiptDetails.ts`
+- Create: `src/app/features/purchases/lib/receiptDetails.test.ts`
+- Modify: `src/app/features/purchases/actions/purchases.ts`
+- Modify: `src/app/(consumer)/purchases/[purchaseId]/page.tsx`
+- Modify: `src/app/admin/purchases/[purchaseId]/page.tsx`
+- Modify: `src/app/features/purchases/db/adminPurchases.ts`
+
+**Interfaces:**
+- Consumes: `polar`, `PurchaseTable.polarOrderId`
+- Produces: `getReceiptDetails({ polarOrderId, pricePaidInCents, isRefunded }): Promise<{ receiptUrl?: string; pricingRows: PricingRow[] }>` — same return shape, so neither page changes structurally
+- `PricingRow` is unchanged: `{ label: string; amountInDollars: number; isBold?: boolean }`
+
+- [ ] **Step 1: Read the orders and refunds surface**
+
+```bash
+grep -rn "orders\|refunds" node_modules/@polar-sh/sdk/docs/sdks/ | head -30
+```
+
+Confirm the method names for get-order, get-order-receipt and create-refund, and
+the exact field names on the order's amount breakdown.
+
+- [ ] **Step 2: Write the failing test**
+
+Create `src/app/features/purchases/lib/receiptDetails.test.ts`:
+
+```ts
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const get = vi.fn();
+const receipt = vi.fn();
+
+vi.mock("@/lib/polar", () => ({
+    polar: { orders: { get, receipt } },
+}));
+
+const { getReceiptDetails } = await import("./receiptDetails");
+
+beforeEach(() => {
+    get.mockReset();
+    receipt.mockReset();
+});
+
+describe("getReceiptDetails", () => {
+    // Showing "Subtotal" and "Total" as identical lines on an undiscounted
+    // purchase is noise, so a plain sale gets exactly one row.
+    it("returns a single total row when nothing changed the price", async () => {
+        get.mockResolvedValue({
+            subtotalAmount: 6000,
+            discountAmount: 0,
+            totalAmount: 6000,
+        });
+        receipt.mockResolvedValue({ url: "https://polar.sh/receipt.pdf" });
+
+        const { pricingRows, receiptUrl } = await getReceiptDetails({
+            polarOrderId: "ord_1",
+            pricePaidInCents: 6000,
+            isRefunded: false,
+        });
+
+        expect(pricingRows).toEqual([
+            { label: "Total", amountInDollars: 60, isBold: true },
+        ]);
+        expect(receiptUrl).toBe("https://polar.sh/receipt.pdf");
+    });
+
+    it("breaks the price down when a discount applied", async () => {
+        get.mockResolvedValue({
+            subtotalAmount: 6000,
+            discountAmount: 2700,
+            totalAmount: 3300,
+        });
+        receipt.mockResolvedValue({ url: "https://polar.sh/receipt.pdf" });
+
+        const { pricingRows } = await getReceiptDetails({
+            polarOrderId: "ord_2",
+            pricePaidInCents: 3300,
+            isRefunded: false,
+        });
+
+        expect(pricingRows.at(0)).toEqual({ label: "Subtotal", amountInDollars: 60 });
+        expect(pricingRows.at(-1)).toEqual({ label: "Total", amountInDollars: 33, isBold: true });
+    });
+
+    // The receipt PDF is rendered on demand: the first request can answer 202
+    // while it is still being produced. A receipt page must not block on that —
+    // the local data is the substance of the page.
+    it("still renders when the receipt PDF is not ready yet", async () => {
+        get.mockResolvedValue({
+            subtotalAmount: 6000,
+            discountAmount: 0,
+            totalAmount: 6000,
+        });
+        receipt.mockRejectedValue(Object.assign(new Error("accepted"), { statusCode: 202 }));
+
+        const { pricingRows, receiptUrl } = await getReceiptDetails({
+            polarOrderId: "ord_3",
+            pricePaidInCents: 6000,
+            isRefunded: false,
+        });
+
+        expect(receiptUrl).toBeUndefined();
+        expect(pricingRows).toHaveLength(1);
+    });
+
+    // Polar unreachable, or an order too old to retrieve. The local receipt is
+    // the point of those pages, so they still render in full — just without the
+    // hosted link and the breakdown, neither of which we hold ourselves.
+    it("falls back to local figures when Polar is unreachable", async () => {
+        get.mockRejectedValue(new Error("network"));
+
+        const { pricingRows, receiptUrl } = await getReceiptDetails({
+            polarOrderId: "ord_4",
+            pricePaidInCents: 6000,
+            isRefunded: true,
+        });
+
+        expect(receiptUrl).toBeUndefined();
+        expect(pricingRows.at(-1)).toEqual({ label: "Total", amountInDollars: 0, isBold: true });
+    });
+});
+```
+
+- [ ] **Step 3: Run it and watch it fail**
+
+```bash
+pnpm test src/app/features/purchases/lib/receiptDetails.test.ts
+```
+
+Expected: FAIL — `getReceiptDetails` still takes `stripeSessionId`.
+
+- [ ] **Step 4: Rewrite `receiptDetails.ts`**
+
+Keep `getPricingRows` exactly as it is — that arithmetic is provider-agnostic and
+it is what keeps the buyer's page and the admin's page agreeing.
+
+Replace everything above it:
+
+- take `polarOrderId` instead of `stripeSessionId`
+- one `polar.orders.get` call for the amounts; no expansion needed
+- one `polar.orders.receipt` call for the hosted PDF, wrapped so a 202 or any
+  failure simply omits `receiptUrl`
+- delete `getLatestCharge`, `getDiscountRows` and `resolveCoupon` — Polar's order
+  carries the discount amount directly, so there is no coupon to fetch and name
+- keep the outer `try/catch` fallback verbatim in spirit: the page renders from
+  local data when Polar cannot be reached
+
+Label the discount row `"Descuento"` when the order gives no discount name.
+
+- [ ] **Step 5: Run the tests**
+
+```bash
+pnpm test src/app/features/purchases/lib/receiptDetails.test.ts
+```
+
+Expected: PASS.
+
+- [ ] **Step 6: Repoint both receipt pages**
+
+In `src/app/(consumer)/purchases/[purchaseId]/page.tsx` and
+`src/app/admin/purchases/[purchaseId]/page.tsx`, change the `getReceiptDetails`
+argument from `purchase.stripeSessionId` to `purchase.polarOrderId`, and change
+the column selected in each page's query (and in `adminPurchases.ts`) to match.
+
+`polarOrderId` is nullable, so guard: a purchase with no order ID renders from
+local figures alone rather than throwing.
+
+- [ ] **Step 7: Move the refund action to Polar**
+
+`refundPurchase` in `src/app/features/purchases/actions/purchases.ts` calls
+Stripe directly. Replace that call with Polar's create-refund, keyed on
+`polarOrderId`.
+
+**Preserve the ordering and its comment.** Three systems have to agree — the
+provider, the purchases table, the access table — and the current order is the
+only one that fails safely: a refunded customer briefly keeping access is
+recoverable, the reverse is not. The webhook doing the same work afterwards is
+the safety net, not a duplicate.
+
+- [ ] **Step 8: Build and test**
+
+```bash
+pnpm build && pnpm test
+```
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add -A
+git commit -m "feat: move receipts, purchase history and refunds to Polar"
+```
+
+---
+
+### Task 8: Remove Stripe entirely
 
 **Files:**
 - Delete: `src/lib/stripe.ts`, `src/drizzle/backfillPppCoupons.mjs`
@@ -924,7 +1130,7 @@ git commit -m "feat: remove Stripe"
 
 ---
 
-### Task 8: End-to-end verification
+### Task 9: End-to-end verification
 
 Nothing here is code. This is the gate before merging.
 

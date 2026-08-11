@@ -128,11 +128,13 @@ async function Receipt({
                             >
                                 {label}
                             </span>
+                            {/* The amounts are gold; their labels beside them
+                                stay ink. `isBold` is the total, so it takes the
+                                full gold and the rest sit one step back — the
+                                same two-step the ink pair used to draw. */}
                             <span
                                 className={`justify-self-end ${
-                                    isBold
-                                        ? "text-ink-bright"
-                                        : "text-ink-body"
+                                    isBold ? "text-gold" : "text-gold/75"
                                 }`}
                             >
                                 {/* `showZeroAsNumber` because on a receipt a

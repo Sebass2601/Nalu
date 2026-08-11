@@ -168,14 +168,16 @@ function PlanCard({
 
             <div className="flex flex-col gap-1">
                 <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-ink">
+                    <span className="text-4xl font-bold text-gold">
                         {formatPrice(discounted)}
                     </span>
                     {/* Only when it differs — a coupon that rounds to the same
                         whole dollar would otherwise print the identical figure
-                        struck through beside itself. */}
+                        struck through beside itself. Dimmed gold rather than
+                        full, matching ProductPrice: same colour, one step back,
+                        so the figure being charged stays the loud one. */}
                     {discounted !== priceInDollars && (
-                        <span className="text-base text-ink-meta line-through">
+                        <span className="text-base text-gold/60 line-through">
                             {formatPrice(priceInDollars)}
                         </span>
                     )}

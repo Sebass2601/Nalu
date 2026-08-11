@@ -65,13 +65,51 @@ async function Navbar() {
                 </Link>
 
                 {/* On a phone the row is squeezed between two fixed corners —
-                    the logo on the left, the avatar on the right — so it is
-                    padded clear of both. The padding is what keeps it centred:
-                    `mx-auto` centres the padded box in the whole bar, so
-                    without the right side the row would drift into the avatar.
-                    From `sm` up there is room and both give way, letting the
-                    row centre in the bar proper. */}
-                <div className="mx-auto flex items-center gap-0.5 pr-16 pl-20 sm:gap-2 sm:pr-0 sm:pl-0 lg:gap-4">
+                    the logo on the left, the corner item on the right — so it
+                    is padded clear of both. The padding is what keeps it
+                    centred: `mx-auto` centres the padded box in the whole bar,
+                    so without the right side the row would drift into that
+                    corner. From `sm` up the left side gives way, letting the
+                    row centre in the bar proper.
+
+                    How much the RIGHT side gives way depends on what is in that
+                    corner, which is why this reads `user`. The two things
+                    `UserMenu` can put there are nothing like the same width: an
+                    avatar is a 48px disc, and "Iniciar sesión" is fourteen
+                    letters of Cinzel inside a pill. Reserving one number for
+                    both meant one of the two cases was always wrong — and it
+                    was the pill's, which overhung the last plaque on a phone
+                    and, because the reserve vanished at `sm`, overhung it worse
+                    on a tablet than on the phone the padding was written for.
+
+                    So: the avatar keeps the tight reserve it always had, and
+                    the pill gets one wide enough to hold it, carried through
+                    the tablet range and dropped at `lg` where the bar is wide
+                    enough that the row and the pill cannot reach each other.
+                    The gap closes to nothing on a phone in the signed-out case
+                    for the same reason the admin bar closes its own: the
+                    plaques carry their own padding, so the icons still stand
+                    12px apart and the 6px buys back a little of the reserve.
+
+                    The signed-out case also opens 8px earlier on the left
+                    (`pl-18` against the avatar's `pl-20`). The logo is a 72px
+                    box whose PNG carries about 10px of its own transparent
+                    margin, so the mark itself stops around 70px in and `pl-20`
+                    was clearing empty pixels. Spending those 8px here is what
+                    carries a 360px phone — the width where the reserve runs
+                    past the bar and the row can no longer be nudged left by
+                    centring — from touching the pill to clearing it.
+
+                    Both cases are sized down to 360px. Below that the
+                    signed-out row and the pill meet, which is the same floor
+                    the admin bar documents and for the same reason. */}
+                <div
+                    className={`mx-auto flex items-center lg:gap-4 ${
+                        user == null
+                            ? "gap-0 pr-32 pl-18 sm:gap-2 sm:pr-40 sm:pl-0 lg:pr-0"
+                            : "gap-0.5 pr-16 pl-20 sm:gap-2 sm:pr-0 sm:pl-0"
+                    }`}
+                >
                     <NavItem
                         href="/"
                         label="Inicio"
