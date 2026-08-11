@@ -74,6 +74,53 @@ the account.
 A sandbox credential is still worth creating, because the REST wrapper can be
 developed against it before any product exists.
 
+**There is no "sandbox build".** The implementation is written once.
+`HOTMART_SERVER` (`sandbox | production`) selects the REST base URL and the
+credential pair, and nothing else in the codebase knows the sandbox exists —
+the same shape `POLAR_SERVER` had in the superseded design. Phases 1–2 run with
+it on `sandbox`; from phase 3 it is `production` and stays there.
+
+## Testing under the review constraint
+
+Every product faces a ~3-day human review before it can be bought, and a real
+purchase is the only thing that proves this integration works. Those two facts
+together set the schedule, so they are recorded here rather than discovered.
+
+**The review blocks exactly one test.** Everything else is verifiable without an
+approved product:
+
+| What | How | Needs an approved product? |
+|---|---|---|
+| OAuth token, token cache, `hotmartFetch()` | Sandbox | No |
+| `GET /products`, sales-history, refund, cancel-subscription | Sandbox | No |
+| Webhook handler logic — `sck`/email resolution, product matching, the one-transaction write, dedupe, refund ordering | Unit tests over recorded payloads | No |
+| Webhook auth and routing on the live endpoint | Hotmart's **"Send test"** button, which sends a real payload carrying the account's own hottok | No |
+| Checkout URL construction | Unit tests — it is a pure function | No |
+| `/purchase/success`, `/purchase/pending` | Hit the routes in dev | No |
+| **One real purchase, end to end** | 100% coupon, production | **Yes** |
+
+The handler logic is pure reasoning over a JSON body, which is where nearly all
+the risk lives and where none of it needs Hotmart.
+
+**Therefore: register and submit the product on day one, before writing code.**
+The review clock then runs in parallel with phases 0–7 instead of becoming a
+three-day wall at the end. Net blocking time is roughly zero.
+
+Note that a sandbox pass proves the call succeeded, not that the integration is
+correct — the data is fictional. Only phase 8 proves the thing works.
+
+**`ACTIVE` does not mean publicly visible.** With marketplace listing and the
+affiliate programme disabled, an approved product is buyable only by someone
+holding the hotlink. So the real course can be registered, approved and tested
+against without being exposed in Hotmart's store — there is no need for a
+throwaway product.
+
+Edits to an `ACTIVE` product appear to re-enter review: the product status
+vocabulary includes `CHANGES_PENDING_ON_PRODUCT` alongside `IN_REVIEW` and
+`NOT_APPROVED`. Inferred from the status list, not confirmed in the help centre.
+Treat edits to a live product as non-instant, and do the experimenting while the
+product is still `DRAFT`, where changes are free.
+
 ## Decisions taken
 
 | Decision | Choice | Reason |
@@ -85,6 +132,7 @@ developed against it before any product exists.
 | Catalogue | Codes pasted into the admin form, verified on save | No write API to sync against |
 | Promotions | Hotmart **offers**, chosen per checkout link | What offers are for; reversible; keeps Hotmart's reporting accurate |
 | Regional pricing | **Off** | Page and checkout must always agree; Hotmart owns this natively if ever wanted |
+| Marketplace listing and affiliates | **Off** | One route in means one thing to debug, and every purchase then carries a reliable `sck`. Also what lets an approved product stay unlisted while being tested. A growth lever to switch on deliberately later |
 | PPP machinery | **Deleted, not ported** | Never worked in production; Hotmart's problem now |
 | Buyer identity | `sck` = user ID, `buyer.email` as fallback | The only custom channel Hotmart offers |
 | Currency | USD only | Panama uses USD |
@@ -158,6 +206,7 @@ Added — all must reach `.env`, `src/data/env/server.ts`, `src/test/setup.ts`
 and the `NALU_APP_ENV` GitHub secret:
 
 ```
+HOTMART_SERVER                 # sandbox | production
 HOTMART_CLIENT_ID
 HOTMART_CLIENT_SECRET
 HOTMART_BASIC_TOKEN
@@ -183,6 +232,26 @@ failing at checkout.
 `*_PRICE` holds **whole dollars**, matching `ProductTable.priceInDollars`, which
 is an `integer`. It is display copy only — Hotmart charges whatever its offer
 says, and nothing in this codebase sends an amount.
+
+`HOTMART_SERVER` defaults to `production`, so a missing value fails safe rather
+than silently pointing live traffic at fictional data.
+
+### Known drift: prices are mirrored and nothing can verify them
+
+Hotmart lets an offer's price be **edited in place**, and buyers who already paid
+are unaffected — much kinder than Stripe, whose immutable `Price` objects forced
+the create-new-and-archive dance in `stripeProducts.ts`. The offer code also
+survives repricing, so the code pasted into the admin never needs updating.
+
+The cost is that **`GET /products` returns product metadata but not offer
+prices.** Nothing on this side can check that `products.priceInDollars`, or a
+`*_PRICE` env var, still matches what Hotmart actually charges. Change a price in
+Hotmart and forget the admin panel, and the page advertises one number while
+checkout collects another — silently, with no test able to catch it.
+
+There is no technical fix available. The mitigation is procedural: repricing is a
+two-step operation, Hotmart first and Nalu second, and it belongs in the manual
+checklist rather than in someone's memory.
 
 **`*_PRICE` is a regression, accepted for lack of an alternative.** `plans.ts`
 today reads both subscription prices *from Stripe*, with a comment explaining
@@ -370,12 +439,16 @@ Recorded so they are checked rather than assumed:
 
 ## Manual steps
 
+Ordered as a schedule, not a checklist. Steps 1–9 all happen on **day one**,
+before any code, because the ~3-day product review is the long pole and it must
+be running while phases 0–7 are built.
+
 **Gating — before any code is written**
 
 1. **Get Hotmart support to confirm Panama in writing**, covering producer
    registration and a payout route. This is the question that killed Polar.
 
-**Account and catalogue**
+**Account and catalogue — day one**
 
 2. Create the account with registration country **Panama**; complete document
    verification.
@@ -394,33 +467,44 @@ Recorded so they are checked rather than assumed:
      the course, subscription for the two plans), and a **refund deadline** of 7,
      15, 21 or 30 days — which also sets when `PURCHASE_COMPLETE` fires.
 
-   Then wait out the **~3-day human review**, and budget for a rejection round.
-4. Collect the **three codes** per product: 7-digit product ID, hotlink code
+   Settle all of this while the product is still **`DRAFT`**, where changes are
+   free, then **submit for review on day one** so the ~3-day clock runs during
+   implementation. Budget for a rejection round.
+4. **Disable marketplace listing and the affiliate programme** on every product.
+   This is what keeps an approved product buyable only via its hotlink, so the
+   real course can be tested against without appearing in Hotmart's store — and
+   it guarantees every purchase carries a usable `sck`.
+5. Collect the **three codes** per product: 7-digit product ID, hotlink code
    (Products → HotLinks), offer code.
-5. Set each offer's external thank-you pages: approved →
+6. Set each offer's external thank-you pages: approved →
    `https://naluescuela.com/purchase/success`, awaiting payment →
    `https://naluescuela.com/purchase/pending`.
-6. Confirm **regional pricing is off**.
-7. Create a **100% discount coupon** for testing.
+7. Confirm **regional pricing is off**.
+8. Create a **100% discount coupon** for testing.
 
-**Credentials**
+**Credentials — day one**
 
-8. Tools → Developer Credentials → create a **production** credential (leave the
-   sandbox box unchecked). Optionally create a sandbox one too, for developing
-   the REST wrapper before any product exists.
-9. Tools → Webhook → register the endpoint, version 2.0.0, subscribed to the
-   events above. Copy the **hottok** from the Authentication tab.
-10. Add all twelve variables to `.env` **and** to the `NALU_APP_ENV` GitHub
+9. Tools → Developer Credentials → create a **production** credential (leave the
+   sandbox box unchecked) **and** a sandbox one, so phases 1–2 can proceed before
+   any product is approved.
+10. Tools → Webhook → register the endpoint, version 2.0.0, subscribed to the
+    events above. Copy the **hottok** from the Authentication tab.
+11. Add all thirteen variables to `.env` **and** to the `NALU_APP_ENV` GitHub
     secret before the first deploy.
 
 **Housekeeping**
 
-11. Reset the local database. It has the Polar migration `0018` applied, and this
+12. Reset the local database. It has the Polar migration `0018` applied, and this
     branch is cut from `main`, which does not.
-12. Paste the three codes into the course product in the Nalu admin and save.
-13. Delete the junk `papapapapa` and `pepepepe` courses.
-14. Decide what happens to the Polar organization, whose payout account is still
+13. Paste the three codes into the course product in the Nalu admin and save.
+14. Delete the junk `papapapapa` and `pepepepe` courses.
+15. Decide what happens to the Polar organization, whose payout account is still
     frozen. Close it deliberately rather than leaving it.
+
+**Standing procedure — repricing.** Because nothing can verify the two sides
+agree, a price change is always two steps in this order: edit the offer in
+Hotmart, then update `priceInDollars` in the Nalu admin (or the `*_PRICE` env var
+for a subscription plan, which needs a redeploy). See *Known drift* above.
 
 **No longer blocking:** the support email at the domain, which was waiting on
 Angel and the Squarespace account. Hotmart documents that "the default account
@@ -431,14 +515,17 @@ email will be used if a personalized email has not been provided."
 | # | Work | Depends on |
 |---|---|---|
 | 0 | Schema migration, env schema, local DB reset | — |
-| 1 | `src/lib/hotmart.ts` — token cache + `hotmartFetch()` | 0 |
-| 2 | Admin: three code fields, verified against `GET /products` on save | 1 |
+| 1 | `src/lib/hotmart.ts` — token cache + `hotmartFetch()` — *`HOTMART_SERVER=sandbox`* | 0 |
+| 2 | Admin: three code fields, verified against `GET /products` on save — *sandbox* | 1 |
 | 3 | `checkoutLink.ts`, `startCheckout`, `/purchase/success` and `/purchase/pending` | 2 |
 | 4 | Webhook route, dedupe-in-transaction, sales-history verification | 3 |
 | 5 | Subscriptions: checkout, cancel, status mirroring | 4 |
 | 6 | Receipts, purchase history, refunds | 4 |
 | 7 | Delete Stripe, PPP and country groups; update the deploy workflow and `deploy/README.md` | 5, 6 |
-| 8 | End-to-end verification with the 100% coupon | 7 |
+| 8 | End-to-end verification with the 100% coupon — *`HOTMART_SERVER=production`* | 7, **and product `ACTIVE`** |
+
+Phases 3–7 are written against production configuration but verified by unit
+tests and Hotmart's "Send test"; only phase 8 needs an approved product.
 
 ## Acceptance
 
