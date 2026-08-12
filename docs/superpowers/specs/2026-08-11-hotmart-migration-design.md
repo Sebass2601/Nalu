@@ -504,6 +504,40 @@ first, then purchases, then access, because a refunded customer briefly keeping
 access is recoverable and the reverse is not. The webhook doing the same work
 afterwards is the safety net, not a duplicate.
 
+## Deferred, deliberately
+
+**The embedded checkout widget.** Hotmart offers one, surfaced in the offer's
+"Links del Precio" dialog: a script from `static.hotmart.com/checkout/widget.min.js`
+that intercepts clicks on a `pay.hotmart.com` link and opens the checkout as an
+overlay on our own page. Launch uses the plain link and a `redirect()` instead.
+
+Three reasons, weightiest first:
+
+1. **This codebase already tried embedded checkout and reverted it.** The comment
+   heading `purchases/actions/stripe.ts` records why: the embedded mode rendered a
+   full checkout page in an iframe whose content "outgrew the iframe on narrow
+   screens and was cut off", and embedding "bought almost no customisation while
+   costing a whole class of layout bug". The reasoning transfers — arguably harder,
+   because a merchant-of-record checkout carries a currency selector, payment
+   method list and legal text that cannot be restyled at all. Embedding buys our
+   background around a Hotmart box, not a Nalu checkout.
+2. **The thank-you redirect inside an overlay is undocumented.** The entire return
+   flow depends on Hotmart redirecting to `/purchase/success`. In an iframe that
+   most likely renders the polling page *inside the modal*. Unverified, and it sits
+   on the moment immediately after a customer has paid.
+3. **It weakens the already-owned check.** `startCheckout` re-checks ownership
+   server-side at click time precisely because "a page-level check protects
+   nothing". The widget bakes the URL into the HTML at render time, moving that
+   check earlier and allowing a double purchase across two tabs. Access stays
+   idempotent, but the second payment is real.
+
+Not a blocker either way: this project sets **no CSP** — `next.config.ts` has no
+headers configuration — so the script and frame sources the widget needs would
+require no work.
+
+Revisit after the hosted flow is proven in production, where it can be measured
+against a working baseline rather than adopted on faith.
+
 ## Not verified — confirm during implementation
 
 Recorded so they are checked rather than assumed:
