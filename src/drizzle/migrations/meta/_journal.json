@@ -127,6 +127,13 @@
       "when": 1786046814207,
       "tag": "0017_clumsy_snowbird",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786548716968,
+      "tag": "0018_crazy_klaw",
+      "breakpoints": true
     }
   ]
 }
