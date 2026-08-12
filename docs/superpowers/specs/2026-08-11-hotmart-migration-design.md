@@ -323,21 +323,24 @@ Create the two Hotmart products, run them through review, collect their three
 codes each, add the eight variables, set `SUBSCRIPTIONS_ENABLED=true`, redeploy.
 No code changes. The boot-time refinement is what guarantees that.
 
-## Migration numbering
+## Migration numbering — resolved
 
-`feat/admin-course-access` — the admin panel for granting course access by hand —
-is branched from the same `main` commit and mints its own
-`0018_crazy_klaw.sql` (adds `user_course_access.grantedBy` plus two indexes).
-This migration and that one therefore claim the same number.
+`feat/admin-course-access` briefly contended for the same migration number. It
+landed first, as intended: **`978004e` on `main`** ("feat: admin tab to grant and
+revoke course access"), carrying `0018_crazy_klaw.sql` —
+`user_course_access.grantedBy` plus two indexes.
 
-The contents do not conflict; they touch different columns. But the second
-branch to merge must have its migration **regenerated**, not renamed — the
-snapshot chain in `meta/` encodes the preceding schema state, so a renamed file
-would carry a snapshot describing the wrong parent.
+Consequences:
 
-**Merge the admin-access work first.** It is small, self-contained, and it is
-what unblocks the Hotmart product review (see Manual steps). This migration then
-regenerates as `0019` on top of it.
+- **This migration is `0019`,** generated on top of `0018_crazy_klaw`. Nothing
+  needs renaming, because the branch that merged second is this one.
+- `main` is pushed and in sync with `origin/main`, so the Hetzner deploy has run
+  and applied `0018` there automatically. Supabase migrations are manual and
+  will not have it unless `pnpm db:migrate:remote` was run.
+- **The admin access panel is live**, which unblocks granting the reviewer's
+  student account access to the course without touching SQL — see Manual steps.
+- `feat/hotmart-implementation` is one commit behind `main` and must take it in
+  before phase 0.
 
 ## Code
 
@@ -598,10 +601,9 @@ happens instead, and for the short list of steps that turn them on later.
    implementation. Budget for a rejection round.
 4. **Create the reviewer's student account and give it the course.** Sign up
    normally at `/sign-up` with a dedicated address, then grant that account
-   access to the course through the admin access panel from
-   `feat/admin-course-access` — which is precisely why that branch merges first.
-   Before submitting, sign in as that student yourself and confirm a lesson
-   actually plays; an empty shelf is a rejection.
+   access to the course through the **admin access panel**, which is already live
+   in production as of `978004e`. Before submitting, sign in as that student
+   yourself and confirm a lesson actually plays; an empty shelf is a rejection.
 5. **Disable marketplace listing and the affiliate programme.** This is what
    keeps an approved product buyable only via its hotlink, so the real course can
    be tested against without appearing in Hotmart's store — and it guarantees
@@ -628,10 +630,12 @@ happens instead, and for the short list of steps that turn them on later.
 
 **Housekeeping**
 
-13. Merge `feat/admin-course-access` first, then regenerate this migration as
-    `0019`. See *Migration numbering*.
-14. Reset the local database. It has the abandoned Polar migration `0018`
-    applied, and this branch is cut from `main`, which does not.
+13. Take `main` into `feat/hotmart-implementation` — the admin access panel
+    landed there as `978004e`. This branch's migration is then generated as
+    `0019`. See *Migration numbering — resolved*.
+14. Reset the local database. If it still has the abandoned Polar `0018` applied,
+    that number now belongs to `0018_crazy_klaw` and the journal will disagree.
+    Drop, recreate, `pnpm db:migrate && pnpm db:seed`.
 15. Paste the three codes into the course product in the Nalu admin and save.
 16. Delete the junk `papapapapa` and `pepepepe` courses.
 17. Decide what happens to the Polar organization, whose payout account is still
@@ -650,7 +654,7 @@ email will be used if a personalized email has not been provided."
 
 | # | Work | Depends on |
 |---|---|---|
-| 0 | Schema migration (as `0019`), env schema incl. the `SUBSCRIPTIONS_ENABLED` refinement, local DB reset | `feat/admin-course-access` merged |
+| 0 | Take `main` into the branch, then schema migration (as `0019`), env schema incl. the `SUBSCRIPTIONS_ENABLED` refinement, local DB reset | — |
 | 1 | `src/lib/hotmart.ts` — token cache + `hotmartFetch()` — *`HOTMART_SERVER=sandbox`* | 0 |
 | 2 | Admin: three code fields, verified against `GET /products` on save — *sandbox* | 1 |
 | 3 | `checkoutLink.ts`, `startCheckout`, `/purchase/success` and `/purchase/pending` | 2 |
