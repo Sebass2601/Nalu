@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, text, integer} from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, integer, timestamp } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "../schemaHelpers";
 import { CourseProductTable } from "./courseProduct";
 
@@ -14,20 +14,38 @@ export const ProductTable = pgTable("products", {
     imageUrl: text().notNull(),
     priceInDollars: integer().notNull(),
     status: productStatusEnum().notNull().default("private"),
-    // The mirror of this product inside Stripe. `priceInDollars` above stays
-    // the source of truth for what we display; these two point at the objects
-    // Stripe actually bills against.
+    // Hotmart needs three identifiers for three different jobs, and they are
+    // not interchangeable:
     //
-    // They are separate columns because Stripe treats them differently: a
-    // Product is a long-lived thing whose name and images can be edited, while
-    // a Price is immutable — `unit_amount` can never change. Raising a price
-    // therefore means creating a NEW Price, pointing `stripePriceId` at it, and
-    // archiving the old one, which stays alive for past purchases.
+    //   externalProductId — the 7-digit ID. Arrives as `data.product.id` on
+    //     every webhook, so it is the key matching a Hotmart sale to this row.
+    //   checkoutCode — the hotlink (Products -> HotLinks). A different code
+    //     entirely, and the one the checkout URL is built from.
+    //   externalOfferCode — which offer, i.e. which price is charged.
     //
-    // Both are nullable: products created before Stripe existed have neither,
-    // and a product can be drafted before it is ever pushed to Stripe.
-    stripeProductId: text(),
-    stripePriceId: text(),
+    // All three are nullable and entered by hand. Hotmart has no API to create
+    // a product — the dashboard owns the catalogue, and every product passes a
+    // human content review — so a product is drafted here first and its codes
+    // pasted in once Hotmart has one to point at.
+    externalProductId: text(),
+    checkoutCode: text(),
+    externalOfferCode: text(),
+
+    // An optional second offer at a promotional price.
+    //
+    // Hotmart models a promotion as a separate offer on the same product, so
+    // running one means pointing checkout at a different code. That keeps it
+    // reversible and keeps Hotmart's own reporting honest about what each sale
+    // actually earned.
+    //
+    // `promoPriceInDollars` is display copy only, exactly like `priceInDollars`
+    // above: Hotmart charges whatever its offer says and nothing here ever
+    // sends an amount. A promo counts as live when the code is set AND
+    // `promoEndsAt` is null or still in the future — evaluated at read time, so
+    // a promotion lapses on its own without a scheduled job to forget to run.
+    promoOfferCode: text(),
+    promoPriceInDollars: integer(),
+    promoEndsAt: timestamp({ withTimezone: true }),
     createdAt,
     updatedAt,
 });

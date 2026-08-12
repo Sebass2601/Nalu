@@ -22,12 +22,6 @@ export const UserTable = pgTable("users", {
   role: userRoleEnum().notNull().default("user"),
   password: text(),
   image: text(),
-  // The Stripe Customer this user maps to, created lazily on their first
-  // checkout. Stripe hangs subscriptions, invoices, saved cards and the billing
-  // portal off this one ID, so without it a returning buyer would show up as a
-  // brand-new stranger every time and could never manage their subscription.
-  // Nullable because most users never reach checkout.
-  stripeCustomerId: text().unique(),
   emailVerified: timestamp({ withTimezone: true }),
   deletedAt: timestamp({ withTimezone: true }),
   createdAt,

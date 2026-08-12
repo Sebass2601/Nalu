@@ -15,10 +15,17 @@ const testEnv: Record<string, string> = {
     AUTH_GOOGLE_ID: "test-google-id",
     AUTH_GOOGLE_SECRET: "test-google-secret",
     UPLOADTHING_TOKEN: "test-uploadthing-token",
-    STRIPE_SECRET_KEY: "sk_test_dummy",
-    STRIPE_WEBHOOK_SECRET: "whsec_dummy",
-    STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID: "price_dummy_monthly",
-    STRIPE_ALL_ACCESS_YEARLY_PRICE_ID: "price_dummy_yearly",
+    HOTMART_SERVER: "sandbox",
+    HOTMART_CLIENT_ID: "test-client-id",
+    HOTMART_CLIENT_SECRET: "test-client-secret",
+    // Base64-shaped, because the real one is and a test fixture that looks
+    // nothing like production hides format bugs rather than catching them.
+    HOTMART_BASIC_TOKEN: "dGVzdC1iYXNpYy10b2tlbg==",
+    HOTMART_HOTTOK: "test-hottok",
+    // Off, matching launch. The eight ALL_ACCESS variables are deliberately
+    // absent: that combination is the one the app actually ships with, so it is
+    // the one the tests should exercise.
+    SUBSCRIPTIONS_ENABLED: "false",
     SERVER_URL: "http://localhost:3000",
     // Shaped like the real thing — 32 hex characters — because the env schema
     // rejects anything else, which is what stops the S3 endpoint URL being
