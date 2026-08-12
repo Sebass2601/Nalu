@@ -9,7 +9,7 @@ import { getCourseUpgradeOffer } from "../lib/courseUpgrade";
 // while something is actually selling it. `getCourseUpgradeOffer` decides all
 // of that; see the comment there for why each clause is needed.
 //
-// It goes straight to Stripe for the cheapest product bundling this course,
+// It goes straight to Hotmart for the cheapest product bundling this course,
 // which is deliberately the same route a locked lesson offers. The question
 // being answered is identical — "what does it cost to own this" — so the two
 // must not resolve to different products or a buyer would see one price on the

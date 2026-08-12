@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { desc, eq, gt, and } from "drizzle-orm";
+import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { PurchaseTable } from "@/drizzle/schema";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
@@ -24,12 +24,20 @@ import { PlaqueButton } from "@/components/ui/PlaqueButton";
 // with Hotmart there is no trustworthy per-buyer token on the return trip, so
 // the webhook is the single path and this page is honest about waiting.
 
-export const dynamic = "force-dynamic";
+// No route segment config: `cacheComponents` rejects it. Under Cache
+// Components a page is dynamic because of what it reads, not what it declares —
+// `Resolve` below reads the session and queries the database uncached, which is
+// what makes each reload genuinely re-check rather than replay a cached answer.
 
 // How recent a purchase has to be to count as "the one they just made". Long
 // enough to cover a slow webhook, short enough that a purchase from yesterday
 // never gets mistaken for this one.
-const RECENT_PURCHASE_WINDOW_MS = 15 * 60 * 1000;
+//
+// Evaluated by Postgres rather than here. Two reasons: `createdAt` is stamped
+// by the database, so comparing it against this process's clock invites skew
+// between the two; and reading the current time during render is an impure call
+// that React's compiler rightly rejects.
+const RECENT_PURCHASE_WINDOW = sql`interval '15 minutes'`;
 
 export default function PurchaseSuccessPage() {
     return (
@@ -51,15 +59,16 @@ async function Resolve() {
     // because the webhook does not depend on this browser.
     if (userId == null) redirect("/login");
 
-    const since = new Date(Date.now() - RECENT_PURCHASE_WINDOW_MS);
-
     const [purchase] = await db
         .select({ productId: PurchaseTable.productId })
         .from(PurchaseTable)
         .where(
             and(
                 eq(PurchaseTable.userId, userId),
-                gt(PurchaseTable.createdAt, since)
+                gt(
+                    PurchaseTable.createdAt,
+                    sql`now() - ${RECENT_PURCHASE_WINDOW}`
+                )
             )
         )
         .orderBy(desc(PurchaseTable.createdAt))
@@ -76,8 +85,8 @@ async function Resolve() {
 //
 // It reloads rather than polling with JavaScript: this page must work for a
 // buyer whose connection dropped the page's scripts, and a meta refresh is the
-// one mechanism that survives that. The page is `force-dynamic`, so each reload
-// genuinely re-checks.
+// one mechanism that survives that. `Resolve` reads the session and queries
+// uncached, so each reload genuinely re-checks rather than replaying an answer.
 function Waiting() {
     return (
         <>

@@ -75,9 +75,10 @@ function CourseLink({ courseId }: { courseId: string | null }) {
     );
 }
 
-// Leads to our own receipt page rather than straight out to Stripe. The receipt
+// Leads to our own receipt page rather than straight out to Hotmart. The receipt
 // is built from what we recorded at the moment of sale, so it renders even when
-// Stripe is unreachable, and it carries the link to Stripe's hosted copy for
+// Hotmart is unreachable. Hotmart issues the buyer's invoice itself as
+// merchant of record and emails it, so there is no hosted link to carry for
 // anyone who wants the original.
 function ReceiptLink({ purchaseId }: { purchaseId: string }) {
     return (

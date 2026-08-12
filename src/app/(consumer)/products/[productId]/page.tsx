@@ -123,7 +123,7 @@ async function ProductDetails({
                         {product.description}
                     </p>
                     {/* Sells the product, or opens it if this visitor already
-                        bought it. Buying goes straight to Stripe rather than via
+                        bought it. Buying goes straight to Hotmart rather than via
                         an intermediate page — one click from wanting the product
                         to paying for it — and the action redirects to /login by
                         itself when nobody is signed in.

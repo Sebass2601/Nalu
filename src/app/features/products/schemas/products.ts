@@ -5,9 +5,12 @@ import { z } from "zod";
 // would store "" and make "no code" and "the empty code" two distinct states
 // that behave identically everywhere except in a null check — so every optional
 // Hotmart code funnels through this.
+// `null` is accepted on the way in as well as produced on the way out, so a
+// value round-trips: the edit form loads a stored null straight back into the
+// field without the schema rejecting its own output.
 function emptyToNull(schema: z.ZodString) {
     return z
-        .union([schema, z.literal("")])
+        .union([schema, z.literal(""), z.null()])
         .optional()
         .transform(value => (value == null || value === "" ? null : value));
 }

@@ -1,15 +1,20 @@
 import "server-only";
 
-import type Stripe from "stripe";
-import { stripe } from "@/lib/stripe";
+import { getHotmartSale } from "@/lib/hotmartApi";
 
-// The half of a receipt that only Stripe knows.
+// The half of a receipt that only Hotmart knows.
 //
 // Everything identifying a sale — product, date, buyer, amount — lives in our
 // own `purchases` row, so a receipt page can be drawn without asking anyone.
-// Two things are missing from that row: the URL of Stripe's hosted receipt, and
-// how the final price was reached, which for this site usually means a regional
-// discount. Both are fetched here.
+// What that row does not hold is what Hotmart actually collected and whether a
+// coupon moved the price, which is what this fetches.
+//
+// Much smaller than the Stripe version it replaces. That one expanded the
+// session, walked to the latest charge for a hosted receipt URL, computed
+// partial-refund amounts, and fetched coupons by ID to name each discount row —
+// four round trips of ceremony. Hotmart returns the sale with its price already
+// resolved, and issues the buyer's invoice itself as merchant of record, so
+// there is no hosted receipt URL to chase.
 //
 // Shared by the buyer's receipt at /purchases/[purchaseId] and the admin's at
 // /admin/purchases/[purchaseId]. The two pages look nothing alike, but the
@@ -22,121 +27,82 @@ export type PricingRow = {
     isBold?: boolean;
 };
 
-// Deliberately not cached: a receipt URL is worth fetching fresh, and this runs
-// only when somebody opens one specific purchase.
+// Deliberately not cached: this runs only when somebody opens one specific
+// purchase, and a receipt is worth reading fresh.
 export async function getReceiptDetails({
-    stripeSessionId,
+    orderId,
     pricePaidInCents,
     isRefunded,
 }: {
-    stripeSessionId: string;
+    // Nullable because a purchase row could predate the column. Without it
+    // there is nothing to ask Hotmart about, so the page renders from local
+    // figures alone.
+    orderId: string | null;
     pricePaidInCents: number;
     isRefunded: boolean;
-}): Promise<{ receiptUrl?: string; pricingRows: PricingRow[] }> {
+}): Promise<{ pricingRows: PricingRow[] }> {
+    if (orderId == null) return { pricingRows: localOnlyRows() };
+
     try {
-        const { payment_intent, total_details, amount_total, amount_subtotal } =
-            await stripe.checkout.sessions.retrieve(stripeSessionId, {
-                expand: [
-                    "payment_intent.latest_charge",
-                    "total_details.breakdown.discounts",
-                ],
-            });
+        const sale = await getHotmartSale(orderId);
 
-        const charge = getLatestCharge(payment_intent);
+        if (sale == null) return { pricingRows: localOnlyRows() };
 
-        // Stripe's own figure when the expansion produced a charge, since a
-        // partial refund is a number only it knows. Falling back to the full
-        // price otherwise, because at that point all we know is the flag on our
-        // own row.
-        const refundAmount =
-            charge?.amount_refunded ??
-            (isRefunded ? pricePaidInCents : undefined);
+        // Hotmart reports money in the currency's major unit; everything below
+        // works in integer cents, as the rest of this codebase does.
+        const collectedInCents = Math.round(
+            (sale.purchase.price?.value ?? 0) * 100
+        );
+
+        // What Hotmart charged versus what the offer lists is the discount, if
+        // any. Hotmart returns the resolved price rather than a breakdown, so
+        // this is inferred rather than read — which is why it only produces a
+        // row when a coupon code is actually present on the sale.
+        const couponCode = sale.purchase.offer?.coupon_code;
+
+        const discountRows: PricingRow[] =
+            couponCode != null && collectedInCents < pricePaidInCents
+                ? [
+                      {
+                          label: `Cupón ${couponCode}`,
+                          amountInDollars:
+                              (pricePaidInCents - collectedInCents) / -100,
+                      },
+                  ]
+                : [];
+
+        const paid = collectedInCents || pricePaidInCents;
 
         return {
-            receiptUrl: charge?.receipt_url ?? undefined,
-            pricingRows: getPricingRows(await getDiscountRows(total_details), {
-                total: (amount_total ?? pricePaidInCents) - (refundAmount ?? 0),
-                subtotal: amount_subtotal ?? pricePaidInCents,
-                refund: refundAmount,
-            }),
-        };
-    } catch {
-        // Stripe unreachable, or a session too old to retrieve. The local
-        // receipt is the point of those pages, so they still render in full —
-        // just without the hosted link and without the discount breakdown,
-        // neither of which we hold ourselves.
-        return {
-            pricingRows: getPricingRows([], {
-                total: isRefunded ? 0 : pricePaidInCents,
+            pricingRows: getPricingRows(discountRows, {
                 subtotal: pricePaidInCents,
-                refund: isRefunded ? pricePaidInCents : undefined,
+                total: isRefunded ? 0 : paid,
+                refund: isRefunded ? paid : undefined,
             }),
         };
-    }
-}
-
-function getLatestCharge(
-    paymentIntent: Stripe.PaymentIntent | string | null
-): Stripe.Charge | undefined {
-    // A bare string means the expansion did not happen, so there is no charge
-    // object to read here.
-    if (paymentIntent == null || typeof paymentIntent === "string") return;
-
-    const charge = paymentIntent.latest_charge;
-    if (charge == null || typeof charge === "string") return;
-
-    return charge;
-}
-
-// One row per discount applied to the sale, named after the coupon behind it.
-async function getDiscountRows(
-    totalDetails: Stripe.Checkout.Session.TotalDetails | null
-): Promise<PricingRow[]> {
-    const discounts = totalDetails?.breakdown?.discounts ?? [];
-
-    return Promise.all(
-        discounts.map(async ({ amount, discount }) => {
-            const coupon = await resolveCoupon(discount.source.coupon);
-
-            return {
-                // Regional coupons are already named for their own rate — "PPP
-                // 30%" — so the name alone reads correctly. The percentage is
-                // spelled out only for a coupon that arrived without a name,
-                // and the generic word covers one with neither.
-                label:
-                    coupon?.name ??
-                    (coupon?.percent_off != null
-                        ? `${coupon.percent_off}% de descuento`
-                        : "Descuento"),
-                amountInDollars: amount / -100,
-            };
-        })
-    );
-}
-
-// The coupon behind a discount arrives as a bare id.
-//
-// It cannot be expanded in the session call above: the path would be
-// `total_details.breakdown.discounts.discount.source.coupon`, well past the four
-// levels Stripe allows. So it is fetched separately, and only when a discount
-// actually exists.
-//
-// A failure here costs the row its name, not the row itself — the amount is the
-// substantive part of a discount line, and it comes from the session.
-async function resolveCoupon(coupon: string | Stripe.Coupon | null) {
-    if (coupon == null) return null;
-    if (typeof coupon !== "string") return coupon;
-
-    try {
-        return await stripe.coupons.retrieve(coupon);
     } catch {
-        return null;
+        // Hotmart unreachable, or a sale too old to retrieve. The local receipt
+        // is the point of those pages, so they still render in full — just
+        // without the breakdown, which we do not hold ourselves.
+        return { pricingRows: localOnlyRows() };
+    }
+
+    function localOnlyRows() {
+        return getPricingRows([], {
+            subtotal: pricePaidInCents,
+            total: isRefunded ? 0 : pricePaidInCents,
+            refund: isRefunded ? pricePaidInCents : undefined,
+        });
     }
 }
 
 // A plain total when nothing happened to the price, and a subtotal / discount /
 // refund / total breakdown when something did. Showing "Subtotal" and "Total"
 // as identical lines on an undiscounted purchase would just be noise.
+//
+// Unchanged from the Stripe version on purpose: this arithmetic is
+// provider-agnostic, and it is what keeps the buyer's page and the admin's page
+// agreeing.
 function getPricingRows(
     discountRows: PricingRow[],
     {

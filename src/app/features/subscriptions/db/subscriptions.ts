@@ -10,18 +10,17 @@ import { getSubscriptionUserTag } from "./cache/subscriptions";
 import { expireSubscriptionCache } from "./cache/subscriptions";
 import { subscriptionGrantsAccess } from "../lib/subscriptionAccess";
 
-// Writes Stripe's view of a subscription into our mirror.
+// Writes Hotmart's view of a subscription into our mirror.
 //
-// Keyed on `stripeSubscriptionId` rather than `userId`, because that is the
-// identifier Stripe sends and the one with a unique constraint — which is what
-// makes a redelivered webhook update the existing row instead of failing or
-// duplicating. Stripe retries events, so this runs more than once per real
-// change, sometimes out of order.
+// Keyed on `externalSubscriptionId` — Hotmart's subscriber_code — rather than
+// `userId`, because that is the identifier Hotmart sends and the one with a
+// unique constraint, which is what makes a redelivered webhook update the
+// existing row instead of failing or duplicating. Hotmart retries events, so
+// this runs more than once per real change, sometimes out of order.
 export async function upsertSubscription(data: {
     userId: string;
-    stripeCustomerId: string;
-    stripeSubscriptionId: string;
-    stripePriceId: string;
+    externalSubscriptionId: string;
+    externalProductId: string;
     interval: "month" | "year";
     status: SubscriptionStatus;
     currentPeriodEnd: Date;
@@ -31,12 +30,12 @@ export async function upsertSubscription(data: {
         .insert(SubscriptionTable)
         .values(data)
         .onConflictDoUpdate({
-            target: SubscriptionTable.stripeSubscriptionId,
+            target: SubscriptionTable.externalSubscriptionId,
             // `userId` is deliberately absent: the subscription's owner can
             // never change, and letting a replayed event rewrite it would hand
             // someone else's plan to the wrong account.
             set: {
-                stripePriceId: data.stripePriceId,
+                externalProductId: data.externalProductId,
                 interval: data.interval,
                 status: data.status,
                 currentPeriodEnd: data.currentPeriodEnd,
@@ -53,10 +52,11 @@ export async function upsertSubscription(data: {
 
 // Does this person currently have a subscription that grants access?
 //
-// "Active" is `active | trialing | past_due` (see activeSubscriptionStatuses).
-// `past_due` counts on purpose: the card bounced and Stripe is retrying, and
-// locking someone out the same hour punishes a customer who is still paying.
-// Stripe moves genuinely dead subscriptions to `unpaid` or `canceled`.
+// "Active" is ACTIVE | STARTED | DELAYED | OVERDUE (see
+// activeSubscriptionStatuses). The last two count on purpose: the payment
+// bounced and Hotmart is retrying, and locking someone out the same hour
+// punishes a customer who is still paying. Hotmart moves genuinely dead
+// subscriptions to INACTIVE or one of the CANCELLED_BY_ states.
 //
 // The `currentPeriodEnd > now` check is the safety net. It means access ends on
 // the date the customer paid through even if the webhook announcing the
@@ -71,7 +71,7 @@ export async function upsertSubscription(data: {
 // minutes late, and only on a read. A net that checks the time it last checked
 // the time is not a net.
 //
-// A user may own several rows — one per subscription Stripe ever created for
+// A user may own several rows — one per subscription Hotmart ever created for
 // them — so this takes the furthest-reaching. Ordering matters because during
 // the overlap between a resubscription and the old subscription's cancellation
 // event both rows can briefly qualify, and the renewal date shown on
@@ -109,14 +109,16 @@ export async function hasActiveSubscription(userId: string) {
     return (await getUserSubscription(userId)) != null;
 }
 
-// Looks a subscription up by Stripe's ID so the webhook can find which local
-// user it belongs to. Not cached — the webhook needs the current truth, and
-// this is keyed by something no page ever holds.
-export async function getSubscriptionByStripeId(stripeSubscriptionId: string) {
+// Looks a subscription up by Hotmart's subscriber_code so the webhook can find
+// which local user it belongs to. Not cached — the webhook needs the current
+// truth, and this is keyed by something no page ever holds.
+export async function getSubscriptionByExternalId(
+    externalSubscriptionId: string
+) {
     return db.query.SubscriptionTable.findFirst({
         where: eq(
-            SubscriptionTable.stripeSubscriptionId,
-            stripeSubscriptionId
+            SubscriptionTable.externalSubscriptionId,
+            externalSubscriptionId
         ),
     });
 }

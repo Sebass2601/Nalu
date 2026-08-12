@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 
 // A plaque that submits its form and then shows it is working.
 //
-// Every control that wears this leaves the site for Stripe, and Stripe's
+// Every control that wears this leaves the site for Hotmart, and Hotmart's
 // session has to be created server-side before there is a URL to leave towards
-// — several database queries and a call to Stripe's API. On a deployed server
+// — several database queries and a call to Hotmart's API. On a deployed server
 // that is comfortably a second or two during which a plain <form> does nothing
 // at all, because a form with a Server Action is the old-fashioned kind: the
 // browser posts and waits, and no JavaScript is running on the page to react.
@@ -44,7 +44,7 @@ export function PlaqueSubmitButton({
 
     // Clearing the flag once the form goes idle again — which happens only when
     // an action threw instead of redirecting, since the ordinary ending is that
-    // this page is replaced by Stripe's.
+    // this page is replaced by Hotmart's.
     //
     // Adjusting state during render rather than in an effect. React documents
     // this as the way to reset state in response to a value changing, and the

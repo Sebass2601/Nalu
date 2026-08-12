@@ -1,20 +1,34 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { db } from "@/drizzle/db";
+import { SubscriptionTable, subscriptionIntervals } from "@/drizzle/schema";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
-import { getOrCreateStripeCustomer } from "@/app/features/users/db/users";
-import { getUserCoupon } from "@/app/features/countryGroups/lib/getUserCoupon";
-import { hasActiveSubscription } from "../db/subscriptions";
-import { stripe } from "@/lib/stripe";
+import { buildCheckoutUrl } from "@/app/features/purchases/lib/checkoutLink";
+import { cancelHotmartSubscription } from "@/lib/hotmartApi";
 import { env } from "@/data/env/server";
-import { subscriptionIntervals } from "@/drizzle/schema";
+import { getSubscriptionPlans } from "../lib/plans";
+import { getUserSubscription, hasActiveSubscription } from "../db/subscriptions";
 
-// Starts a subscription checkout and sends the buyer to Stripe.
+// Subscription actions.
+//
+// Written and tested, but unreachable at launch: `SUBSCRIPTIONS_ENABLED` is
+// false and no Hotmart subscription product exists. Every entry point below
+// checks the flag first, so the failure mode if one is ever linked to by
+// accident is a 404 rather than a broken checkout.
+
+// Starts a subscription checkout.
 //
 // Mirrors the one-time purchase action: the browser supplies only the billing
-// interval, and everything that decides what is charged — which price, which
-// customer, which discount — is resolved here on the server.
+// interval, and everything deciding what is charged is resolved here. Much of
+// what the Stripe version did has simply vanished — there is no Customer to
+// create, because Hotmart has no such object and identifies a buyer by the
+// `sck` value and email the link carries.
 export async function startSubscriptionCheckout(interval: string) {
+    const plans = getSubscriptionPlans();
+    if (plans == null) notFound();
+
     // The interval arrives from a form field, so it is untrusted input and is
     // validated against the enum rather than used to index anything directly.
     if (!subscriptionIntervals.includes(interval as "month" | "year")) {
@@ -24,105 +38,63 @@ export async function startSubscriptionCheckout(interval: string) {
     const { user } = await getCurrentUser({ withFullUser: true });
     if (user == null) redirect("/login");
 
-    // Neither of these needs the other, so they go together — one wait rather
-    // than two on the path to leaving for Stripe.
-    const [subscribed, coupon] = await Promise.all([
-        hasActiveSubscription(user.id),
-        getUserCoupon(),
-    ]);
-
     // Already subscribed: send them to manage the plan they have instead of
-    // letting them buy a second one. The unique constraint on
-    // subscriptions.userId would reject the duplicate anyway, but only after
-    // Stripe had taken the money.
-    if (subscribed) {
+    // letting them buy a second one. Hotmart would happily charge twice.
+    if (await hasActiveSubscription(user.id)) {
         redirect("/subscription-management");
     }
 
-    // A subscription REQUIRES a Customer — Stripe attaches the plan, invoices,
-    // saved card and billing portal to it. Unlike one-time payments,
-    // `customer_email` alone is not enough.
-    //
-    // Left sequential on purpose, below the check above rather than beside it:
-    // this one WRITES, and creating a Stripe customer for someone who is about
-    // to be bounced to /subscription-management is a record nobody asked for.
-    const stripeCustomerId = await getOrCreateStripeCustomer({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-    });
+    const plan = interval === "month" ? plans.monthly : plans.yearly;
 
-    const priceId =
-        interval === "month"
-            ? env.STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID
-            : env.STRIPE_ALL_ACCESS_YEARLY_PRICE_ID;
-
-    const session = await stripe.checkout.sessions.create({
-        ui_mode: "hosted_page",
-        mode: "subscription",
-        customer: stripeCustomerId,
-        line_items: [{ price: priceId, quantity: 1 }],
-        // The PPP coupon was created with `duration: "forever"`, so it applies
-        // to every renewal rather than only the first invoice.
-        //
-        // Note this discount is frozen at today's rate: the coupon binds to the
-        // subscription, so changing a country group's percentage later does not
-        // move existing subscribers.
-        discounts: coupon ? [{ coupon: coupon.stripeCouponId }] : undefined,
-        branding_settings: {
-            border_style: "rounded",
-            // `--color-gold` written out — see the same line in
-            // `purchases/actions/stripe.ts`. Stripe's page cannot read our
-            // tokens, so these two hexes are kept in step by hand.
-            button_color: "#face49",
-            display_name: "Nalu",
-        },
-        // Read back by the webhook. Stripe returns it unchanged, which makes it
-        // the only field in the payload we can trust to identify the buyer.
-        metadata: { userId: user.id },
-        // Also stamped on the subscription itself. `checkout.session.completed`
-        // carries the session metadata, but later events —
-        // `customer.subscription.updated`, renewals, cancellations — carry only
-        // the subscription, so without this they would have no way back to a
-        // local user.
-        subscription_data: { metadata: { userId: user.id } },
-        success_url: `${env.SERVER_URL}/api/webhooks/stripe?stripeSessionId={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${env.SERVER_URL}/subscribe`,
-    });
-
-    if (session.url == null) {
-        throw new Error("No se pudo iniciar la suscripción.");
-    }
-
-    redirect(session.url);
+    redirect(
+        buildCheckoutUrl({
+            checkoutCode: plan.checkoutCode,
+            offerCode: plan.offerCode,
+            email: user.email,
+            name: user.name,
+            userId: user.id,
+        })
+    );
 }
 
-// Sends an existing subscriber to Stripe's billing portal.
+// Cancels the current subscription.
 //
-// Everything a subscriber might want to do to their plan — cancel, switch
-// monthly to yearly, update the card, download invoices — happens there. It is
-// far safer than rebuilding those flows: cancellation and proration are exactly
-// the operations where a subtle bug either keeps charging someone who left or
-// gives away content for free.
+// The Stripe version redirected to a hosted billing portal, which handled
+// cancellation, plan switches, card updates and invoices. Hotmart has no
+// equivalent portal we can create a session for — but it does expose a real
+// cancellation endpoint, so this is a working button rather than a link out.
 //
-// The portal's features and the plans it offers must be enabled in the Stripe
-// Dashboard first (Settings → Billing → Customer portal), per mode.
-export async function openBillingPortal() {
+// Hotmart's own state changes here; the local row is updated by the
+// SUBSCRIPTION_CANCELLATION webhook that follows. Deliberately not written
+// locally too: one writer means the two cannot disagree, and the webhook is the
+// one that also fires when a customer cancels from Hotmart's own interface.
+export async function cancelSubscription() {
+    if (!env.SUBSCRIPTIONS_ENABLED) notFound();
+
     const { user } = await getCurrentUser({ withFullUser: true });
     if (user == null) redirect("/login");
 
-    const stripeCustomerId = await getOrCreateStripeCustomer({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-    });
+    const subscription = await getUserSubscription(user.id);
 
-    const session = await stripe.billingPortal.sessions.create({
-        customer: stripeCustomerId,
-        // Back to the plan panel they opened the portal from, not to the
-        // course band — /subscription no longer shows the plan at all.
-        return_url: `${env.SERVER_URL}/subscription-management`,
-    });
+    if (subscription == null) {
+        throw new Error("No tienes una suscripción activa.");
+    }
 
-    redirect(session.url);
+    await cancelHotmartSubscription(subscription.externalSubscriptionId, true);
+
+    // Optimistically flag the local row so the page the user lands on does not
+    // still offer a cancel button. The webhook remains the source of truth for
+    // status and period end; this only touches the flag that says "will not
+    // renew", which cancellation has definitively decided.
+    await db
+        .update(SubscriptionTable)
+        .set({ cancelAtPeriodEnd: true })
+        .where(
+            eq(
+                SubscriptionTable.externalSubscriptionId,
+                subscription.externalSubscriptionId
+            )
+        );
+
+    redirect("/subscription-management");
 }

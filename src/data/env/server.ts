@@ -143,44 +143,43 @@ export const env = createEnv ({
         R2_BUCKET_NAME: z.string().min(1),
     },
     experimental__runtimeEnv: process.env,
-
-    // Enabling subscriptions and configuring them must happen together.
-    //
-    // Marking the eight ALL_ACCESS variables merely optional would have been
-    // simpler and worse: it permits a half-configured state that boots happily
-    // and then fails at a customer's checkout — the exact failure this whole
-    // schema exists to prevent. Checking them here turns "subscriptions are
-    // off" into a declared state and makes turning them on without finishing
-    // the configuration impossible.
-    //
-    // The message names every missing variable at once, so switching this on
-    // is one boot cycle rather than eight.
-    finalizeSchema: schema =>
-        schema.superRefine((value, ctx) => {
-            if (!value.SUBSCRIPTIONS_ENABLED) return;
-
-            const required = [
-                "HOTMART_ALL_ACCESS_MONTHLY_PRODUCT_ID",
-                "HOTMART_ALL_ACCESS_MONTHLY_CHECKOUT_CODE",
-                "HOTMART_ALL_ACCESS_MONTHLY_OFFER_CODE",
-                "HOTMART_ALL_ACCESS_MONTHLY_PRICE",
-                "HOTMART_ALL_ACCESS_YEARLY_PRODUCT_ID",
-                "HOTMART_ALL_ACCESS_YEARLY_CHECKOUT_CODE",
-                "HOTMART_ALL_ACCESS_YEARLY_OFFER_CODE",
-                "HOTMART_ALL_ACCESS_YEARLY_PRICE",
-            ] as const;
-
-            const missing = required.filter(key => value[key] == null);
-
-            if (missing.length > 0) {
-                ctx.addIssue({
-                    code: "custom",
-                    message:
-                        `SUBSCRIPTIONS_ENABLED=true requires: ${missing.join(", ")}. ` +
-                        "Create the two Hotmart subscription products, collect their " +
-                        "codes, and set these before enabling.",
-                    path: missing.slice(),
-                });
-            }
-        }),
 });
+
+// Enabling subscriptions and configuring them must happen together.
+//
+// Marking the eight ALL_ACCESS variables merely optional above would have been
+// simpler and worse on its own: it permits a half-configured state that boots
+// happily and then fails at a customer's checkout — the exact failure this
+// whole schema exists to prevent. This check turns "subscriptions are off" into
+// a declared state, and makes turning them on without finishing the
+// configuration impossible.
+//
+// It sits at module scope rather than inside the schema because this version of
+// @t3-oss/env-nextjs (0.13.11) exposes no hook for a cross-field refinement.
+// The effect is the same: this module is imported during boot, so a
+// misconfiguration fails the build or the server start, never a purchase.
+//
+// Every missing variable is named at once, so switching this on is one boot
+// cycle rather than eight.
+if (env.SUBSCRIPTIONS_ENABLED) {
+    const required = [
+        "HOTMART_ALL_ACCESS_MONTHLY_PRODUCT_ID",
+        "HOTMART_ALL_ACCESS_MONTHLY_CHECKOUT_CODE",
+        "HOTMART_ALL_ACCESS_MONTHLY_OFFER_CODE",
+        "HOTMART_ALL_ACCESS_MONTHLY_PRICE",
+        "HOTMART_ALL_ACCESS_YEARLY_PRODUCT_ID",
+        "HOTMART_ALL_ACCESS_YEARLY_CHECKOUT_CODE",
+        "HOTMART_ALL_ACCESS_YEARLY_OFFER_CODE",
+        "HOTMART_ALL_ACCESS_YEARLY_PRICE",
+    ] as const;
+
+    const missing = required.filter(key => env[key] == null);
+
+    if (missing.length > 0) {
+        throw new Error(
+            `SUBSCRIPTIONS_ENABLED=true requires: ${missing.join(", ")}. ` +
+                "Create the two Hotmart subscription products, collect their " +
+                "codes, and set these before enabling."
+        );
+    }
+}

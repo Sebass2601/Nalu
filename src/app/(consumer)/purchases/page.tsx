@@ -9,9 +9,9 @@ import { PlaqueButton } from "@/components/ui/PlaqueButton";
 // has made, newest first.
 //
 // Subscription payments are deliberately not here. Those invoices live in
-// Stripe's billing portal, reachable from /subscription, and mirroring them
+// Hotmart's own buyer area, and mirroring them
 // locally would create a second copy of billing history that can disagree with
-// the one Stripe considers true.
+// the one Hotmart considers true.
 export default function PurchasesPage() {
     return (
         <main

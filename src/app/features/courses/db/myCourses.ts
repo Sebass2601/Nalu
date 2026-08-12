@@ -127,7 +127,7 @@ export async function getMyCourses(userId: string): Promise<MyCourse[]> {
 // the course page and a locked lesson use, so all three resolve to the same
 // product at the same price. In parallel rather than in sequence, and each call
 // is separately cached — a shelf is a handful of courses, and the alternative is
-// a second hand-written copy of that query's public/Stripe filters and its
+// a second hand-written copy of that query's public/Hotmart filters and its
 // price-then-id tie-break, which is exactly the drift the shared helper exists
 // to prevent.
 async function getUpgradeProductIds({

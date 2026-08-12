@@ -11,7 +11,7 @@ export function getPurchaseUserTag(userId: string) {
     return getUserTag("purchases", userId);
 }
 
-// For Route Handlers — specifically the Stripe webhook, which is where
+// For Route Handlers — specifically the Hotmart webhook, which is where
 // purchases are written and refunds are mirrored. Built on `revalidateTag`,
 // because `updateTag` throws outside a Server Action and would make this
 // unusable by the code that needs it most.

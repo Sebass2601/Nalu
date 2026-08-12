@@ -61,7 +61,15 @@ export function ProductForm({
         name: string
     }[]
 }) {
-    const form = useForm<z.infer<typeof productSchema>>({
+    // Three generics rather than one, because the schema transforms: empty
+    // strings from blank inputs become null on the way out. `z.infer` is the
+    // OUTPUT type, so using it alone makes the resolver disagree with
+    // `defaultValues`, which must satisfy the INPUT type.
+    const form = useForm<
+        z.input<typeof productSchema>,
+        unknown,
+        z.output<typeof productSchema>
+    >({
         resolver: zodResolver(productSchema),
         defaultValues: product ?? {
             name: "",
@@ -90,7 +98,9 @@ export function ProductForm({
         if (product == null) form.reset()
     }, [product, form])
 
-    async function onSubmit(values: z.infer<typeof productSchema>) {
+    // The OUTPUT type: by the time this runs the schema has already turned the
+    // blank inputs into nulls.
+    async function onSubmit(values: z.output<typeof productSchema>) {
         const action =
             product == null ? createProduct : updateProduct.bind(null, product.id)
         const data = await action(values)

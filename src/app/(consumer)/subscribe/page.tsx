@@ -1,11 +1,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { hasActiveSubscription } from "@/app/features/subscriptions/db/subscriptions";
 import { getSubscriptionPlans } from "@/app/features/subscriptions/lib/plans";
-import { getUserCoupon } from "@/app/features/countryGroups/lib/getUserCoupon";
-import { getDiscountedPriceInDollars } from "@/app/features/products/lib/ppp";
 import { startSubscriptionCheckout } from "@/app/features/subscriptions/actions/subscriptions";
 import { formatPrice } from "@/lib/formatters";
 import { cinzel } from "@/components/ui/fonts";
@@ -17,7 +15,14 @@ import { PlaqueSubmitButton } from "@/components/ui/PlaqueSubmitButton";
 
 // The subscription offer: both billing intervals side by side, plus the actual
 // list of courses it unlocks.
+//
+// Unreachable at launch. Subscriptions are built and tested but not sold yet —
+// no Hotmart subscription product exists — so this 404s until
+// SUBSCRIPTIONS_ENABLED is set. A 404 rather than a "coming soon" page because
+// the feature is not announced: there is nothing here to promise anyone yet.
 export default function SubscribePage() {
+    if (getSubscriptionPlans() == null) notFound();
+
     return (
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
@@ -70,22 +75,14 @@ async function Plans() {
         redirect("/subscription");
     }
 
-    // The same coupon `startSubscriptionCheckout` puts on the session, read
-    // here so the page advertises the price Stripe will actually ask for.
-    // Without this the page quoted the list price and checkout then charged
-    // less — the discount appearing from nowhere on the payment screen.
-    const [plans, coupon] = await Promise.all([
-        getSubscriptionPlans(),
-        getUserCoupon(),
-    ]);
+    // Regional pricing is switched off in Hotmart precisely so this page and
+    // the payment page always show the same number, which is why there is no
+    // per-buyer discount to read here any more.
+    const plans = getSubscriptionPlans();
+    if (plans == null) notFound();
 
-    // The annual saving compares the yearly plan against twelve monthly
-    // payments. A PPP coupon scales both sides by the same percentage, so the
-    // ratio between them is unchanged and this figure stays correct discounted
-    // or not.
-    const equivalentMonthly = applyCoupon(
-        Math.round(plans.yearly.equivalentMonthlyInDollars),
-        coupon
+    const equivalentMonthly = Math.round(
+        plans.yearly.equivalentMonthlyInDollars
     );
 
     return (
@@ -94,14 +91,12 @@ async function Plans() {
                 interval="month"
                 title="Mensual"
                 priceInDollars={plans.monthly.priceInDollars}
-                coupon={coupon}
                 caption="por mes"
             />
             <PlanCard
                 interval="year"
                 title="Anual"
                 priceInDollars={plans.yearly.priceInDollars}
-                coupon={coupon}
                 caption={`por año · equivale a ${formatPrice(
                     equivalentMonthly
                 )}/mes`}
@@ -116,20 +111,11 @@ async function Plans() {
     );
 }
 
-// Null coupon means no discount, so the price passes through untouched.
-function applyCoupon(
-    priceInDollars: number,
-    coupon: Awaited<ReturnType<typeof getUserCoupon>>
-) {
-    if (coupon == null) return priceInDollars;
-    return getDiscountedPriceInDollars(priceInDollars, coupon.discountPercentage);
-}
 
 function PlanCard({
     interval,
     title,
     priceInDollars,
-    coupon,
     caption,
     badge,
     highlighted = false,
@@ -137,15 +123,10 @@ function PlanCard({
     interval: "month" | "year";
     title: string;
     priceInDollars: number;
-    coupon: Awaited<ReturnType<typeof getUserCoupon>>;
     caption: string;
     badge?: string;
     highlighted?: boolean;
 }) {
-    // Takes the list price and the coupon rather than a pre-formatted string,
-    // so the discount is computed in exactly one place and the struck-through
-    // original stays available to show beside it.
-    const discounted = applyCoupon(priceInDollars, coupon);
 
     return (
         <div
@@ -167,21 +148,14 @@ function PlanCard({
             </div>
 
             <div className="flex flex-col gap-1">
-                <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-gold">
-                        {formatPrice(discounted)}
-                    </span>
-                    {/* Only when it differs — a coupon that rounds to the same
-                        whole dollar would otherwise print the identical figure
-                        struck through beside itself. Dimmed gold rather than
-                        full, matching ProductPrice: same colour, one step back,
-                        so the figure being charged stays the loud one. */}
-                    {discounted !== priceInDollars && (
-                        <span className="text-base text-gold/60 line-through">
-                            {formatPrice(priceInDollars)}
-                        </span>
-                    )}
-                </div>
+                {/* One figure, never two. There is no per-buyer discount to
+                    strike through any more: regional pricing is off in Hotmart
+                    so that this page and the payment page can never disagree,
+                    and a plan promotion would be a different offer code rather
+                    than a percentage applied here. */}
+                <span className="text-4xl font-bold text-gold">
+                    {formatPrice(priceInDollars)}
+                </span>
                 <span className="text-sm text-ink-meta">{caption}</span>
             </div>
 
