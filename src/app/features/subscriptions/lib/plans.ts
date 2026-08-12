@@ -17,6 +17,26 @@ import { env } from "@/data/env/server";
 // No caching, unlike the Stripe version: reading two environment variables does
 // not need a day-long cache, and `cacheLife` here would only delay a redeploy
 // taking effect.
+//
+// ---------------------------------------------------------------------------
+// The three build-log notices this causes are LOAD-BEARING. Do not "fix" them.
+//
+// Reading env here makes the four subscription routes bail out of static
+// prerendering, and `next build` reports each bail as a
+// `DYNAMIC_SERVER_USAGE` error. The build still succeeds, and the routes are
+// correctly absent from `.next/prerender-manifest.json` — they render per
+// request instead.
+//
+// That is the only arrangement that works. The Hetzner image is BUILT with
+// `SUBSCRIPTIONS_ENABLED=false` as a placeholder (see the deploy workflow) and
+// RUN with the real value from `/opt/nalu/app.env`. Were these routes
+// prerendered, they would be baked as 404s from the build-time placeholder, and
+// setting the flag to `true` in `NALU_APP_ENV` would never bring them back.
+//
+// So the noise is the sound of the feature flag working. Silencing it by
+// hoisting the read to a module constant does not help — that was measured —
+// and silencing it by prerendering would break the switch.
+// ---------------------------------------------------------------------------
 
 export type SubscriptionPlans = {
     monthly: {

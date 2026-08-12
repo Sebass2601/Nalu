@@ -23,6 +23,9 @@ import { PlaqueSubmitButton } from "@/components/ui/PlaqueSubmitButton";
 // than a link out. Card changes and invoices live in the buyer's own Hotmart
 // account, which it emails them a link to.
 export default function SubscriptionManagementPage() {
+    // Reading the flag here is what keeps this route dynamic, so the switch can
+    // be flipped in app.env without a rebuild. It costs one DYNAMIC_SERVER_USAGE
+    // notice per route at build time; see lib/plans.ts for why that is correct.
     if (!env.SUBSCRIPTIONS_ENABLED) notFound();
 
     return (

@@ -19,6 +19,9 @@ import {
 export default function SubscriptionPage() {
     // Gated with the rest of the subscription surface until a Hotmart
     // subscription product exists. See lib/plans.ts.
+    // Reading the flag here is what keeps this route dynamic, so the switch can
+    // be flipped in app.env without a rebuild. It costs one DYNAMIC_SERVER_USAGE
+    // notice per route at build time; see lib/plans.ts for why that is correct.
     if (!env.SUBSCRIPTIONS_ENABLED) notFound();
 
     return (

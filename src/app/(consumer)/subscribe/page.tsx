@@ -21,6 +21,8 @@ import { PlaqueSubmitButton } from "@/components/ui/PlaqueSubmitButton";
 // SUBSCRIPTIONS_ENABLED is set. A 404 rather than a "coming soon" page because
 // the feature is not announced: there is nothing here to promise anyone yet.
 export default function SubscribePage() {
+    // Keeps this route dynamic so the flag can be flipped in app.env without
+    // a rebuild; see lib/plans.ts for the build-log notice this causes.
     if (getSubscriptionPlans() == null) notFound();
 
     return (
