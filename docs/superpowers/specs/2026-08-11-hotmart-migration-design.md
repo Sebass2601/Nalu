@@ -106,6 +106,17 @@ the risk lives and where none of it needs Hotmart.
 The review clock then runs in parallel with phases 0–7 instead of becoming a
 three-day wall at the end. Net blocking time is roughly zero.
 
+**Two Hotmart-side waits, and they are sequential.** Observed 2026-08-12:
+Hotmart refuses to publish a product until the account's **identity documents
+are validated**. So verification completes, *then* the product can be submitted,
+*then* the ~3-day content review begins. Identity verification is therefore the
+critical path and should be chased rather than waited on quietly.
+
+Neither wait blocks the code. A `DRAFT` product can be fully configured and its
+three codes collected, credentials and the webhook can be created, and phases
+0–7 can be built and unit-tested throughout. Only submitting for review, and
+phase 8, actually wait.
+
 Note that a sandbox pass proves the call succeeded, not that the integration is
 correct — the data is fictional. Only phase 8 proves the thing works.
 
@@ -574,8 +585,9 @@ happens instead, and for the short list of steps that turn them on later.
 
 **Account and catalogue — day one**
 
-2. Create the account with registration country **Panama**; complete document
-   verification.
+2. Create the account with registration country **Panama** and submit identity
+   documents immediately. **This gates publishing** — a product cannot be
+   submitted for review until verification clears, so it is the critical path.
 3. Create **one product** — the $60 course. The two all-access plans are *not*
    created; see *Subscriptions ship built, tested and switched off*. It requires:
    - a **main image**, mandatory: JPG/PNG/GIF, max 5 MB, preferably 600×600.
