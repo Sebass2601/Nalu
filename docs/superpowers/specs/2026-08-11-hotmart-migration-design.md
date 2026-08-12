@@ -137,6 +137,7 @@ product is still `DRAFT`, where changes are free.
 | Buyer identity | `sck` = user ID, `buyer.email` as fallback | The only custom channel Hotmart offers |
 | Currency | USD only | Panama uses USD |
 | Access provisioning | Webhook only, with a polling success page | One authoritative path instead of today's two |
+| Subscriptions at launch | **Built, tested, and switched off** behind `SUBSCRIPTIONS_ENABLED` | Launch is one course. No Hotmart subscription product is created, so there is nothing for the review team to verify and nothing to misconfigure |
 
 ## Schema
 
@@ -203,7 +204,9 @@ the event `id` is the only replay defence there is.
 ## Environment variables
 
 Added — all must reach `.env`, `src/data/env/server.ts`, `src/test/setup.ts`
-and the `NALU_APP_ENV` GitHub secret:
+and the `NALU_APP_ENV` GitHub secret.
+
+**Required at launch — six lines:**
 
 ```
 HOTMART_SERVER                 # sandbox | production
@@ -211,6 +214,12 @@ HOTMART_CLIENT_ID
 HOTMART_CLIENT_SECRET
 HOTMART_BASIC_TOKEN
 HOTMART_HOTTOK
+SUBSCRIPTIONS_ENABLED=false
+```
+
+**Required only when `SUBSCRIPTIONS_ENABLED=true` — the other eight:**
+
+```
 HOTMART_ALL_ACCESS_MONTHLY_PRODUCT_ID
 HOTMART_ALL_ACCESS_MONTHLY_CHECKOUT_CODE
 HOTMART_ALL_ACCESS_MONTHLY_OFFER_CODE
@@ -220,6 +229,10 @@ HOTMART_ALL_ACCESS_YEARLY_CHECKOUT_CODE
 HOTMART_ALL_ACCESS_YEARLY_OFFER_CODE
 HOTMART_ALL_ACCESS_YEARLY_PRICE
 ```
+
+The course product's three codes are **not** here — they live in the database,
+entered through the admin panel, because courses are added over time and env
+vars would mean a redeploy per course.
 
 Removed: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
 `STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID`, `STRIPE_ALL_ACCESS_YEARLY_PRICE_ID`.
@@ -260,6 +273,71 @@ while checkout charged another. Hotmart exposes no endpoint returning an offer's
 price, so the numbers must be mirrored by hand. The mitigation is that each
 number lives in exactly one place and the manual checklist names re-checking
 them whenever a plan is repriced.
+
+## Subscriptions ship built, tested and switched off
+
+Launch is a single course. The all-access plans are not being sold yet, so **no
+Hotmart subscription product is created** — submitting one for review with
+nothing behind it invites a rejection that attaches to the account, not just the
+product.
+
+But the integration is still written in full, because the expensive part of
+turning subscriptions on later is not the Hotmart configuration — it is the
+schema, the status mapping, the webhook handlers and the access derivation.
+Those are built and unit-tested now, while the surrounding work is fresh.
+
+### The switch
+
+`SUBSCRIPTIONS_ENABLED` is a boolean, default `false`, validated in
+`src/data/env/server.ts` with a **zod refinement**: when it is `true`, the eight
+`HOTMART_ALL_ACCESS_*` variables become required.
+
+A plain `.optional()` on those eight would have been simpler and worse. It
+permits a half-configured state that boots happily and then fails at a
+customer's checkout — the exact failure mode the env schema exists to prevent.
+The refinement makes "off" an explicit, declared state, and makes turning it on
+impossible without completing the configuration.
+
+### What the flag gates
+
+| Off (`false`) | Behaviour |
+|---|---|
+| `/subscribe`, `/subscribe/categories/[categoryId]` | `notFound()` |
+| `/subscription`, `/subscription-management` | `notFound()` |
+| `CourseUpgradeOffer`, `SubscriptionCourseCard`, subscription nav links | Not rendered |
+| `plans.ts` | Never called |
+
+### What stays live regardless
+
+- The `subscriptions` table, its status enum, and `upsertSubscription`.
+- The webhook's subscription handlers. They are left **unconditional** — with no
+  subscription product in existence no such event can arrive, and gating them
+  would mean touching the webhook again on the day the switch is flipped.
+- `userHasCourseAccess` → `hasActiveSubscription`. **This needs no change at
+  all.** With no subscription rows it simply returns false, which is already the
+  correct answer. It is the cleanest part of the deferral.
+
+### Turning it on later
+
+Create the two Hotmart products, run them through review, collect their three
+codes each, add the eight variables, set `SUBSCRIPTIONS_ENABLED=true`, redeploy.
+No code changes. The boot-time refinement is what guarantees that.
+
+## Migration numbering
+
+`feat/admin-course-access` — the admin panel for granting course access by hand —
+is branched from the same `main` commit and mints its own
+`0018_crazy_klaw.sql` (adds `user_course_access.grantedBy` plus two indexes).
+This migration and that one therefore claim the same number.
+
+The contents do not conflict; they touch different columns. But the second
+branch to merge must have its migration **regenerated**, not renamed — the
+snapshot chain in `meta/` encodes the preceding schema state, so a renamed file
+would carry a snapshot describing the wrong parent.
+
+**Merge the admin-access work first.** It is small, self-contained, and it is
+what unblocks the Hotmart product review (see Manual steps). This migration then
+regenerates as `0019` on top of it.
 
 ## Code
 
@@ -396,8 +474,13 @@ Three mitigations, all required:
 
 ## Subscriptions, receipts, refunds
 
-**Subscriptions.** Two Hotmart subscription products, monthly and yearly, each
-with its own product ID, hotlink and offer code in env.
+**Subscriptions — written now, switched off at launch.** Two Hotmart
+subscription products, monthly and yearly, each with its own product ID, hotlink
+and offer code in env. *Neither product is created for launch*, so those eight
+variables stay unset and `SUBSCRIPTIONS_ENABLED=false` makes that legal — see
+the dedicated section above.
+
+The code is built and unit-tested regardless.
 `subscriptions.externalSubscriptionId` holds `subscriber_code`. Cancellation is
 a real API call — `POST` by subscriber code, with a flag controlling whether
 Hotmart emails the buyer — so `/subscription-management` keeps a working cancel
@@ -439,9 +522,13 @@ Recorded so they are checked rather than assumed:
 
 ## Manual steps
 
-Ordered as a schedule, not a checklist. Steps 1–9 all happen on **day one**,
+Ordered as a schedule, not a checklist. Steps 1–12 all happen on **day one**,
 before any code, because the ~3-day product review is the long pole and it must
 be running while phases 0–7 are built.
+
+Launch is **one product**, the $60 course. The subscription plans are not
+created — see *Subscriptions ship built, tested and switched off* for what
+happens instead, and for the short list of steps that turn them on later.
 
 **Gating — before any code is written**
 
@@ -452,8 +539,8 @@ be running while phases 0–7 are built.
 
 2. Create the account with registration country **Panama**; complete document
    verification.
-3. Create three products — the $60 course, all-access monthly, all-access
-   yearly. Each requires:
+3. Create **one product** — the $60 course. The two all-access plans are *not*
+   created; see *Subscriptions ship built, tested and switched off*. It requires:
    - a **main image**, mandatory: JPG/PNG/GIF, max 5 MB, preferably 600×600.
      Use the same image as the Nalu product, so the buyer does not see it change
      between the product page and checkout.
@@ -463,42 +550,57 @@ be running while phases 0–7 are built.
      Members Area. Nalu *is* the members area; choosing either alternative would
      put the lessons behind Hotmart's player and make the webhook-driven access
      model pointless.
-   - currency **USD**, language and country of sale, payment type (one-time for
-     the course, subscription for the two plans), and a **refund deadline** of 7,
-     15, 21 or 30 days — which also sets when `PURCHASE_COMPLETE` fires.
+   - currency **USD**, language and country of sale, payment type **one-time**,
+     and a **refund deadline** of 7, 15, 21 or 30 days — which also sets when
+     `PURCHASE_COMPLETE` fires.
+   - **a student login for the reviewer.** Selecting the external members area
+     opens a form asking for a *student* username and password, not an admin
+     one. A human reviewer signs into naluescuela.com with them to confirm the
+     course really exists there, so this is a hard requirement of approval —
+     see step 4.
 
    Settle all of this while the product is still **`DRAFT`**, where changes are
    free, then **submit for review on day one** so the ~3-day clock runs during
    implementation. Budget for a rejection round.
-4. **Disable marketplace listing and the affiliate programme** on every product.
-   This is what keeps an approved product buyable only via its hotlink, so the
-   real course can be tested against without appearing in Hotmart's store — and
-   it guarantees every purchase carries a usable `sck`.
-5. Collect the **three codes** per product: 7-digit product ID, hotlink code
+4. **Create the reviewer's student account and give it the course.** Sign up
+   normally at `/sign-up` with a dedicated address, then grant that account
+   access to the course through the admin access panel from
+   `feat/admin-course-access` — which is precisely why that branch merges first.
+   Before submitting, sign in as that student yourself and confirm a lesson
+   actually plays; an empty shelf is a rejection.
+5. **Disable marketplace listing and the affiliate programme.** This is what
+   keeps an approved product buyable only via its hotlink, so the real course can
+   be tested against without appearing in Hotmart's store — and it guarantees
+   every purchase carries a usable `sck`.
+6. Collect the **three codes**: 7-digit product ID, hotlink code
    (Products → HotLinks), offer code.
-6. Set each offer's external thank-you pages: approved →
+7. Set the offer's external thank-you pages: approved →
    `https://naluescuela.com/purchase/success`, awaiting payment →
    `https://naluescuela.com/purchase/pending`.
-7. Confirm **regional pricing is off**.
-8. Create a **100% discount coupon** for testing.
+8. Confirm **regional pricing is off**.
+9. Create a **100% discount coupon** for testing.
 
 **Credentials — day one**
 
-9. Tools → Developer Credentials → create a **production** credential (leave the
-   sandbox box unchecked) **and** a sandbox one, so phases 1–2 can proceed before
-   any product is approved.
-10. Tools → Webhook → register the endpoint, version 2.0.0, subscribed to the
+10. Tools → Developer Credentials → create a **production** credential (leave the
+    sandbox box unchecked) **and** a sandbox one, so phases 1–2 can proceed before
+    any product is approved.
+11. Tools → Webhook → register the endpoint, version 2.0.0, subscribed to the
     events above. Copy the **hottok** from the Authentication tab.
-11. Add all thirteen variables to `.env` **and** to the `NALU_APP_ENV` GitHub
-    secret before the first deploy.
+12. Add the **six** launch variables to `.env` **and** to the `NALU_APP_ENV`
+    GitHub secret before the first deploy. The eight subscription variables are
+    not set, and must not be — `SUBSCRIPTIONS_ENABLED=false` is what makes their
+    absence legal.
 
 **Housekeeping**
 
-12. Reset the local database. It has the Polar migration `0018` applied, and this
-    branch is cut from `main`, which does not.
-13. Paste the three codes into the course product in the Nalu admin and save.
-14. Delete the junk `papapapapa` and `pepepepe` courses.
-15. Decide what happens to the Polar organization, whose payout account is still
+13. Merge `feat/admin-course-access` first, then regenerate this migration as
+    `0019`. See *Migration numbering*.
+14. Reset the local database. It has the abandoned Polar migration `0018`
+    applied, and this branch is cut from `main`, which does not.
+15. Paste the three codes into the course product in the Nalu admin and save.
+16. Delete the junk `papapapapa` and `pepepepe` courses.
+17. Decide what happens to the Polar organization, whose payout account is still
     frozen. Close it deliberately rather than leaving it.
 
 **Standing procedure — repricing.** Because nothing can verify the two sides
@@ -514,12 +616,12 @@ email will be used if a personalized email has not been provided."
 
 | # | Work | Depends on |
 |---|---|---|
-| 0 | Schema migration, env schema, local DB reset | — |
+| 0 | Schema migration (as `0019`), env schema incl. the `SUBSCRIPTIONS_ENABLED` refinement, local DB reset | `feat/admin-course-access` merged |
 | 1 | `src/lib/hotmart.ts` — token cache + `hotmartFetch()` — *`HOTMART_SERVER=sandbox`* | 0 |
 | 2 | Admin: three code fields, verified against `GET /products` on save — *sandbox* | 1 |
 | 3 | `checkoutLink.ts`, `startCheckout`, `/purchase/success` and `/purchase/pending` | 2 |
 | 4 | Webhook route, dedupe-in-transaction, sales-history verification | 3 |
-| 5 | Subscriptions: checkout, cancel, status mirroring | 4 |
+| 5 | Subscriptions: checkout, cancel, status mirroring — **behind the flag, unit-tested only, no Hotmart products** | 4 |
 | 6 | Receipts, purchase history, refunds | 4 |
 | 7 | Delete Stripe, PPP and country groups; update the deploy workflow and `deploy/README.md` | 5, 6 |
 | 8 | End-to-end verification with the 100% coupon — *`HOTMART_SERVER=production`* | 7, **and product `ACTIVE`** |
@@ -533,14 +635,20 @@ tests and Hotmart's "Send test"; only phase 8 needs an approved product.
    import anywhere in `src/`.
 2. Saving a product with its three Hotmart codes verifies them against
    `GET /products` and refuses codes that do not resolve.
+3. With `SUBSCRIPTIONS_ENABLED=false` and the eight subscription variables
+   **absent**, the app boots, `/subscribe`, `/subscription` and
+   `/subscription-management` all 404, and no subscription UI renders anywhere.
+   Setting it to `true` without those variables fails at boot rather than at
+   checkout.
 3. A checkout with the 100% coupon completes and produces a purchase row **and**
    course access, in one transaction.
 4. Replaying the same webhook delivery changes nothing.
 5. A request with a wrong or absent hottok is rejected with 4xx and never
    provisions.
 6. A refund revokes access.
-7. Subscribing grants all-access; cancelling from `/subscription-management`
-   revokes it.
+7. *Deferred until subscriptions are enabled:* subscribing grants all-access and
+   cancelling revokes it. Verified by unit tests now; verifiable end to end only
+   once the two Hotmart products exist.
 8. `SELECT "buyerCountry" FROM purchases` reads `PA` for a Panamanian test
    purchase.
 9. A promo offer set on a product sends the buyer to the promo price, and
