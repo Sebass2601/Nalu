@@ -442,13 +442,30 @@ is deleted rather than ported.
 Endpoint `https://naluescuela.com/api/webhooks/hotmart`, version 2.0.0, `POST`
 only.
 
+**Subscribe to everything under *Compras* and *Suscripciones*, and nothing
+else.** Not *Todos* — that would add Club events (`Primer acceso`, `Módulo
+completo`), which cannot fire because this product uses an external members area,
+plus logistics (physical goods) and cart abandonment (a marketing tool outside
+this integration). Twelve events in total.
+
 | Event | Action |
 |---|---|
 | `PURCHASE_APPROVED` | Provision: purchase row + course access + dedupe row, in **one transaction** |
 | `PURCHASE_COMPLETE` | Same handler, idempotent. Fires when the refund window closes |
 | `PURCHASE_REFUNDED`, `PURCHASE_CHARGEBACK` | Stamp `refundedAt`, then revoke access |
 | `PURCHASE_CANCELED`, `PURCHASE_EXPIRED`, `PURCHASE_DELAYED`, `PURCHASE_BILLET_PRINTED`, `PURCHASE_PROTEST` | Log only — nothing was provisioned |
-| `SWITCH_PLAN`, and purchase events carrying `subscription.status` | Mirror subscription state |
+| `SUBSCRIPTION_CANCELLATION`, `SWITCH_PLAN`, `UPDATE_SUBSCRIPTION_CHARGE_DATE`, and purchase events carrying `subscription.status` | Mirror subscription state |
+
+`SUBSCRIPTION_CANCELLATION` and `UPDATE_SUBSCRIPTION_CHARGE_DATE` are **not
+documented on the developer site** — no page exists for either — but both appear
+in the webhook registration UI under *Suscripciones*, confirmed 2026-08-12. The
+first was previously assumed to arrive only as a purchase event carrying
+`subscription.status`; it does not.
+
+`UPDATE_SUBSCRIPTION_CHARGE_DATE` matters more than it looks: it moves the next
+charge date, which maps to `subscriptions.currentPeriodEnd` — the column
+subscription access is derived from. Ignoring it would let access lapse on the
+wrong day. Subscribe to it from the start; handle it in phase 5.
 
 Resolution order:
 
@@ -556,15 +573,18 @@ against a working baseline rather than adopted on faith.
 
 Recorded so they are checked rather than assumed:
 
-- The OAuth token endpoint URL. Documented inside a rendered code widget that
-  could not be extracted; read it from the App Authentication page directly.
+- ~~The OAuth token endpoint URL.~~ **Confirmed live 2026-08-12.**
+  `https://api-sec-vlc.hotmart.com/security/oauth/token` answered a request
+  carrying deliberately invalid credentials with a well-formed OAuth error
+  (`{"error":"unauthorized"}`) rather than a DNS failure or 404, which
+  establishes that the host and path are real and speaking OAuth.
 - Whether Hotmart appends transaction parameters to an external thank-you URL.
   The success page is designed not to need them.
 - Any length limit on `sck`. Only a user ID is carried, which keeps it short.
-- The exact event names offered in the webhook registration UI. `SWITCH_PLAN` and
-  `UPDATE_SUBSCRIPTION_CHARGE_DATE` are separately documented; subscription
-  cancellation appears to arrive via purchase events carrying
-  `subscription.status`.
+- ~~The exact event names offered in the webhook registration UI.~~ **Resolved
+  2026-08-12** from the registration dialog: nine events under *Compras* and
+  three under *Suscripciones*, including an undocumented
+  `SUBSCRIPTION_CANCELLATION`. See Webhooks.
 - Whether `GET /products` returns the hotlink, which would remove one of the
   three fields pasted by hand.
 
