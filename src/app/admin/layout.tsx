@@ -88,13 +88,14 @@ function Navbar() {
 
                 {/* Padded clear of both corners and centred by that padding,
                     exactly as the consumer bar is. The gap closes to nothing on
-                    a phone, which it does not have to do over there: five
+                    a phone, which it does not have to do over there: six
                     plaques plus the logo and the avatar do not fit a small
                     phone, and the 16px of gaps is the cheapest thing to give
                     up. The plaques keep their own 6px of padding, so the icons
                     still sit 12px apart rather than touching.
-                    Even so this bar runs out of room below about 380px and the
-                    last plaque meets the avatar. Left that way on purpose:
+                    Even so this bar runs out of room well before 380px — more
+                    so since Accesos joined it — and the last plaque meets the
+                    avatar. Left that way on purpose:
                     admin work happens on a desktop, and the alternative was
                     shrinking the logo on phones for a screen nobody manages
                     courses from. The consumer bar, which does get used on a
@@ -119,6 +120,13 @@ function Navbar() {
                         label="Categorías"
                         icon={
                             <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/></svg>
+                        }
+                    />
+                    <NavItem
+                        href="/admin/access"
+                        label="Accesos"
+                        icon={
+                            <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 1 1 8 0v4M6 11h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z"/></svg>
                         }
                     />
                     <NavItem
