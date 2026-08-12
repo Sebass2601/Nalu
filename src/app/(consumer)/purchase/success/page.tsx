@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "@/drizzle/db";
 import { PurchaseTable } from "@/drizzle/schema";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
+import { cinzel } from "@/components/ui/fonts";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // Where Hotmart sends the buyer after a successful payment.
@@ -41,8 +41,10 @@ const RECENT_PURCHASE_WINDOW = sql`interval '15 minutes'`;
 
 export default function PurchaseSuccessPage() {
     return (
-        <main className="min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]">
-            <div className="mx-auto max-w-2xl px-4 pt-32 pb-16 text-center">
+        <main
+            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+        >
+            <div className="mx-auto flex max-w-2xl flex-col items-center gap-8 px-4 pt-32 pb-16 text-center">
                 <Suspense fallback={<Waiting />}>
                     <Resolve />
                 </Suspense>
@@ -91,25 +93,39 @@ function Waiting() {
     return (
         <>
             <meta httpEquiv="refresh" content="3" />
-            <h1 className="mb-4 text-3xl tracking-widest text-ink">
-                Estamos confirmando tu pago
-            </h1>
-            <p className="mb-8 text-ink-body">
-                Esto suele tardar unos segundos. Puedes quedarte en esta página;
-                se actualiza sola.
-            </p>
-            <p className="mb-8 text-sm text-ink-faint">
-                Si el pago fue con PIX o transferencia, la confirmación puede
-                tardar más. Te avisaremos por correo en cuanto se acredite.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-                <PlaqueButton href="/courses">Mis cursos</PlaqueButton>
-                <Link
+            <div className="flex flex-col gap-3">
+                <p className="text-sm tracking-[0.3em] text-ink-body uppercase">
+                    Confirmando
+                </p>
+                <h1 className="text-5xl tracking-wide text-ink-bright">
+                    Estamos confirmando tu pago
+                </h1>
+                <p className="text-xl text-ink-body">
+                    Esto suele tardar unos segundos. Puedes quedarte en esta
+                    página; se actualiza sola.
+                </p>
+                {/* Deliberately promises no email. Hotmart sends its own
+                    payment confirmation, but for an external members area the
+                    access details are the creator's to send — and we send none,
+                    so the course appearing on its own is the whole story. */}
+                <p className="text-base text-ink-meta">
+                    Si el pago fue con PIX o transferencia, la confirmación
+                    puede tardar más. El curso aparecerá solo en Mis cursos en
+                    cuanto se acredite.
+                </p>
+            </div>
+
+            <div className="flex w-full flex-col items-stretch gap-4 sm:w-auto sm:flex-row sm:items-center sm:justify-center">
+                <PlaqueButton href="/courses" className="w-full sm:w-auto">
+                    Mis cursos
+                </PlaqueButton>
+                <PlaqueButton
                     href="/products"
-                    className="text-sm text-ink-meta underline underline-offset-4"
+                    variant="secondary"
+                    className="w-full sm:w-auto"
                 >
                     Ver catálogo
-                </Link>
+                </PlaqueButton>
             </div>
         </>
     );

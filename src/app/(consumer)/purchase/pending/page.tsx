@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { cinzel } from "@/components/ui/fonts";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
 // Where Hotmart sends a buyer whose payment has not cleared yet.
@@ -14,28 +14,45 @@ import { PlaqueButton } from "@/components/ui/PlaqueButton";
 // would be worse.
 export default function PurchasePendingPage() {
     return (
-        <main className="min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]">
-            <div className="mx-auto max-w-2xl px-4 pt-32 pb-16 text-center">
-                <h1 className="mb-4 text-3xl tracking-widest text-ink">
-                    Tu pago está en proceso
-                </h1>
-                <p className="mb-4 text-ink-body">
-                    Recibimos tu pedido. Algunos métodos de pago, como PIX o la
-                    transferencia bancaria, tardan en acreditarse.
-                </p>
-                <p className="mb-8 text-ink-body">
-                    En cuanto se confirme, el curso aparecerá en{" "}
-                    <span className="text-ink">Mis cursos</span> y te avisaremos
-                    por correo. No hace falta que hagas nada más.
-                </p>
-                <div className="flex flex-wrap justify-center gap-3">
-                    <PlaqueButton href="/courses">Mis cursos</PlaqueButton>
-                    <Link
+        <main
+            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+        >
+            <div className="mx-auto flex max-w-2xl flex-col items-center gap-8 px-4 pt-32 pb-16 text-center">
+                <div className="flex flex-col gap-3">
+                    <p className="text-sm tracking-[0.3em] text-ink-body uppercase">
+                        Pago en proceso
+                    </p>
+                    <h1 className="text-5xl tracking-wide text-ink-bright">
+                        Tu pago está en proceso
+                    </h1>
+                    <p className="text-xl text-ink-body">
+                        Recibimos tu pedido. Algunos métodos de pago, como PIX o
+                        la transferencia bancaria, tardan en acreditarse.
+                    </p>
+                    {/* No promise of an email from us. Hotmart sends its own
+                        payment confirmation, but its documentation is explicit
+                        that for an external members area the access details are
+                        the creator's to send — and we send none. So this points
+                        at the one thing that is actually true: the course turns
+                        up on its own. */}
+                    <p className="text-xl text-ink-body">
+                        En cuanto se confirme, el curso aparecerá solo en{" "}
+                        <span className="text-ink-bright">Mis cursos</span>. No
+                        hace falta que hagas nada más — vuelve cuando quieras.
+                    </p>
+                </div>
+
+                <div className="flex w-full flex-col items-stretch gap-4 sm:w-auto sm:flex-row sm:items-center sm:justify-center">
+                    <PlaqueButton href="/courses" className="w-full sm:w-auto">
+                        Mis cursos
+                    </PlaqueButton>
+                    <PlaqueButton
                         href="/products"
-                        className="text-sm text-ink-meta underline underline-offset-4"
+                        variant="secondary"
+                        className="w-full sm:w-auto"
                     >
                         Ver catálogo
-                    </Link>
+                    </PlaqueButton>
                 </div>
             </div>
         </main>
