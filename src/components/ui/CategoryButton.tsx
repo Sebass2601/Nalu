@@ -27,7 +27,13 @@ const CAPTION_BORDER = bevelOutline({ cut: CAPTION_CUT, inset: 0, width: 1 })
 // where it is because the doorways closest together in the artwork are about
 // this wide, so a caption longer than this is one that would have run into its
 // neighbour.
-const CAPTION_WRAPS_AT = 18
+//
+// It came down from 18 when the caption went up to `text-sm`: the same words
+// are drawn wider now, so the length at which they start reaching the next
+// doorway is shorter. Sixteen keeps "Magia del tiempo" — exactly that long — on
+// one line, which is the longest of the descriptions that reads as a single
+// phrase.
+const CAPTION_WRAPS_AT = 16
 
 type CategoryButtonProps = Omit<React.ComponentProps<typeof Link>, "children"> & {
   children: string
@@ -156,7 +162,14 @@ export default function CategoryButton({
       {caption && (
         <span className="relative mx-auto block w-fit">
           <span
-            className="block bg-[#0a1628]/70 px-3 py-1 text-center text-[0.625rem] leading-tight tracking-[0.18em] text-gold/75 uppercase backdrop-blur-md transition-colors duration-300 group-hover:bg-[#0a1628]/85 group-hover:text-gold sm:px-4 sm:py-1.5 sm:text-xs"
+            // One size at both widths rather than the smaller phone step the
+            // rest of the plaque takes. The plaque is drawn at whatever scale
+            // the artwork is at, and on a phone that is around two thirds — so
+            // a caption set a step down from `text-sm` there was arriving at
+            // something like seven pixels on the screen, which is lettering
+            // nobody can read. `text-sm` against the name's `text-base` is
+            // still the smaller of the two, which is all the caption has to be.
+            className="block bg-[#0a1628]/70 px-4 py-1.5 text-center text-sm leading-tight tracking-[0.18em] text-gold/75 uppercase backdrop-blur-md transition-colors duration-300 group-hover:bg-[#0a1628]/85 group-hover:text-gold sm:px-5 sm:py-2"
             style={{ clipPath: CAPTION_FACE }}
           >
             {/* Split by hand at the balanced word boundary, the same way the
