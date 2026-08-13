@@ -18,9 +18,10 @@ const cinzel = Cinzel({ subsets: ["latin"] });
 // The arch itself now carries the lettering instead, which is why the way into
 // the castle moved down onto the open book.
 //
-// Sobre Nosotros still leads back here, its page not being written yet. A plaque
-// that goes nowhere at all would be one a visitor presses twice before deciding
-// the site is broken, so it returns to the room it was pressed in.
+// Sobre Nosotros now opens onto the room it names. It used to lead back here for
+// want of a page — a plaque that goes nowhere at all is one a visitor presses
+// twice before deciding the site is broken — and that stand-in is what
+// /sobre-nosotros replaces.
 const ENTRANCES: Entrance[] = [
   // The armillary globe, far left. Set a little right of its centre so the
   // plaque clears the edge of the painting: at this scale it is half a plaque
@@ -28,7 +29,7 @@ const ENTRANCES: Entrance[] = [
   // desktop.
   { id: "anuncios", label: "Anuncios", href: "/announcements", x: 0.078, y: 0.529 },
   // The pair of closed books, on their spines.
-  { id: "sobre-nosotros", label: "Sobre Nosotros", href: "/", x: 0.262, y: 0.588 },
+  { id: "sobre-nosotros", label: "Sobre Nosotros", href: "/sobre-nosotros", x: 0.262, y: 0.588 },
   // The gutter of the open book, where the two pages meet.
   { id: "cursos", label: "Explorar los Cursos", href: "/fetch-courses", x: 0.502, y: 0.592 },
   // The crystal cluster. The longest label on the page, so it is nudged left of

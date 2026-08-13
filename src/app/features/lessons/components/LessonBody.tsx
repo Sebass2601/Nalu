@@ -1,6 +1,7 @@
 import { LessonVideoPlayer } from "./LessonVideoPlayer";
 import { LessonGallery, type LessonImage } from "./LessonGallery";
 import type { LessonType } from "@/drizzle/schema";
+import { isLeadLine } from "../lib/leadLine";
 
 // The lesson itself: a video to watch, or a piece of writing to read with its
 // pictures set into it.
@@ -99,6 +100,24 @@ export function LessonBody({
 // A written lesson, laid out as the sketch describes: an opening passage across
 // the full width, then the picture set into the left of the text with the rest
 // of the writing flowing around and below it.
+//
+// The typography is /sobre-nosotros's, and it is applied HERE rather than to the
+// lesson page as a whole because only a written lesson has running prose in it.
+// A video lesson's page is a title, a frame and two buttons — all of them short
+// lines of display type, which is what Cinzel is for.
+//
+// Two things come across from that page:
+//
+//   Body prose is set in `font-sans`. The lesson page inherits Cinzel from the
+//   course layout, and Cinzel has no lowercase — it draws small capitals in its
+//   place. That is right for a title and unreadable at the length of a lesson,
+//   which is the whole reason this override exists.
+//
+//   A standalone short sentence is promoted to a lead line in gold Cinzel. The
+//   copy for these lessons is written the same way the About copy is: a line
+//   that announces, then the paragraphs that explain. `isLeadLine` below is what
+//   recognises that shape, so an author gets the treatment by writing normally —
+//   there is no markup to learn and nothing in the admin form to tick.
 function LessonText({
     content,
     images,
@@ -123,7 +142,12 @@ function LessonText({
     // it holding.
     return (
         <div className="flex select-none flex-col gap-4 text-ink-body">
-            {lead && <p className="leading-relaxed">{lead}</p>}
+            {lead && (
+                <Passage
+                    text={lead}
+                    isLead={isLeadLine(lead, paragraphs[1])}
+                />
+            )}
 
             {/* The float and the text it wraps around must share one container,
                 or the text has nothing to wrap against. The `after:` clearfix
@@ -133,12 +157,49 @@ function LessonText({
             <div className="after:block after:clear-both after:content-['']">
                 <LessonGallery images={images} />
                 {rest.map((paragraph, index) => (
-                    <p key={index} className="mb-4 leading-relaxed last:mb-0">
-                        {paragraph}
-                    </p>
+                    <Passage
+                        key={index}
+                        text={paragraph}
+                        isLead={isLeadLine(paragraph, rest[index + 1])}
+                        className="mb-4 last:mb-0"
+                    />
                 ))}
             </div>
         </div>
+    );
+}
+
+// One paragraph, set as either the announcement or the explanation.
+//
+// The lead keeps Cinzel — it is inherited from the course layout, so there is
+// nothing to add — and takes the gold. The body has to say `font-sans`
+// explicitly for the same reason: what it is overriding is an inherited font,
+// not a default.
+function Passage({
+    text,
+    isLead,
+    className = "",
+}: {
+    text: string;
+    isLead: boolean;
+    className?: string;
+}) {
+    if (isLead) {
+        return (
+            <p
+                className={`text-xl leading-snug tracking-wide text-gold sm:text-2xl ${className}`}
+            >
+                {text}
+            </p>
+        );
+    }
+
+    return (
+        <p
+            className={`font-sans leading-relaxed tracking-normal text-ink-body ${className}`}
+        >
+            {text}
+        </p>
     );
 }
 
