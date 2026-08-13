@@ -124,13 +124,15 @@ jobs:
           # other value untouched by the shell.
           printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD" >> .env
 
-      - name: Migrate and seed the production database
-        # Both read .env, which now points at the tunnel. Seed is idempotent
-        # baseline data (PPP country tiers) — running it every deploy
-        # guarantees a fresh database is never left empty.
-        run: |
-          pnpm db:migrate
-          pnpm db:seed
+      - name: Migrate the production database
+        # Reads .env, which now points at the tunnel.
+        #
+        # The seed step that used to follow is gone with the migration to
+        # Hotmart. Its only content was the purchasing-power country tiers, and
+        # those tables no longer exist — Hotmart offers regional pricing itself
+        # and it is switched off deliberately, so the app has no baseline data
+        # left to plant.
+        run: pnpm db:migrate
 
       # Prerenders against the production database, so the shipped pages show
       # the real catalogue instead of an empty one.

@@ -13,7 +13,6 @@
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:remote": "node --env-file=.env --env-file=.env.supabase node_modules/drizzle-kit/bin.cjs migrate",
     "db:studio:remote": "node --env-file=.env --env-file=.env.supabase node_modules/drizzle-kit/bin.cjs studio",
-    "db:seed": "node --env-file=.env src/drizzle/seed.mjs",
     "r2:orphans": "node --env-file=.env src/drizzle/findOrphanVideos.mjs",
     "video:encode": "node scripts/encodeLessonVideo.mjs",
     "db:studio": "drizzle-kit studio"
