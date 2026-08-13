@@ -29,7 +29,7 @@ Caddy obtains and renews the Let's Encrypt certificates on its own.
 
 ## Supplying the third-party credentials
 
-The app needs credentials for Google OAuth, Stripe, UploadThing, Arcjet and
+The app needs credentials for Google OAuth, Hotmart, UploadThing, Arcjet and
 Cloudflare R2. Whoever owns them never needs SSH access: they live in a
 single GitHub Actions secret, and every deploy rewrites `/opt/nalu/app.env`
 from it.
@@ -41,10 +41,12 @@ from it.
    AUTH_GOOGLE_SECRET=...
    UPLOADTHING_TOKEN=...
    ARCJET_KEY=ajkey_...
-   STRIPE_SECRET_KEY=sk_live_...
-   STRIPE_WEBHOOK_SECRET=whsec_...
-   STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID=price_...
-   STRIPE_ALL_ACCESS_YEARLY_PRICE_ID=price_...
+   HOTMART_SERVER=production
+   HOTMART_CLIENT_ID=...
+   HOTMART_CLIENT_SECRET=...
+   HOTMART_BASIC_TOKEN=...
+   HOTMART_HOTTOK=...
+   SUBSCRIPTIONS_ENABLED=false
    R2_ACCOUNT_ID=...
    R2_ACCESS_KEY_ID=...
    R2_SECRET_ACCESS_KEY=...
@@ -74,10 +76,19 @@ These values are never exposed to browsers: Next.js only embeds
 - **Google OAuth**: add `https://naluescuela.com` to the authorized origins
   and `https://naluescuela.com/api/auth/callback/google` to the authorized
   redirect URIs of the OAuth client in Google Cloud Console.
-- **Stripe**: create a second webhook endpoint pointing at
-  `https://naluescuela.com/api/webhooks/stripe`, and use *that* endpoint's
-  `whsec_...` as `STRIPE_WEBHOOK_SECRET` above (each endpoint has its own
-  signing secret; the Vercel one keeps its own).
+- **Hotmart**: register the webhook under *Tools → Webhook* pointing at
+  `https://naluescuela.com/api/webhooks/hotmart`, version `2.0.0`, subscribed
+  to every event under *Compras* and *Suscripciones* and nothing else. Copy the
+  **hottok** from the Authentication tab into `HOTMART_HOTTOK` above.
+
+  Note the hottok is one per ACCOUNT, not one per endpoint — unlike a Stripe
+  signing secret there is no second value for a second environment, so anything
+  else pointed at that account shares it.
+
+  A missing or wrong `HOTMART_HOTTOK` does not break the deploy: the build only
+  needs format-valid placeholders, so the site comes up looking healthy while
+  every real Hotmart delivery is rejected 403 and no purchase is ever
+  provisioned. Verify after deploying, do not assume.
 
 ## Other workflow secrets
 
