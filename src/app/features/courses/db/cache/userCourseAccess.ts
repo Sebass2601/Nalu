@@ -45,7 +45,7 @@ export function revalidateUserCourseAccessCache(args: {
     userCourseAccessTags(args).forEach(updateTag)
 }
 
-// For Route Handlers — specifically the Stripe webhook, which is where course
+// For Route Handlers — specifically the Hotmart webhook, which is where course
 // access is actually granted. Same tags, an API that is legal in that context.
 export function expireUserCourseAccessCache(args: {
     courseId: string

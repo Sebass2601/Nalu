@@ -34,12 +34,12 @@ export async function userOwnsProduct({
 
 // Records a completed payment.
 //
-// `onConflictDoNothing` on `stripeSessionId` is the whole idempotency story.
-// Stripe retries webhooks, and both the webhook POST and the browser returning
-// through the GET handler drive this same code — so it genuinely runs twice for
-// a single payment, sometimes concurrently. The unique constraint on
-// `stripeSessionId` makes the second write a no-op at the database level, which
-// is the only place a race can be settled reliably.
+// `onConflictDoNothing` on `orderId` is the whole idempotency story.
+// Hotmart retries webhooks, and PURCHASE_APPROVED and PURCHASE_COMPLETE both
+// drive this same code for one payment — so it genuinely runs more than once,
+// sometimes concurrently. The unique constraint on `orderId` makes the second
+// write a no-op at the database level, which is the only place a race can be
+// settled reliably.
 //
 // `productDetails` copies the product's name, description and image at the
 // moment of sale rather than pointing at the live row. A receipt has to keep
@@ -52,11 +52,11 @@ export async function insertPurchase(
     const [newPurchase] = await trx
         .insert(PurchaseTable)
         .values(data)
-        .onConflictDoNothing({ target: PurchaseTable.stripeSessionId })
+        .onConflictDoNothing({ target: PurchaseTable.orderId })
         .returning();
 
     // Undefined when the conflict clause skipped the insert, i.e. this exact
-    // checkout session was already recorded. That is success, not failure.
+    // transaction was already recorded. That is success, not failure.
     if (newPurchase != null) expirePurchaseCache(newPurchase.userId);
 
     return newPurchase;
@@ -67,7 +67,7 @@ export async function insertPurchase(
 // revoke course access, so the `isNull` guard doubles as idempotency: a second
 // refund webhook matches nothing and revokes nothing.
 export async function refundPurchase(
-    stripePaymentIntentId: string,
+    orderId: string,
     trx: Omit<typeof db, "$client"> = db
 ) {
     const [refunded] = await trx
@@ -75,7 +75,7 @@ export async function refundPurchase(
         .set({ refundedAt: new Date() })
         .where(
             and(
-                eq(PurchaseTable.stripePaymentIntentId, stripePaymentIntentId),
+                eq(PurchaseTable.orderId, orderId),
                 isNull(PurchaseTable.refundedAt)
             )
         )

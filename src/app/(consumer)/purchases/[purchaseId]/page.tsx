@@ -12,11 +12,11 @@ import { formatDate, formatPrice } from "@/lib/formatters";
 import { cinzel } from "@/components/ui/fonts";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 
-// The receipt for a single purchase, kept here rather than only on Stripe.
+// The receipt for a single purchase, kept here rather than only on Hotmart.
 //
 // Everything that identifies the sale — what was bought, when, by whom, for how
-// much — is drawn from our own records, so the page stands up even when Stripe
-// is unreachable. Stripe is asked for the two things only it knows: the URL of
+// much — is drawn from our own records, so the page stands up even when Hotmart
+// is unreachable. Hotmart is asked only for what it alone knows: how
 // its hosted receipt, and how the final price was reached, which for this site
 // usually means a regional discount.
 export default function PurchaseReceiptPage({
@@ -57,8 +57,8 @@ async function Receipt({
     if (purchase == null) return notFound();
 
     const isRefunded = purchase.refundedAt != null;
-    const { receiptUrl, pricingRows } = await getReceiptDetails({
-        stripeSessionId: purchase.stripeSessionId,
+    const { pricingRows } = await getReceiptDetails({
+        orderId: purchase.orderId,
         pricePaidInCents: purchase.pricePaidInCents,
         isRefunded,
     });
@@ -77,18 +77,6 @@ async function Receipt({
                     {purchase.productDetails.name}
                 </h1>
 
-                {/* Only when Stripe handed one back. A row with no hosted
-                    receipt still has a perfectly good local one below. */}
-                {receiptUrl && (
-                    <PlaqueButton
-                        href={receiptUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        size="sm"
-                    >
-                        Ver recibo de Stripe
-                    </PlaqueButton>
-                )}
             </div>
 
             <div className="flex flex-col rounded-2xl border border-gold/30 bg-[#0a1628]/60 backdrop-blur-md">
@@ -128,11 +116,13 @@ async function Receipt({
                             >
                                 {label}
                             </span>
+                            {/* The amounts are gold; their labels beside them
+                                stay ink. `isBold` is the total, so it takes the
+                                full gold and the rest sit one step back — the
+                                same two-step the ink pair used to draw. */}
                             <span
                                 className={`justify-self-end ${
-                                    isBold
-                                        ? "text-ink-bright"
-                                        : "text-ink-body"
+                                    isBold ? "text-gold" : "text-gold/75"
                                 }`}
                             >
                                 {/* `showZeroAsNumber` because on a receipt a
@@ -179,7 +169,7 @@ async function getPurchase({ userId, id }: { userId: string; id: string }) {
             refundedAt: true,
             productDetails: true,
             createdAt: true,
-            stripeSessionId: true,
+            orderId: true,
         },
         where: and(eq(PurchaseTable.id, id), eq(PurchaseTable.userId, userId)),
     });

@@ -1,42 +1,92 @@
 import "server-only";
 
-import { cacheLife } from "next/cache";
-import { stripe } from "@/lib/stripe";
 import { env } from "@/data/env/server";
 
-// The two all-access plans, read from Stripe rather than hardcoded here.
+// The two all-access plans.
 //
-// Stripe is where the amounts actually live — a Price is immutable, so changing
-// what a plan costs means creating a new Price and pointing the env var at it.
-// Duplicating the numbers in the code would let the page advertise one figure
-// while checkout charged another, which is the one inconsistency worth spending
-// a network call to avoid.
+// These used to be read from Stripe, with a comment explaining that duplicating
+// the numbers locally would let the page advertise one figure while checkout
+// charged another. Hotmart exposes no endpoint that returns an offer's price,
+// so that safeguard is gone and the numbers are mirrored by hand in env.
 //
-// Cached for a day because prices change roughly never, and this sits on a page
-// every visitor sees. `cacheLife` rather than a tag: there is no write path in
-// this app that could invalidate it, since the change happens in the Stripe
-// dashboard, so time-based expiry is the honest model.
-export async function getSubscriptionPlans() {
-    "use cache";
-    cacheLife("days");
+// That is a genuine regression and worth naming rather than hiding: nothing in
+// this codebase can detect a mismatch between what this returns and what
+// Hotmart charges. The mitigation is procedural — repricing is a two-step
+// operation, Hotmart first and env second, recorded in the runbook.
+//
+// No caching, unlike the Stripe version: reading two environment variables does
+// not need a day-long cache, and `cacheLife` here would only delay a redeploy
+// taking effect.
+//
+// ---------------------------------------------------------------------------
+// The three build-log notices this causes are LOAD-BEARING. Do not "fix" them.
+//
+// Reading env here makes the four subscription routes bail out of static
+// prerendering, and `next build` reports each bail as a
+// `DYNAMIC_SERVER_USAGE` error. The build still succeeds, and the routes are
+// correctly absent from `.next/prerender-manifest.json` — they render per
+// request instead.
+//
+// That is the only arrangement that works. The Hetzner image is BUILT with
+// `SUBSCRIPTIONS_ENABLED=false` as a placeholder (see the deploy workflow) and
+// RUN with the real value from `/opt/nalu/app.env`. Were these routes
+// prerendered, they would be baked as 404s from the build-time placeholder, and
+// setting the flag to `true` in `NALU_APP_ENV` would never bring them back.
+//
+// So the noise is the sound of the feature flag working. Silencing it by
+// hoisting the read to a module constant does not help — that was measured —
+// and silencing it by prerendering would break the switch.
+// ---------------------------------------------------------------------------
 
-    const [monthly, yearly] = await Promise.all([
-        stripe.prices.retrieve(env.STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID),
-        stripe.prices.retrieve(env.STRIPE_ALL_ACCESS_YEARLY_PRICE_ID),
-    ]);
+export type SubscriptionPlans = {
+    monthly: {
+        priceInDollars: number;
+        checkoutCode: string;
+        offerCode: string;
+        externalProductId: string;
+    };
+    yearly: {
+        priceInDollars: number;
+        checkoutCode: string;
+        offerCode: string;
+        externalProductId: string;
+        // What the same year would cost billed monthly, so the annual saving
+        // can be shown as a concrete number instead of a claim.
+        equivalentMonthlyInDollars: number;
+        savingsPercent: number;
+    };
+};
 
-    const monthlyInDollars = (monthly.unit_amount ?? 0) / 100;
-    const yearlyInDollars = (yearly.unit_amount ?? 0) / 100;
+// Returns null when subscriptions are switched off.
+//
+// Null rather than throwing, and rather than an "empty" plans object: callers
+// then have one obvious branch, and TypeScript makes them handle it. While
+// `SUBSCRIPTIONS_ENABLED` is false the eight HOTMART_ALL_ACCESS_* variables are
+// legitimately absent, so there is nothing to return.
+export function getSubscriptionPlans(): SubscriptionPlans | null {
+    if (!env.SUBSCRIPTIONS_ENABLED) return null;
+
+    // The env refinement guarantees all eight are present whenever the flag is
+    // true, so these assertions cannot fire at runtime — they exist to tell
+    // TypeScript what the refinement already enforces at boot.
+    const monthlyPrice = env.HOTMART_ALL_ACCESS_MONTHLY_PRICE!;
+    const yearlyPrice = env.HOTMART_ALL_ACCESS_YEARLY_PRICE!;
 
     return {
-        monthly: { priceInDollars: monthlyInDollars },
+        monthly: {
+            priceInDollars: monthlyPrice,
+            checkoutCode: env.HOTMART_ALL_ACCESS_MONTHLY_CHECKOUT_CODE!,
+            offerCode: env.HOTMART_ALL_ACCESS_MONTHLY_OFFER_CODE!,
+            externalProductId: env.HOTMART_ALL_ACCESS_MONTHLY_PRODUCT_ID!,
+        },
         yearly: {
-            priceInDollars: yearlyInDollars,
-            // What the same year would cost billed monthly, so the annual
-            // saving can be shown as a concrete number instead of a claim.
-            equivalentMonthlyInDollars: yearlyInDollars / 12,
+            priceInDollars: yearlyPrice,
+            checkoutCode: env.HOTMART_ALL_ACCESS_YEARLY_CHECKOUT_CODE!,
+            offerCode: env.HOTMART_ALL_ACCESS_YEARLY_OFFER_CODE!,
+            externalProductId: env.HOTMART_ALL_ACCESS_YEARLY_PRODUCT_ID!,
+            equivalentMonthlyInDollars: yearlyPrice / 12,
             savingsPercent: Math.round(
-                (1 - yearlyInDollars / (monthlyInDollars * 12)) * 100
+                (1 - yearlyPrice / (monthlyPrice * 12)) * 100
             ),
         },
     };

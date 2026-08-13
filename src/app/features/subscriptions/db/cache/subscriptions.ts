@@ -10,7 +10,7 @@ export function getSubscriptionUserTag(userId: string) {
     return getUserTag("subscriptions", userId);
 }
 
-// Like purchases, subscriptions are written almost entirely by the Stripe
+// Like purchases, subscriptions are written almost entirely by the Hotmart
 // webhook — a Route Handler, where `updateTag` throws. `expireTags` is built on
 // `revalidateTag` with `{ expire: 0 }`, which is legal in both Route Handlers
 // and Server Actions, and expires immediately rather than serving stale data to

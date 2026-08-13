@@ -25,7 +25,8 @@ import { courseIsInSubscription, userOwnsCourse } from "../db/courseAccess";
 //      the course at all, so this never runs for them.
 //   4. Something sells it right now. `getCheapestPurchasableProductForCourse`
 //      is the same call a locked lesson makes: public products only, and only
-//      ones synced to Stripe, so the button can never lead to a dead checkout.
+//      ones with Hotmart codes, so the button can never lead to a dead
+//      checkout.
 //
 // Returns null the moment any of those fails, which every caller reads as
 // "render nothing".

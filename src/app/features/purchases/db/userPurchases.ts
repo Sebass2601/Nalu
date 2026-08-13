@@ -27,7 +27,7 @@ export type UserPurchase = {
 // a question about history, where a refund is a row to label rather than a row
 // to hide.
 //
-// Nothing here identifies a Stripe object. Every row links to its own receipt
+// Nothing here identifies a Hotmart object. Every row links to its own receipt
 // page, which looks up what it needs from the purchase id server-side.
 export async function getUserPurchases(
     userId: string

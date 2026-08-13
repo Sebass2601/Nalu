@@ -48,28 +48,76 @@ export const env = createEnv ({
         AUTH_GOOGLE_SECRET: z.string().min(1),
         UPLOADTHING_TOKEN: z.string().min(1),
 
-        // --- Stripe ------------------------------------------------------
-        // The prefix checks are deliberate. Every Stripe credential looks like
-        // a random string, so the classic mistake is pasting the publishable
-        // key (`pk_...`) where the secret key belongs, or a price ID where a
-        // product ID belongs. Without these the app boots fine and only fails
-        // later, at checkout, with an opaque Stripe error. With them it refuses
-        // to start and names the offending variable.
-        STRIPE_SECRET_KEY: z.string().startsWith("sk_"),
-        STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
+        // --- Hotmart -----------------------------------------------------
+        // Hotmart is the merchant of record: legally the seller, so it collects
+        // and remits VAT and sales tax worldwide and pays the balance out.
+        // There is no official Node SDK, so these feed a hand-written client.
+        //
+        // Sandbox and production are separate credential pairs. The sandbox is
+        // a stub server — it returns fictional canned data for REST endpoints
+        // only, has no checkout, and delivers no webhooks — so this switches
+        // which host the client talks to and nothing more. Defaults to
+        // production so a missing value fails safe rather than silently
+        // pointing live traffic at fabricated data.
+        HOTMART_SERVER: z.enum(["sandbox", "production"]).default("production"),
+        HOTMART_CLIENT_ID: z.string().min(1),
+        HOTMART_CLIENT_SECRET: z.string().min(1),
 
-        // The two recurring prices of the all-access plan. These live in env
-        // rather than the database because they are fixed infrastructure, and
-        // because the sandbox and live accounts have different IDs for what is
-        // conceptually the same plan — swapping .env swaps the whole account.
-        STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID: z.string().startsWith("price_"),
-        STRIPE_ALL_ACCESS_YEARLY_PRICE_ID: z.string().startsWith("price_"),
+        // Stored WITHOUT the "Basic " prefix — the client adds it. Pasting the
+        // prefixed form yields "Authorization: Basic Basic ..." and a 401 that
+        // looks exactly like wrong credentials, which is a miserable hour.
+        HOTMART_BASIC_TOKEN: z.string().min(1),
 
-        // Absolute origin used to build Checkout's success_url / cancel_url.
-        // Stripe redirects the browser to these after payment, so they cannot
-        // be relative paths. Kept server-side (no NEXT_PUBLIC_) because only
-        // server code ever builds a Checkout Session.
-        SERVER_URL: z.url(),
+        // The webhook's shared secret, sent as X-HOTMART-HOTTOK on every
+        // delivery.
+        //
+        // Materially weaker than Stripe's or Polar's signatures: it is the same
+        // string every time, carries no timestamp, and is not bound to the
+        // request body, so anyone who learns it can forge any event. Three
+        // things compensate — a timing-safe comparison, deduplication on the
+        // event id, and re-verifying high-value events against the API before
+        // granting anything.
+        HOTMART_HOTTOK: z.string().min(1),
+
+        // Subscriptions are built and unit-tested but not sold yet: no Hotmart
+        // subscription product exists, and submitting one for review with
+        // nothing behind it invites a rejection against the account.
+        //
+        // See the refinement below `server`, which is what makes the eight
+        // ALL_ACCESS variables legally absent while this is false.
+        SUBSCRIPTIONS_ENABLED: z
+            .enum(["true", "false"])
+            .default("false")
+            .transform(value => value === "true"),
+
+        // The two all-access plans. Optional here and required by the
+        // refinement, never unconditionally: the app must boot without them.
+        //
+        // Three codes each, because Hotmart uses different identifiers for
+        // different jobs — the 7-digit product ID matches incoming webhooks,
+        // the hotlink builds the checkout URL, the offer code picks the price.
+        //
+        // The PRICE values are display copy only, in whole dollars. Hotmart
+        // exposes no endpoint returning an offer's price, so unlike the Stripe
+        // arrangement they replace there is no way to read the real number
+        // back. Repricing is therefore a two-step manual procedure; see the
+        // spec's "Known drift" section.
+        HOTMART_ALL_ACCESS_MONTHLY_PRODUCT_ID: z.string().min(1).optional(),
+        HOTMART_ALL_ACCESS_MONTHLY_CHECKOUT_CODE: z.string().min(1).optional(),
+        HOTMART_ALL_ACCESS_MONTHLY_OFFER_CODE: z.string().min(1).optional(),
+        HOTMART_ALL_ACCESS_MONTHLY_PRICE: z.coerce
+            .number()
+            .int()
+            .positive()
+            .optional(),
+        HOTMART_ALL_ACCESS_YEARLY_PRODUCT_ID: z.string().min(1).optional(),
+        HOTMART_ALL_ACCESS_YEARLY_CHECKOUT_CODE: z.string().min(1).optional(),
+        HOTMART_ALL_ACCESS_YEARLY_OFFER_CODE: z.string().min(1).optional(),
+        HOTMART_ALL_ACCESS_YEARLY_PRICE: z.coerce
+            .number()
+            .int()
+            .positive()
+            .optional(),
 
         // --- Cloudflare R2 ------------------------------------------------
         // Lesson videos live in a private bucket and are only ever reachable
@@ -89,5 +137,44 @@ export const env = createEnv ({
         R2_SECRET_ACCESS_KEY: z.string().min(1),
         R2_BUCKET_NAME: z.string().min(1),
     },
-    experimental__runtimeEnv: process.env
+    experimental__runtimeEnv: process.env,
 });
+
+// Enabling subscriptions and configuring them must happen together.
+//
+// Marking the eight ALL_ACCESS variables merely optional above would have been
+// simpler and worse on its own: it permits a half-configured state that boots
+// happily and then fails at a customer's checkout — the exact failure this
+// whole schema exists to prevent. This check turns "subscriptions are off" into
+// a declared state, and makes turning them on without finishing the
+// configuration impossible.
+//
+// It sits at module scope rather than inside the schema because this version of
+// @t3-oss/env-nextjs (0.13.11) exposes no hook for a cross-field refinement.
+// The effect is the same: this module is imported during boot, so a
+// misconfiguration fails the build or the server start, never a purchase.
+//
+// Every missing variable is named at once, so switching this on is one boot
+// cycle rather than eight.
+if (env.SUBSCRIPTIONS_ENABLED) {
+    const required = [
+        "HOTMART_ALL_ACCESS_MONTHLY_PRODUCT_ID",
+        "HOTMART_ALL_ACCESS_MONTHLY_CHECKOUT_CODE",
+        "HOTMART_ALL_ACCESS_MONTHLY_OFFER_CODE",
+        "HOTMART_ALL_ACCESS_MONTHLY_PRICE",
+        "HOTMART_ALL_ACCESS_YEARLY_PRODUCT_ID",
+        "HOTMART_ALL_ACCESS_YEARLY_CHECKOUT_CODE",
+        "HOTMART_ALL_ACCESS_YEARLY_OFFER_CODE",
+        "HOTMART_ALL_ACCESS_YEARLY_PRICE",
+    ] as const;
+
+    const missing = required.filter(key => env[key] == null);
+
+    if (missing.length > 0) {
+        throw new Error(
+            `SUBSCRIPTIONS_ENABLED=true requires: ${missing.join(", ")}. ` +
+                "Create the two Hotmart subscription products, collect their " +
+                "codes, and set these before enabling."
+        );
+    }
+}

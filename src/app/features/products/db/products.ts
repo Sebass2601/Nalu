@@ -9,11 +9,36 @@ import {
     revalidateProductCache,
 } from "./cache/products";
 import { wherePublicProducts } from "../permissions/products";
-import {
-    archiveStripeProduct,
-    createStripeProduct,
-    updateStripeProduct,
-} from "../lib/stripeProducts";
+import { getHotmartProduct } from "@/lib/hotmartApi";
+
+// Confirms a pasted Hotmart product ID actually resolves, and refuses the save
+// if it does not.
+//
+// This is what replaces the Stripe sync. There is no Hotmart endpoint that
+// creates or updates a product — the dashboard owns the catalogue and every
+// product passes a human content review — so the admin types the codes in and
+// the only thing this side can do is check them.
+//
+// Checking matters because the failure it prevents is invisible until the worst
+// moment: a typo in the ID means the webhook cannot match a real payment back
+// to a product, so someone pays and receives nothing. Verifying on save turns
+// that into a form error.
+//
+// Only the product ID is verifiable. The hotlink and offer codes have no lookup
+// endpoint, which is why the runbook has the admin open the checkout URL by
+// hand once before going live.
+async function assertHotmartProductExists(externalProductId: string | null) {
+    if (externalProductId == null) return;
+
+    const product = await getHotmartProduct(externalProductId);
+
+    if (product == null) {
+        throw new Error(
+            `Hotmart no reconoce el producto ${externalProductId}. ` +
+                "Revisa el ID de 7 dígitos en Mis Productos."
+        );
+    }
+}
 
 // One published product, or undefined if it does not exist or is not public.
 //
@@ -32,7 +57,11 @@ export async function getPublicProduct(id: string) {
             description: true,
             imageUrl: true,
             priceInDollars: true,
-            stripePriceId: true,
+            checkoutCode: true,
+            externalOfferCode: true,
+            promoOfferCode: true,
+            promoPriceInDollars: true,
+            promoEndsAt: true,
         },
         where: and(eq(ProductTable.id, id), wherePublicProducts),
     });
@@ -47,8 +76,8 @@ export async function getPublicProduct(id: string) {
 // two products at the same price always resolve to the same one instead of
 // following whatever order Postgres happened to return.
 //
-// `stripePriceId` must exist: `startCheckout` throws on a product that was
-// never synced to Stripe, so offering one here would hand the buyer a crash
+// A checkout code must exist: `startCheckout` throws on a product with no
+// Hotmart counterpart, so offering one here would hand the buyer a crash
 // instead of a checkout page.
 //
 // Tagged globally rather than per product: this asks about products it has not
@@ -73,7 +102,7 @@ export async function getCheapestPurchasableProductForCourse(courseId: string) {
             and(
                 eq(CourseProductTable.courseId, courseId),
                 wherePublicProducts,
-                isNotNull(ProductTable.stripePriceId)
+                isNotNull(ProductTable.checkoutCode)
             )
         )
         .orderBy(asc(ProductTable.priceInDollars), asc(ProductTable.id))
@@ -85,18 +114,18 @@ export async function getCheapestPurchasableProductForCourse(courseId: string) {
 export async function insertProduct(
     data: typeof ProductTable.$inferInsert & { courseIds: string[] }
 ) {
-    // Stripe first, database second. A Stripe failure then leaves nothing
-    // behind locally, whereas the reverse order would commit a product that
-    // looks fine in the admin but cannot be bought, because checkout has no
-    // price ID to reference. Doing it outside the transaction also matters:
-    // holding a database transaction open across HTTP calls to a third party
-    // is a good way to turn a slow API into database lock contention.
-    const stripeIds = await createStripeProduct(data);
+    // Hotmart first, database second — the same ordering the Stripe sync used,
+    // and for the same reason: a failed check leaves nothing behind locally,
+    // whereas the reverse order would commit a product that looks fine in the
+    // admin and cannot be bought. Outside the transaction too, because holding
+    // one open across an HTTP call to a third party turns a slow API into
+    // database lock contention.
+    await assertHotmartProductExists(data.externalProductId ?? null);
 
     const newProduct = await db.transaction(async trx => {
         const [newProduct] = await trx
             .insert(ProductTable)
-            .values({ ...data, ...stripeIds })
+            .values(data)
             .returning();
 
         if (newProduct == null) {
@@ -124,8 +153,8 @@ export async function updateProduct(
     id: string,
     data: Partial<typeof ProductTable.$inferInsert> & { courseIds: string[] }
 ) {
-    // Read the current row first, outside the transaction, because the Stripe
-    // reconciliation below needs to know which Stripe objects already exist.
+    // Read the current row first, outside the transaction, so the image cleanup
+    // below knows what it is replacing.
     const currentProduct = await db.query.ProductTable.findFirst({
         columns: {
             imageUrl: true,
@@ -133,32 +162,29 @@ export async function updateProduct(
             description: true,
             priceInDollars: true,
             status: true,
-            stripeProductId: true,
-            stripePriceId: true,
+            externalProductId: true,
         },
         where: eq(ProductTable.id, id),
     });
 
     if (currentProduct == null) throw new Error("Producto no encontrado.");
 
-    // Same ordering rule as insert: reconcile Stripe before committing locally,
+    // Same ordering rule as insert: check Hotmart before committing locally,
     // and outside the transaction so a slow API call is not holding row locks.
-    // `data` is Partial, so each field falls back to what is already stored.
-    const stripeIds = await updateStripeProduct({
-        name: data.name ?? currentProduct.name,
-        description: data.description ?? currentProduct.description,
-        imageUrl: data.imageUrl ?? currentProduct.imageUrl,
-        priceInDollars:
-            data.priceInDollars ?? currentProduct.priceInDollars,
-        status: data.status ?? currentProduct.status,
-        stripeProductId: currentProduct.stripeProductId,
-        stripePriceId: currentProduct.stripePriceId,
-    });
+    // `data` is Partial, so the field falls back to what is already stored —
+    // an edit that does not touch the ID re-verifies the existing one, which
+    // is deliberate: it repairs a product whose code was right when it was
+    // entered and has since been deleted in Hotmart.
+    await assertHotmartProductExists(
+        data.externalProductId !== undefined
+            ? data.externalProductId
+            : currentProduct.externalProductId
+    );
 
     const { updatedProduct, previousImageUrl } = await db.transaction(async trx => {
         const [updatedProduct] = await trx
             .update(ProductTable)
-            .set({ ...data, ...stripeIds })
+            .set(data)
             .where(eq(ProductTable.id, id))
             .returning();
 
@@ -206,11 +232,10 @@ export async function deleteProduct(id: string) {
 
     if (deletedProduct == null) throw new Error("Error al eliminar el producto.");
 
-    // Stripe last here, unlike create and update. The local delete is already
-    // irreversible by this point, so there is nothing to protect by going first
-    // — and archiving is best-effort anyway, since an orphaned active product
-    // in Stripe is harmless while a failed archive must not resurrect the row.
-    await archiveStripeProduct(deletedProduct.stripeProductId);
+    // Nothing to tell Hotmart. There is no API to archive or delete a product
+    // there, and the dashboard owns that lifecycle now — so deleting here only
+    // removes the local row and the link that sold it. The Hotmart product
+    // stays live until someone pauses it by hand, which the runbook covers.
     await deleteUploadThingFiles(deletedProduct.imageUrl);
     revalidateProductCache(deletedProduct.id);
 

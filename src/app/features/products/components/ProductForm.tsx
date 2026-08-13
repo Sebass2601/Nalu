@@ -6,6 +6,7 @@ import z from "zod"
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -48,13 +49,27 @@ export function ProductForm({
         imageUrl: string
         status: productStatus
         courseIds: string[]
+        externalProductId?: string | null
+        checkoutCode?: string | null
+        externalOfferCode?: string | null
+        promoOfferCode?: string | null
+        promoPriceInDollars?: number | null
+        promoEndsAt?: Date | null
     }
     courses: {
         id: string
         name: string
     }[]
 }) {
-    const form = useForm<z.infer<typeof productSchema>>({
+    // Three generics rather than one, because the schema transforms: empty
+    // strings from blank inputs become null on the way out. `z.infer` is the
+    // OUTPUT type, so using it alone makes the resolver disagree with
+    // `defaultValues`, which must satisfy the INPUT type.
+    const form = useForm<
+        z.input<typeof productSchema>,
+        unknown,
+        z.output<typeof productSchema>
+    >({
         resolver: zodResolver(productSchema),
         defaultValues: product ?? {
             name: "",
@@ -63,6 +78,15 @@ export function ProductForm({
             imageUrl: "",
             priceInDollars: 0,
             status: "private",
+            // Blank rather than undefined so the inputs are controlled from the
+            // first render. React logs a warning the moment a controlled input
+            // is handed undefined and then a real value.
+            externalProductId: "",
+            checkoutCode: "",
+            externalOfferCode: "",
+            promoOfferCode: "",
+            promoPriceInDollars: null,
+            promoEndsAt: null,
         },
     })
 
@@ -74,7 +98,9 @@ export function ProductForm({
         if (product == null) form.reset()
     }, [product, form])
 
-    async function onSubmit(values: z.infer<typeof productSchema>) {
+    // The OUTPUT type: by the time this runs the schema has already turned the
+    // blank inputs into nulls.
+    async function onSubmit(values: z.output<typeof productSchema>) {
         const action =
             product == null ? createProduct : updateProduct.bind(null, product.id)
         const data = await action(values)
@@ -188,6 +214,173 @@ export function ProductForm({
                         )}
                     />
                 </div>
+
+                {/* Hotmart owns the catalogue and has no API to create a
+                    product, so these three codes are typed in by hand once the
+                    product exists over there. Only the first is verifiable on
+                    save — Hotmart offers no lookup for the other two, which is
+                    why the checkout URL gets opened by hand once before going
+                    live. */}
+                <fieldset className="flex flex-col gap-4 rounded-lg border border-gold/20 p-4">
+                    <legend className="px-2 text-sm font-medium">Hotmart</legend>
+                    <p className="text-sm text-muted-foreground">
+                        Deja estos campos vacíos hasta que el producto exista en
+                        Hotmart. Sin ellos el producto no se puede comprar.
+                    </p>
+                    <div className="grid gap-6 grid-cols-1 md:grid-cols-3 items-start">
+                        <FormField
+                            control={form.control}
+                            name="externalProductId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>ID del producto</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="1234567"
+                                            {...field}
+                                            value={field.value ?? ""}
+                                        />
+                                    </FormControl>
+                                    <FormDescription>
+                                        7 dígitos. Se verifica al guardar.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="checkoutCode"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Hotlink</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="W12345678X"
+                                            {...field}
+                                            value={field.value ?? ""}
+                                        />
+                                    </FormControl>
+                                    <FormDescription>
+                                        Solo el código, no la URL completa.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="externalOfferCode"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Código de oferta</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="a1b2c3d4"
+                                            {...field}
+                                            value={field.value ?? ""}
+                                        />
+                                    </FormControl>
+                                    <FormDescription>
+                                        La oferta con el precio base.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </fieldset>
+
+                {/* A promotion is a SECOND offer in Hotmart, not a discount on
+                    the first. Filling these points checkout at that offer and
+                    strikes through the original price on the product page;
+                    clearing the code puts everything back. */}
+                <fieldset className="flex flex-col gap-4 rounded-lg border border-gold/20 p-4">
+                    <legend className="px-2 text-sm font-medium">
+                        Promoción (opcional)
+                    </legend>
+                    <div className="grid gap-6 grid-cols-1 md:grid-cols-3 items-start">
+                        <FormField
+                            control={form.control}
+                            name="promoOfferCode"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Código de oferta promocional</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            value={field.value ?? ""}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="promoPriceInDollars"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Precio promocional</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            {...field}
+                                            value={field.value ?? ""}
+                                            onChange={e =>
+                                                field.onChange(
+                                                    e.target.value === ""
+                                                        ? null
+                                                        : e.target.valueAsNumber
+                                                )
+                                            }
+                                        />
+                                    </FormControl>
+                                    <FormDescription>
+                                        Solo para mostrar. Hotmart cobra lo que
+                                        diga su oferta.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="promoEndsAt"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Termina el</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="date"
+                                            value={
+                                                field.value
+                                                    ? new Date(field.value)
+                                                          .toISOString()
+                                                          .slice(0, 10)
+                                                    : ""
+                                            }
+                                            onChange={e =>
+                                                field.onChange(
+                                                    e.target.value === ""
+                                                        ? null
+                                                        : new Date(
+                                                              `${e.target.value}T23:59:59`
+                                                          )
+                                                )
+                                            }
+                                        />
+                                    </FormControl>
+                                    <FormDescription>
+                                        Vacío = hasta que la quites.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </fieldset>
+
                 <FormField
                     control={form.control}
                     name="courseIds"

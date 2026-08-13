@@ -107,7 +107,7 @@ async function ProductDetails({
                         {/* formatPlural picks the singular or plural wording
                             from the count, so a product with a single course
                             reads "1 curso · 8 secciones". */}
-                        <p className="text-base tracking-widest text-ink-body uppercase">
+                        <p className="text-base tracking-widest text-gold uppercase">
                             {formatPlural(courseCount, {
                                 singular: "curso",
                                 plural: "cursos",
@@ -123,7 +123,7 @@ async function ProductDetails({
                         {product.description}
                     </p>
                     {/* Sells the product, or opens it if this visitor already
-                        bought it. Buying goes straight to Stripe rather than via
+                        bought it. Buying goes straight to Hotmart rather than via
                         an intermediate page — one click from wanting the product
                         to paying for it — and the action redirects to /login by
                         itself when nobody is signed in.
@@ -205,7 +205,7 @@ function CourseSyllabus({
             <h2 className="text-2xl tracking-wide text-ink-bright">
                 {course.name}
             </h2>
-            <p className="mt-1 text-sm tracking-widest text-ink-meta uppercase">
+            <p className="mt-1 text-sm tracking-widest text-gold uppercase">
                 {formatPlural(course.courseSections.length, {
                     singular: "clase",
                     plural: "clases",
@@ -246,7 +246,7 @@ function CourseSyllabus({
                                 <span className="text-lg text-ink-bright">
                                     {section.name}
                                 </span>
-                                <span className="text-sm text-ink-meta">
+                                <span className="text-sm text-gold">
                                     {formatPlural(section.lessons.length, {
                                         singular: "sección",
                                         plural: "secciones",

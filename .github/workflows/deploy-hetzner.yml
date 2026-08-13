@@ -109,11 +109,12 @@ jobs:
           AUTH_GOOGLE_ID=placeholder
           AUTH_GOOGLE_SECRET=placeholder
           UPLOADTHING_TOKEN=placeholder
-          STRIPE_SECRET_KEY=sk_test_placeholder
-          STRIPE_WEBHOOK_SECRET=whsec_placeholder
-          STRIPE_ALL_ACCESS_MONTHLY_PRICE_ID=price_placeholder_monthly
-          STRIPE_ALL_ACCESS_YEARLY_PRICE_ID=price_placeholder_yearly
-          SERVER_URL=https://naluescuela.com
+          HOTMART_SERVER=production
+          HOTMART_CLIENT_ID=placeholder
+          HOTMART_CLIENT_SECRET=placeholder
+          HOTMART_BASIC_TOKEN=placeholder
+          HOTMART_HOTTOK=placeholder
+          SUBSCRIPTIONS_ENABLED=false
           R2_ACCOUNT_ID=0123456789abcdef0123456789abcdef
           R2_ACCESS_KEY_ID=0123456789abcdef0123456789abcdef
           R2_SECRET_ACCESS_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
@@ -123,13 +124,15 @@ jobs:
           # other value untouched by the shell.
           printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD" >> .env
 
-      - name: Migrate and seed the production database
-        # Both read .env, which now points at the tunnel. Seed is idempotent
-        # baseline data (PPP country tiers) — running it every deploy
-        # guarantees a fresh database is never left empty.
-        run: |
-          pnpm db:migrate
-          pnpm db:seed
+      - name: Migrate the production database
+        # Reads .env, which now points at the tunnel.
+        #
+        # The seed step that used to follow is gone with the migration to
+        # Hotmart. Its only content was the purchasing-power country tiers, and
+        # those tables no longer exist — Hotmart offers regional pricing itself
+        # and it is switched off deliberately, so the app has no baseline data
+        # left to plant.
+        run: pnpm db:migrate
 
       # Prerenders against the production database, so the shipped pages show
       # the real catalogue instead of an empty one.
@@ -152,7 +155,7 @@ jobs:
 
       - name: Sync app credentials
         # NALU_APP_ENV holds the third-party credential lines
-        # (AUTH_GOOGLE_*, STRIPE_*, UPLOADTHING_TOKEN, ARCJET_KEY, R2_*) as a
+        # (AUTH_GOOGLE_*, HOTMART_*, UPLOADTHING_TOKEN, ARCJET_KEY, R2_*) as a
         # plain env file. Whoever owns those credentials edits the secret in
         # GitHub; each deploy rewrites /opt/nalu/app.env from it. When the
         # secret is unset, an existing app.env is left alone.

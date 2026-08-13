@@ -64,7 +64,7 @@ async function CourseOverview({
                 <h1 className="text-5xl tracking-wide text-ink-bright">
                     {course.name}
                 </h1>
-                <p className="text-base tracking-widest text-ink-body uppercase">
+                <p className="text-base tracking-widest text-gold uppercase">
                     {formatPlural(course.courseSections.length, {
                         singular: "clase",
                         plural: "clases",

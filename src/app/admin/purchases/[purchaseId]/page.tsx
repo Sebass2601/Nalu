@@ -35,7 +35,7 @@ export default function AdminPurchaseReceiptPage({
                 {/* The params promise is handed down rather than awaited here.
                     Awaiting it in the shell would make the whole route wait on
                     request-time data before rendering anything at all — and
-                    this page also waits on a Stripe round-trip, which is
+                    this page also waits on a Hotmart round-trip, which is
                     exactly the kind of delay worth streaming around. */}
                 <Suspense fallback={<ReceiptSkeleton />}>
                     <Receipt params={params} />
@@ -60,8 +60,8 @@ async function Receipt({
     if (purchase == null) return notFound();
 
     const isRefunded = purchase.refundedAt != null;
-    const { receiptUrl, pricingRows } = await getReceiptDetails({
-        stripeSessionId: purchase.stripeSessionId,
+    const { pricingRows } = await getReceiptDetails({
+        orderId: purchase.orderId,
         pricePaidInCents: purchase.pricePaidInCents,
         isRefunded,
     });
@@ -77,19 +77,6 @@ async function Receipt({
 
             <PageHeader title={purchase.productDetails.name} className="mt-4">
                 <div className="flex gap-2">
-                    {/* Only when Stripe handed one back. A row with no hosted
-                        receipt still has a perfectly good local one below. */}
-                    {receiptUrl && (
-                        <Button variant="outline" asChild>
-                            <Link
-                                href={receiptUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Ver recibo de Stripe
-                            </Link>
-                        </Button>
-                    )}
 
                     {/* Same guard as the sales table: nothing to reverse on an
                         already-refunded sale or a free one. */}

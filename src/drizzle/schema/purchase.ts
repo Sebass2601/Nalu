@@ -16,13 +16,27 @@ export const PurchaseTable = pgTable("purchases", {
     productId: uuid()
      .notNull()
      .references(() => ProductTable.id, { onDelete: "restrict"}),
-    stripeSessionId: text().notNull().unique(),
-    // The PaymentIntent behind this purchase. Refund webhooks arrive keyed by
-    // payment intent rather than by checkout session, so without this column a
-    // `charge.refunded` event cannot be matched back to the row it should mark
-    // as refunded. Nullable because rows written before this column existed
-    // have no value for it.
-    stripePaymentIntentId: text(),
+    // Hotmart's transaction code, e.g. HP17715690036014.
+    //
+    // One column where Stripe needed two. Stripe keyed checkouts by session and
+    // refunds by charge, so both identifiers had to be stored for an incoming
+    // refund to be matched back to its purchase. Hotmart identifies the sale
+    // with this single code everywhere, refunds included.
+    //
+    // Unique, which is what makes the webhook handler idempotent: a redelivered
+    // event cannot create a second row for one payment.
+    orderId: text().notNull().unique(),
+    // ISO country of the buyer, from `purchase.checkout_country.iso`.
+    //
+    // Free here, unlike with a provider whose checkout is created server-side:
+    // those read the *server's* address and would place every buyer in Germany,
+    // where the Hetzner box lives. Hotmart hosts the checkout and reports the
+    // country the buyer actually selected.
+    //
+    // Kept because Panamanian tax treatment turns on whether revenue is
+    // foreign-source, and that is answered per sale. Reconstructing it later
+    // from bank statements is not realistic.
+    buyerCountry: text(),
     refundedAt: timestamp({ withTimezone: true }),
     createdAt,
     updatedAt,

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { env } from "@/data/env/server";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { getUserSubscription } from "@/app/features/subscriptions/db/subscriptions";
 import { cinzel } from "@/components/ui/fonts";
@@ -11,11 +12,18 @@ import {
 // What your plan gets you: the courses included in the subscription, and
 // nothing else.
 //
-// The plan's own details — status, renewal date, the door to Stripe's billing
-// portal — moved to /subscription-management, reached from the avatar menu.
+// The plan's own details — status, renewal date, cancellation — moved to
+// /subscription-management, reached from the avatar menu.
 // This page is now the answer to "what do I get", which is what the
 // Suscripción doorway in the navbar has always been asking.
 export default function SubscriptionPage() {
+    // Gated with the rest of the subscription surface until a Hotmart
+    // subscription product exists. See lib/plans.ts.
+    // Reading the flag here is what keeps this route dynamic, so the switch can
+    // be flipped in app.env without a rebuild. It costs one DYNAMIC_SERVER_USAGE
+    // notice per route at build time; see lib/plans.ts for why that is correct.
+    if (!env.SUBSCRIPTIONS_ENABLED) notFound();
+
     return (
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}

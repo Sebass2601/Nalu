@@ -35,9 +35,9 @@ export type AdminPurchase = {
 // of the sales history, and an admin looking for one needs to find it.
 //
 // Subscription payments are deliberately absent, exactly as they are from the
-// buyer's own list. Those invoices live in Stripe and are not mirrored into this
+// buyer's own list. Those invoices live in Hotmart and are not mirrored into this
 // table, so a second copy of billing history can never disagree with the one
-// Stripe considers true.
+// Hotmart considers true.
 export async function getAllPurchases(): Promise<AdminPurchase[]> {
     "use cache";
     cacheTag(getPurchaseGlobalTag(), getUserGlobalTag());
@@ -85,7 +85,7 @@ export async function getAdminPurchase(id: string) {
             productDetails: true,
             refundedAt: true,
             createdAt: true,
-            stripeSessionId: true,
+            orderId: true,
         },
         where: eq(PurchaseTable.id, id),
         with: { user: { columns: { name: true, email: true } } },

@@ -13,7 +13,7 @@ import { expireUserCourseAccessCache } from "./cache/userCourseAccess";
 // own when a subscription lapses, and cannot accidentally delete access someone
 // bought outright.
 //
-// The conflict clause is what makes this safe to run twice. Stripe retries
+// The conflict clause is what makes this safe to run twice. Hotmart retries
 // webhook deliveries, so this WILL be called more than once for the same
 // purchase, and re-granting has to be a no-op rather than a crash.
 //
