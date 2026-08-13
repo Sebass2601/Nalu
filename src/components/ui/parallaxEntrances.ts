@@ -68,6 +68,12 @@ export type Entrance = {
     id: string;
     label: string;
     href: string;
+    // A handful of words hung under the label on a smaller bar. Optional, and
+    // only the castle's category doorways pass one: it is the category's
+    // description, so a doorway that is not a category has nothing to put here.
+    // Absent — and empty, which a description column full of blanks will
+    // produce — draws no bar at all rather than an empty one.
+    caption?: string;
     // Fractions of the foreground image, measured exactly as HOTSPOTS is.
     x: number;
     y: number;

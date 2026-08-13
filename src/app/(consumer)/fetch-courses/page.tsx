@@ -44,13 +44,19 @@ async function getCategories() {
     .select({
       id: CategoryTable.id,
       name: CategoryTable.name,
+      description: CategoryTable.description,
       doorway: CategoryTable.doorway,
     })
     .from(CategoryTable)
     .orderBy(asc(CategoryTable.name));
 }
 
-type Category = { id: string; name: string; doorway: string | null };
+type Category = {
+  id: string;
+  name: string;
+  description: string | null;
+  doorway: string | null;
+};
 
 // Turns the categories into the plaques the castle draws. Each one goes to the
 // doorway stored on it, and a category without a doorway is simply not drawn —
@@ -81,6 +87,19 @@ function assignEntrances(categories: Category[]): Entrance[] {
     const category = byDoorway.get(id);
     if (!category) return [];
 
-    return [{ id, x, y, label: category.name, href: `/categories/${category.id}` }];
+    return [
+      {
+        id,
+        x,
+        y,
+        label: category.name,
+        href: `/categories/${category.id}`,
+        // Trimmed, so a description that is nothing but spaces counts as no
+        // description and the plaque is drawn plain. The fixed doorways above
+        // never reach this line, which is what keeps the caption bar to
+        // categories alone.
+        caption: category.description?.trim() || undefined,
+      },
+    ];
   });
 }
