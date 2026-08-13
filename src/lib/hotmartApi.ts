@@ -5,9 +5,21 @@ import { HotmartApiError, hotmartFetch } from "./hotmart";
 // Typed wrappers over the handful of Hotmart endpoints this app actually uses.
 //
 // Kept separate from `hotmart.ts` so that file stays about transport — tokens,
-// retries, errors — and this one stays about what the endpoints mean. Every
-// function here is a candidate for the sandbox, whose canned responses match
-// these shapes.
+// retries, errors — and this one stays about what the endpoints mean.
+//
+// PATHS ARE NOT GUESSABLE. Hotmart namespaces by product area — products under
+// `/products/`, sales and subscriptions under `/payments/` — and it answers an
+// unknown URL with exactly the same `404 not_found` it uses for a resource that
+// does not exist. There is no probe that tells the two apart: a wrong HTTP verb
+// against a real path returns that same 404 too. So a misspelled path does not
+// look like a bug, it looks like missing data, and it will be blamed on whoever
+// typed the ID.
+//
+// Verified against production 2026-08-13: the products, sales-history and
+// subscriptions paths below returned 200 with real data. The refund and cancel
+// paths could not be verified — they need a real sale and a real subscriber —
+// and are marked as such at their definitions. `hotmartApi.test.ts` pins every
+// one of these strings.
 
 // --- Products ------------------------------------------------------------
 //
@@ -43,8 +55,14 @@ export async function getHotmartProduct(
     const query = new URLSearchParams({ id: productId, max_results: "1" });
 
     try {
+        // `/products/`, NOT `/payments/`. Hotmart namespaces its APIs by
+        // product area rather than putting everything under one prefix, and
+        // `/payments/api/v1/products` answers a 404 that looks exactly like
+        // "no such product" — which is how this first shipped, rejecting a
+        // perfectly real product ID. Sales and subscriptions genuinely do live
+        // under `/payments/`; products do not.
         const data = await hotmartFetch<{ items?: HotmartProduct[] }>(
-            `/payments/api/v1/products?${query}`
+            `/products/api/v1/products?${query}`
         );
 
         // The endpoint filters rather than fetches, so an unknown id comes back
@@ -93,6 +111,11 @@ export async function getHotmartSale(
 
 // Requests a refund for a sale.
 //
+// PATH UNVERIFIED — needs a real approved sale to exercise, and Hotmart's 404
+// for a wrong URL is indistinguishable from its 404 for an unknown transaction.
+// Confirm at the first live refund; if it fails, suspect the path before
+// suspecting the transaction code.
+//
 // Hotmart refuses unless the sale is Approved or Completed, is not in a trial,
 // and was not paid by BACS or SEPA — those two the buyer must reclaim through
 // their own bank. The response body is empty by design; the status code is the
@@ -112,6 +135,10 @@ export type HotmartSubscriptionResult = {
 };
 
 // Cancels a subscription, keyed on the subscriber code.
+//
+// PATH UNVERIFIED — needs a real subscriber to exercise. Same caveat as the
+// refund above. Unreachable at launch anyway: SUBSCRIPTIONS_ENABLED is false
+// and no Hotmart subscription product exists.
 //
 // `sendEmail` controls whether Hotmart tells the customer. We pass true: the
 // cancellation was their own request, and a silent one invites a "did that

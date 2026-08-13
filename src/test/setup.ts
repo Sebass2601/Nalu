@@ -26,7 +26,6 @@ const testEnv: Record<string, string> = {
     // absent: that combination is the one the app actually ships with, so it is
     // the one the tests should exercise.
     SUBSCRIPTIONS_ENABLED: "false",
-    SERVER_URL: "http://localhost:3000",
     // Shaped like the real thing — 32 hex characters — because the env schema
     // rejects anything else, which is what stops the S3 endpoint URL being
     // pasted here by mistake.

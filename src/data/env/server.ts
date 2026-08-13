@@ -119,11 +119,6 @@ export const env = createEnv ({
             .positive()
             .optional(),
 
-        // Absolute origin used to build links Hotmart or a buyer's browser
-        // comes back to. Kept server-side (no NEXT_PUBLIC_) because only server
-        // code ever builds a checkout URL.
-        SERVER_URL: z.url(),
-
         // --- Cloudflare R2 ------------------------------------------------
         // Lesson videos live in a private bucket and are only ever reachable
         // through short-lived presigned URLs. The account id is not a secret —
