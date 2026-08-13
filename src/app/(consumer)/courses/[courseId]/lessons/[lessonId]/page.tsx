@@ -107,19 +107,21 @@ async function Lesson({
                     anywhere. */}
                 <Link
                     href={`/courses/${courseId}`}
-                    className="flex items-center gap-2 self-start text-base tracking-widest text-ink-body uppercase transition-colors hover:text-ink-bright lg:hidden"
+                    className="flex items-center gap-2 self-start text-base tracking-widest text-gold uppercase transition-colors hover:text-gold-bright lg:hidden"
                 >
-                    <ChevronLeft className="size-4 text-gold" />
+                    <ChevronLeft className="size-4" />
                     Contenido del curso
                 </Link>
                 <p className="text-sm tracking-widest text-ink-meta uppercase">
                     {lesson.sectionName}
                 </p>
-                <h1 className="text-4xl tracking-wide text-ink-bright">
+                <h1 className="text-4xl tracking-wide text-gold">
                     {lesson.name}
                 </h1>
                 {lesson.description && (
-                    <p className="text-ink-body">{lesson.description}</p>
+                    <p className="font-sans text-base leading-relaxed tracking-normal text-ink-body">
+                        {lesson.description}
+                    </p>
                 )}
             </header>
 
@@ -245,7 +247,7 @@ async function LockedLesson({ courseId }: { courseId: string }) {
     return (
         <div className="flex flex-col items-center gap-6 rounded-xl border border-gold/40 bg-[#0a1628]/70 px-6 py-16 text-center backdrop-blur-md">
             <Lock className="size-12 text-ink-meta" />
-            <p className="text-ink-body">
+            <p className="font-sans text-base leading-relaxed tracking-normal text-ink-body">
                 Esta sección está bloqueada. Necesitas acceso al curso para
                 verla.
             </p>
@@ -278,7 +280,7 @@ async function LockedLesson({ courseId }: { courseId: string }) {
                             <PlaqueButton href="/subscribe">
                                 Suscribirme
                             </PlaqueButton>
-                            <p className="text-sm text-ink-meta">
+                            <p className="font-sans text-sm leading-relaxed tracking-normal text-ink-meta">
                                 Incluye este curso y todos los demás de la
                                 suscripción.
                             </p>

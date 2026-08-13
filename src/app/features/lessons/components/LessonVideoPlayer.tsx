@@ -63,7 +63,7 @@ export function LessonVideoPlayer({
     // the message says rather than guessing at a cause.
     if (failed) {
         return (
-            <div className="flex h-full w-full items-center justify-center bg-[#0a1628]/70 p-6 text-center text-base text-ink-meta">
+            <div className="flex h-full w-full items-center justify-center bg-[#0a1628]/70 p-6 text-center font-sans text-base tracking-normal text-ink-meta">
                 No se pudo cargar el vídeo. Recarga la página para volver a
                 intentarlo.
             </div>
