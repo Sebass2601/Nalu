@@ -119,7 +119,13 @@ async function ProductDetails({
                             })}
                         </p>
                     </div>
-                    <p className="text-xl text-ink-body">
+                    {/* `font-sans` against the Cinzel this page is set in: the
+                        description is a paragraph someone reads, and it is set
+                        in the same face the lesson pages use for their body
+                        copy. Cinzel stays on the headings and the lettering
+                        around it, which is where a display serif belongs.
+                        The size is unchanged. */}
+                    <p className="font-sans text-xl text-ink-body">
                         {product.description}
                     </p>
                     {/* Sells the product, or opens it if this visitor already

@@ -22,6 +22,13 @@ const CAPTION_CUT = 7
 const CAPTION_FACE = bevelFace(CAPTION_CUT)
 const CAPTION_BORDER = bevelOutline({ cut: CAPTION_CUT, inset: 0, width: 1 })
 
+// How long a caption may be before it is broken across two lines. Below this it
+// stays on one, which is what almost every description does — the length is set
+// where it is because the doorways closest together in the artwork are about
+// this wide, so a caption longer than this is one that would have run into its
+// neighbour.
+const CAPTION_WRAPS_AT = 18
+
 type CategoryButtonProps = Omit<React.ComponentProps<typeof Link>, "children"> & {
   children: string
   // A few words shown on a smaller bar joined to the bottom of the plaque.
@@ -35,6 +42,9 @@ type CategoryButtonProps = Omit<React.ComponentProps<typeof Link>, "children"> &
 // the text wrap on its own is what guarantees two lines: wrapping depends on how
 // wide the plaque happens to be, so a short label would stay on one line and a
 // long one would spill onto three. A single word is left alone.
+//
+// Used for the category name, which is always split, and for a caption long
+// enough to need it — see CAPTION_WRAPS_AT.
 function twoLines(label: string) {
   const words = label.trim().split(/\s+/)
   if (words.length < 2) return words
@@ -139,26 +149,36 @@ export default function CategoryButton({
           would leave the diamond floating between two separate objects.
 
           Sized by its own text rather than given a width, so the bar is only as
-          long as the words on it. The cap is in characters rather than a
-          percentage of the plaque: the plaque has no width of its own to take a
-          percentage of — it is as wide as its widest child, so an uncapped
-          caption would not be clipped by the plaque, it would stretch it.
-
-          The cap is 26ch for about 22 characters of caption: `ch` measures the
-          glyph and not the 0.18em of letter-spacing added after it, so a cap
-          set at the number of characters wanted cuts words off several short of
-          it. Descriptions are meant to be one to four words; a longer one is
-          cut short with an ellipsis rather than allowed to reshape the
-          doorway. */}
+          long as the words on it. A long description is broken onto a second
+          line rather than cut short: the bar is drawn over the artwork with
+          another doorway to either side, so length it cannot spend sideways it
+          spends downwards instead. */}
       {caption && (
-        <span className="relative mx-auto block w-fit max-w-[26ch]">
+        <span className="relative mx-auto block w-fit">
           <span
-            className="block truncate bg-[#0a1628]/70 px-3 py-1 text-center text-[0.625rem] leading-tight tracking-[0.18em] text-gold/75 uppercase backdrop-blur-md transition-colors duration-300 group-hover:bg-[#0a1628]/85 group-hover:text-gold sm:px-4 sm:py-1.5 sm:text-xs"
+            className="block bg-[#0a1628]/70 px-3 py-1 text-center text-[0.625rem] leading-tight tracking-[0.18em] text-gold/75 uppercase backdrop-blur-md transition-colors duration-300 group-hover:bg-[#0a1628]/85 group-hover:text-gold sm:px-4 sm:py-1.5 sm:text-xs"
             style={{ clipPath: CAPTION_FACE }}
           >
-            {/* Cancels the trailing space letter-spacing leaves after the last
-                character, exactly as the label above does. */}
-            <span className="block indent-[0.18em]">{caption}</span>
+            {/* Split by hand at the balanced word boundary, the same way the
+                name above is, rather than left to wrap: wrapping needs a width
+                to wrap against, and this bar has none — it is as wide as its
+                own text. `whitespace-nowrap` holds each half together for the
+                same reason, so a half that is still long stretches the bar
+                instead of breaking again at whatever width it happens to have
+                reached. */}
+            {(caption.length > CAPTION_WRAPS_AT
+              ? twoLines(caption)
+              : [caption]
+            ).map((line, index) => (
+              // Cancels the trailing space letter-spacing leaves after the last
+              // character, exactly as the label above does.
+              <span
+                key={index}
+                className="block indent-[0.18em] whitespace-nowrap"
+              >
+                {line}
+              </span>
+            ))}
           </span>
           {/* One rule only, and dimmer than the plaque's: the caption is read
               after the name, and matching the plaque's gold would make the two

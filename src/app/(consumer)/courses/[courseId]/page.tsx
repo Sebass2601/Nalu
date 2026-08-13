@@ -80,7 +80,10 @@ async function CourseOverview({
                     what the course is rather than where you are going next, so
                     it should not push the Up Next card further down the screen
                     than it has to. */}
-                <p className="text-base text-ink-body lg:text-xl">
+                {/* Set in the lesson pages' body face rather than this page's
+                    Cinzel, for the reason given beside the product
+                    description. Both sizes are unchanged. */}
+                <p className="font-sans text-base text-ink-body lg:text-xl">
                     {course.description}
                 </p>
             </header>
