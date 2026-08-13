@@ -83,30 +83,52 @@ async function Navbar() {
                     on a tablet than on the phone the padding was written for.
 
                     So: the avatar keeps the tight reserve it always had, and
-                    the pill gets one wide enough to hold it, carried through
-                    the tablet range and dropped at `lg` where the bar is wide
-                    enough that the row and the pill cannot reach each other.
-                    The gap closes to nothing on a phone in the signed-out case
-                    for the same reason the admin bar closes its own: the
-                    plaques carry their own padding, so the icons still stand
-                    12px apart and the 6px buys back a little of the reserve.
+                    the pill gets its own.
 
-                    The signed-out case also opens 8px earlier on the left
-                    (`pl-18` against the avatar's `pl-20`). The logo is a 72px
-                    box whose PNG carries about 10px of its own transparent
-                    margin, so the mark itself stops around 70px in and `pl-20`
-                    was clearing empty pixels. Spending those 8px here is what
-                    carries a 360px phone — the width where the reserve runs
-                    past the bar and the row can no longer be nudged left by
-                    centring — from touching the pill to clearing it.
+                    The pill's numbers are not guesses — they centre the row in
+                    the space actually left for it. Both corners are fixed
+                    distances from their own edge, measured in the browser: the
+                    logo ends 80px from the left (72px box at `left-2`), and the
+                    pill starts 116px from the right (a 96px pill at `right-4`
+                    inside a `px-1` wrapper). So the corridor between them has
+                    its middle at `width/2 - 18` — at EVERY width, since the two
+                    offsets are constants and the widths cancel.
 
-                    Both cases are sized down to 360px. Below that the
-                    signed-out row and the pill meet, which is the same floor
-                    the admin bar documents and for the same reason. */}
+                    A padded box centred by `mx-auto` sits `(pl - pr)/2` from the
+                    bar's middle, so the row lands on the corridor's middle when
+                    `pr - pl` is 36. It used to be 56 (`pr-32 pl-18`), which put
+                    the row 28px left instead of 18 — the drift that made the
+                    icons look pushed off-centre beside the pill, and the reason
+                    it looked right the moment an avatar replaced it.
+
+                    What is actually set is `pl-18 pr-22`: the corridor's middle
+                    plus a deliberate 10px to the right, asked for after seeing
+                    the centred version on a phone. The maths and the eye
+                    disagree here for a reason — the logo is a PNG carrying about
+                    10px of its own transparent margin, so the mark stops short
+                    of the 80px its box claims, and geometric centring reads as
+                    left-heavy. Measured at 500px: 102px clear on the left, 82 on
+                    the right.
+
+                    `sm` does the same sum with the sm numbers — the logo moves
+                    to `left-4` (ends 88) and the pill grows to 108 (starts 120
+                    from the right) — putting the corridor's middle at
+                    `width/2 - 16`, which asks for `pr - pl` of 32. `sm:pl-0`
+                    leaves `sm:pr-10` after the same nudge, replacing a `pr-40`
+                    that was reserving room for a pill 2.5x its actual width.
+                    Measured at 700px: 87px and 70px. At `lg` the reserve goes
+                    entirely; the bar is wide enough that the row and the pill
+                    cannot reach each other.
+
+                    Both cases are sized down to 360px, where the nudge spends
+                    the signed-out row's right-hand slack down to 12px — clear,
+                    and the tightest point on the scale. Below that it closes on
+                    the two corners, which is the same floor the admin bar
+                    documents and for the same reason. */}
                 <div
                     className={`mx-auto flex items-center lg:gap-4 ${
                         user == null
-                            ? "gap-0 pr-32 pl-18 sm:gap-2 sm:pr-40 sm:pl-0 lg:pr-0"
+                            ? "gap-0 pr-22 pl-18 sm:gap-2 sm:pr-10 sm:pl-0 lg:pr-0"
                             : "gap-0.5 pr-16 pl-20 sm:gap-2 sm:pr-0 sm:pl-0"
                     }`}
                 >
