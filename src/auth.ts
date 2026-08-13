@@ -29,6 +29,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         sessionsTable: SessionTable,
         verificationTokensTable: VerificationTokenTable,
     }),
+    // Derive the public URL from the headers Caddy sets, rather than from the
+    // address the server happens to be bound to.
+    //
+    // Without this, Auth.js has no idea what host it is publicly reachable at:
+    // the container binds 0.0.0.0, so it builds the OAuth `redirect_uri` as
+    // `https://0.0.0.0/...`, Google redirects the browser there, and the user
+    // gets ERR_SSL_PROTOCOL_ERROR from an address that is not a real host.
+    // Sign-in is the only thing that breaks, so the site looks perfectly
+    // healthy right up until somebody tries to log in.
+    //
+    // IN CODE, DELIBERATELY, rather than as AUTH_TRUST_HOST in the environment.
+    // This has now been lost once: it lived in the deploy's app.env, was
+    // documented nowhere, and vanished the moment that secret was regenerated
+    // from the credential list in deploy/README.md. A fact this load-bearing
+    // belongs where it cannot be dropped by editing an env file.
+    //
+    // Safe because the app container publishes no ports — see
+    // deploy/compose.prod.yml, where only Caddy binds 80 and 443. Every request
+    // reaching this process has passed through Caddy, so the Host and
+    // X-Forwarded-* headers are Caddy's and cannot be spoofed from outside.
+    trustHost: true,
     session: { strategy: "jwt" },
     callbacks: {
         async signIn({ user }) {

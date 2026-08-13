@@ -76,6 +76,14 @@ These values are never exposed to browsers: Next.js only embeds
 - **Google OAuth**: add `https://naluescuela.com` to the authorized origins
   and `https://naluescuela.com/api/auth/callback/google` to the authorized
   redirect URIs of the OAuth client in Google Cloud Console.
+
+  Nothing about the public URL belongs in this secret. Auth.js sets
+  `trustHost: true` in `src/auth.ts` and derives the host from the headers
+  Caddy sets. That used to depend on an environment variable, which was
+  documented nowhere and disappeared the first time this secret was
+  regenerated from the list above — producing an OAuth redirect to
+  `https://0.0.0.0/...` and an ERR_SSL_PROTOCOL_ERROR that only appears when
+  somebody tries to log in.
 - **Hotmart**: register the webhook under *Tools → Webhook* pointing at
   `https://naluescuela.com/api/webhooks/hotmart`, version `2.0.0`, subscribed
   to every event under *Compras* and *Suscripciones* and nothing else. Copy the
