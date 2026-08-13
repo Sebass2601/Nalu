@@ -29,26 +29,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         sessionsTable: SessionTable,
         verificationTokensTable: VerificationTokenTable,
     }),
-    // Derive the public URL from the headers Caddy sets, rather than from the
-    // address the server happens to be bound to.
+    // Trust the proxy in front of this app.
     //
-    // Without this, Auth.js has no idea what host it is publicly reachable at:
-    // the container binds 0.0.0.0, so it builds the OAuth `redirect_uri` as
-    // `https://0.0.0.0/...`, Google redirects the browser there, and the user
-    // gets ERR_SSL_PROTOCOL_ERROR from an address that is not a real host.
-    // Sign-in is the only thing that breaks, so the site looks perfectly
-    // healthy right up until somebody tries to log in.
+    // NOTE: this is NOT what makes sign-in work — `AUTH_URL` is. Auth.js builds
+    // every signinUrl and callbackUrl in `createActionURL`, which reads:
     //
-    // IN CODE, DELIBERATELY, rather than as AUTH_TRUST_HOST in the environment.
-    // This has now been lost once: it lived in the deploy's app.env, was
-    // documented nowhere, and vanished the moment that secret was regenerated
-    // from the credential list in deploy/README.md. A fact this load-bearing
-    // belongs where it cannot be dropped by editing an env file.
+    //     const envUrl = AUTH_URL ?? NEXTAUTH_URL
+    //     if (envUrl) { url = new URL(envUrl) }          // wins outright
+    //     else { host = x-forwarded-host ?? host ... }   // fallback
     //
-    // Safe because the app container publishes no ports — see
-    // deploy/compose.prod.yml, where only Caddy binds 80 and 443. Every request
-    // reaching this process has passed through Caddy, so the Host and
-    // X-Forwarded-* headers are Caddy's and cannot be spoofed from outside.
+    // The first branch never consults `trustHost` at all. On this deployment
+    // the fallback resolves to `https://0.0.0.0:3000` — the container's own
+    // listening socket — so Google is handed that as the redirect_uri, the
+    // browser is sent there, and sign-in dies with ERR_SSL_PROTOCOL_ERROR.
+    // Nothing else on the site breaks, which is why it can go unnoticed.
+    //
+    // So `AUTH_URL=https://naluescuela.com` must be present in the deploy's
+    // app.env, and deploy/README.md lists it for exactly that reason: it was
+    // dropped once when that secret was regenerated from a credential list
+    // that did not record it, and the only symptom was that nobody could
+    // log in.
+    //
+    // `trustHost` is kept because it is correct for an app that only ever
+    // receives proxied requests, and it governs whether a header-supplied host
+    // is accepted. It is safe here because the app container publishes no
+    // ports — see deploy/compose.prod.yml, where only Caddy binds 80 and 443 —
+    // so every Host header arriving has come through Caddy.
     trustHost: true,
     session: { strategy: "jwt" },
     callbacks: {

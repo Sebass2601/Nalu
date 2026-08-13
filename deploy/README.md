@@ -77,13 +77,21 @@ These values are never exposed to browsers: Next.js only embeds
   and `https://naluescuela.com/api/auth/callback/google` to the authorized
   redirect URIs of the OAuth client in Google Cloud Console.
 
-  Nothing about the public URL belongs in this secret. Auth.js sets
-  `trustHost: true` in `src/auth.ts` and derives the host from the headers
-  Caddy sets. That used to depend on an environment variable, which was
-  documented nowhere and disappeared the first time this secret was
-  regenerated from the list above — producing an OAuth redirect to
-  `https://0.0.0.0/...` and an ERR_SSL_PROTOCOL_ERROR that only appears when
-  somebody tries to log in.
+  **`AUTH_URL` is required and easy to lose.** Auth.js builds its sign-in and
+  callback URLs from `AUTH_URL` first; only if that is absent does it try the
+  proxy headers, and on this deployment that fallback resolves to the
+  container's own socket, `https://0.0.0.0:3000`. Google is then handed that as
+  the redirect_uri and the browser reports ERR_SSL_PROTOCOL_ERROR.
+
+  Sign-in is the only thing that breaks, so the site looks perfectly healthy.
+  This happened once already, when the secret was regenerated from a list that
+  did not mention `AUTH_URL`. It is in the example above now. Check it with:
+
+  ```bash
+  curl -s https://naluescuela.com/api/auth/providers
+  ```
+
+  The callbackUrl must read `https://naluescuela.com/...`, never `0.0.0.0`.
 - **Hotmart**: register the webhook under *Tools → Webhook* pointing at
   `https://naluescuela.com/api/webhooks/hotmart`, version `2.0.0`, subscribed
   to every event under *Compras* and *Suscripciones* and nothing else. Copy the
