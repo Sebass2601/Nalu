@@ -138,16 +138,20 @@ async function Navbar() {
                             <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 19V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v13H7a2 2 0 0 0-2 2Zm0 0a2 2 0 0 0 2 2h12M9 3v14m7 0v4"/></svg>
                         }
                     />
-                    {/* The exception: /subscription manages a plan you already hold
-                        and redirects anyone without a session to /login, so a
-                        visitor is sent to the public pricing page instead. */}
-                    <NavItem
-                        href={user ? "/subscription" : "/subscribe"}
-                        label="Suscripción"
-                        icon={
-                            <svg className="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h4m-7 5h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1Z"/></svg>
-                        }
-                    />
+                    {/* Suscripción had its plaque here, between Mis Cursos and
+                        Admin, linking to /subscription for a member and
+                        /subscribe for a visitor — the one exception in the row,
+                        since /subscription manages a plan you already hold and
+                        sends a sessionless visitor to /login.
+
+                        The doorway is gone because subscriptions are switched
+                        off, not because they were removed: /subscribe,
+                        /subscription and /subscription-management are all still
+                        here and still work if you type them. This takes the
+                        invitation off the bar so nobody is walked into a
+                        product that cannot be bought. Putting it back is
+                        restoring this one element — nothing downstream of it
+                        was touched. */}
                     {/* Compras is no longer a doorway of its own. A receipt log
                         is something you go looking for once in a while, not a
                         section of the site you move between, so it now lives

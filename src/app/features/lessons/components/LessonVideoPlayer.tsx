@@ -77,7 +77,21 @@ export function LessonVideoPlayer({
             // rather than leaving the previous video's playback state attached
             // to the next one.
             key={src}
-            src={src}
+            // `#t=0.1` is a media fragment: "start at 0.1 seconds". Browsers
+            // honour it by seeking there while loading metadata and painting
+            // that frame, which is what gives the player a still to show
+            // instead of an empty box with a play button over it. It is a
+            // poster without a poster file — nothing to generate, store, or
+            // sign, and the fragment is never sent to a server, so the
+            // presigned URL's signature is untouched.
+            //
+            // A tenth of a second in rather than 0: the opening frame of an
+            // H.264 file is often a black lead-in, and seeking to exactly 0 is
+            // the case browsers are least consistent about.
+            //
+            // This depends on `preload="metadata"` below. At `preload="none"`
+            // the browser fetches nothing and there is no frame to paint.
+            src={`${src}#t=0.1`}
             controls
             // Takes the download button out of the browser's own controls, and
             // the right-click handler below closes "Save video as…", which is

@@ -4,7 +4,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { DropdownMenu } from "radix-ui"
 import {
-    CreditCardIcon,
     LogOutIcon,
     ReceiptTextIcon,
     UserIcon,
@@ -111,11 +110,17 @@ export function UserMenuButton({
                         label="Editar perfil"
                         icon={<UserPenIcon aria-hidden className="size-4" />}
                     />
-                    <MenuLink
-                        href="/subscription-management"
-                        label="Manejar suscripción"
-                        icon={<CreditCardIcon aria-hidden className="size-4" />}
-                    />
+                    {/* "Manejar suscripción" sat here, linking to
+                        /subscription-management with a CreditCardIcon. It is
+                        hidden for the same reason the Suscripción plaque left
+                        the navbar: subscriptions are switched off, and neither
+                        door should be shown while there is nothing to buy or
+                        manage behind it.
+
+                        Hidden, not deleted anywhere else — the page and its
+                        logic are intact and still answer to their URL. Putting
+                        the item back is restoring these four lines and the
+                        CreditCardIcon import. */}
                     <MenuLink
                         href="/purchases"
                         label="Historial de compras"
