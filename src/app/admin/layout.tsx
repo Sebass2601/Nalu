@@ -43,8 +43,25 @@ export default function AdminLayout({
             that paint no background of their own (the new/edit forms) stay
             light. Pages with their own background, like the navy dashboard,
             simply draw over it. min-h-dvh includes the padding under
-            border-box, so this adds no scroll of its own. */}
-        <main className="pt-24 min-h-dvh bg-white">
+            border-box, so this adds no scroll of its own.
+
+            `color-scheme: light` and an explicit text colour are both
+            load-bearing, not decoration. The document declares
+            `colorScheme: "dark"` in the root layout's viewport metadata, which
+            is right for the navy consumer site — but it also switches the
+            BROWSER'S OWN defaults: the initial text colour becomes white and
+            form controls render dark-side-up. Painting a white background here
+            without overriding that left every piece of text that does not set
+            its own colour — form labels, fieldset legends, and the values typed
+            into inputs — as white on white. The red required asterisk and the
+            grey field descriptions stayed visible only because they each carry
+            an explicit colour, which is what made the failure look like
+            "the form lost its labels" rather than "the surface lost its
+            foreground".
+
+            The rule this encodes: a surface that overrides the background must
+            also declare the foreground and the colour scheme that go with it. */}
+        <main className="pt-24 min-h-dvh bg-white text-neutral-900 [color-scheme:light]">
             <Suspense fallback={null}>
                 <AdminGate>{children}</AdminGate>
             </Suspense>
