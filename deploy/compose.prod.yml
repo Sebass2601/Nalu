@@ -54,6 +54,19 @@ services:
       # the tunnel-facing values in .env say.
       - DB_HOST=db
       - DB_PORT=5432
+    volumes:
+      # Resized images, kept out of the container so they survive it. A deploy
+      # replaces the app container, and without somewhere durable to live the
+      # whole cache is thrown away every push — the first reader of every
+      # lesson after every deploy pays the full download-and-re-encode again.
+      #
+      # Deliberately the `images` directory and not the whole of `.next/cache`.
+      # The prerender and fetch caches beside it are keyed to the build that
+      # wrote them, and carrying those across a deploy is how a code change
+      # ships and then serves the previous version's pages. Resized images have
+      # no such tie: they are keyed by source URL, width and quality, and
+      # expire on their own.
+      - image_cache:/app/.next/cache/images
     depends_on:
       db:
         condition: service_healthy
@@ -75,5 +88,6 @@ services:
 
 volumes:
   pgdata:
+  image_cache:
   caddy_data:
   caddy_config:

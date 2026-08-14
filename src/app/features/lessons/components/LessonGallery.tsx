@@ -2,13 +2,25 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
+import { galleryNeighbourIndexes } from "../lib/galleryNeighbours";
 
 export type LessonImage = {
     id: string;
     url: string;
     caption: string | null;
 };
+
+// Every image in a lesson is drawn at the same size, quality and breakpoints,
+// and that has to stay true of the invisible copies used to fetch ahead as well
+// as the one on screen. The browser picks which entry of `srcSet` to download
+// from `sizes`, not from how big the element happens to be, so a hidden image
+// carrying these same values asks for the very same URL the visible one will
+// ask for a moment later — which is the whole point, since a fetch of a
+// different width would warm nothing.
+const IMAGE_SIZES = "(max-width: 768px) 100vw, 40vw";
+const IMAGE_WIDTH = 1200;
+const IMAGE_HEIGHT = 900;
 
 // The picture that sits inside a lesson's text, with its own caption underneath
 // and arrows to move between pictures when there is more than one.
@@ -23,6 +35,11 @@ export type LessonImage = {
 // narrow leaves text in unreadable slivers beside it.
 export function LessonGallery({ images }: { images: LessonImage[] }) {
     const [index, setIndex] = useState(0);
+    // Which images have arrived and been decoded, held by URL rather than by
+    // position. An image the reader has already been shown stays marked when
+    // they come back round to it, so the spinner appears once per image at
+    // most and never on a second pass through the gallery.
+    const [loaded, setLoaded] = useState<ReadonlySet<string>>(new Set());
 
     if (images.length === 0) return null;
 
@@ -32,7 +49,22 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
     // gets.
     const total = images.length;
     const image = images[index];
-    const go = (step: number) => setIndex((index + step + total) % total);
+
+    // Stepping from the previous value rather than from the `index` this render
+    // closed over. Two clicks landing in one batch both read the same stale
+    // `index` otherwise, and the second one silently undoes the first — an
+    // impatient double-tap on the arrow moving the gallery one image, or none.
+    const go = (step: number) =>
+        setIndex(current => (current + step + total) % total);
+
+    const markLoaded = (url: string) =>
+        setLoaded(current => new Set(current).add(url));
+
+    // The picture on screen is the previous one until the new bytes arrive: a
+    // browser handed a new address on an existing image goes on painting what
+    // it already has, and there is no placeholder underneath to give it away.
+    // Without this flag a click looks like it did nothing at all.
+    const isLoading = !loaded.has(image.url);
 
     return (
         <figure className="mb-4 w-full md:float-left md:mr-6 md:w-2/5">
@@ -60,12 +92,61 @@ export function LessonGallery({ images }: { images: LessonImage[] }) {
                     <Image
                         src={image.url}
                         alt={image.caption ?? ""}
-                        width={1200}
-                        height={900}
-                        className="block h-auto w-full"
-                        sizes="(max-width: 768px) 100vw, 40vw"
+                        width={IMAGE_WIDTH}
+                        height={IMAGE_HEIGHT}
+                        className={`block h-auto w-full transition-opacity duration-200 ${
+                            isLoading ? "opacity-40" : "opacity-100"
+                        }`}
+                        sizes={IMAGE_SIZES}
+                        onLoad={() => markLoaded(image.url)}
                     />
+
+                    {/* Fading the stale picture back and turning a ring over it
+                        is the honest reading of the state: something is coming,
+                        what you are looking at is not it yet. Dimming rather
+                        than blanking keeps the frame the size it already is, so
+                        the lesson text wrapped around the figure does not
+                        reflow on every step through the gallery. */}
+                    {isLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <LoaderCircle className="size-8 animate-spin text-gold/80" />
+                        </div>
+                    )}
                 </div>
+
+                {/* The next image and the previous one, fetched now and drawn
+                    nowhere. This is what makes the arrows feel immediate: by the
+                    time the reader clicks, the picture is already in the
+                    browser's cache and swapping to it costs nothing.
+
+                    Invisible by way of a transparent one-pixel box rather than
+                    `display:none`, which browsers are entitled to treat as a
+                    reason not to bother fetching at all, and `eager` because the
+                    default is to defer anything this far out of view — the two
+                    settings that would each, on their own, quietly turn this
+                    into no preloading whatsoever.
+
+                    They report their own arrival too, so an image fetched ahead
+                    is already marked by the time it is asked for and shows no
+                    spinner at all. */}
+                {galleryNeighbourIndexes(index, total).map(neighbourIndex => {
+                    const neighbour = images[neighbourIndex];
+
+                    return (
+                        <Image
+                            key={neighbour.id}
+                            src={neighbour.url}
+                            alt=""
+                            aria-hidden
+                            width={IMAGE_WIDTH}
+                            height={IMAGE_HEIGHT}
+                            sizes={IMAGE_SIZES}
+                            loading="eager"
+                            className="pointer-events-none absolute size-px opacity-0"
+                            onLoad={() => markLoaded(neighbour.url)}
+                        />
+                    );
+                })}
 
                 {total > 1 && (
                     <>
