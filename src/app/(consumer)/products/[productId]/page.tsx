@@ -188,7 +188,38 @@ async function ProductDetails({
                     ))}
                 </div>
             )}
+
+            <ContentSummary summary={product.contentSummary} />
         </>
+    );
+}
+
+// The long-form account of what the course covers, in a panel matching the
+// syllabus cards above it.
+//
+// Full width rather than joining the grid: it is prose, and prose in a
+// half-width column beside a syllabus would be read as a caption on the
+// syllabus instead of as its own section. Absent entirely when there is
+// nothing to show — the column is nullable and most products will not have
+// one, and an empty bordered box reads as something that failed to load. The
+// trim is what stops a textarea holding only whitespace from drawing one.
+function ContentSummary({ summary }: { summary: string | null }) {
+    if (summary == null || summary.trim() === "") return null;
+
+    return (
+        <div className="mt-8 rounded-2xl border border-gold/40 bg-[#0a1628]/70 p-5 backdrop-blur-md">
+            <h2 className="text-2xl tracking-wide text-ink-bright">
+                Contenido del Curso
+            </h2>
+            {/* `font-sans` for the same reason the description above uses it:
+                this is body copy someone reads at length, and Cinzel stays on
+                the heading. `whitespace-pre-line` preserves the paragraph
+                breaks typed into the admin textarea while still wrapping each
+                line to the width of the panel. */}
+            <p className="mt-3 font-sans text-lg whitespace-pre-line text-ink-body">
+                {summary}
+            </p>
+        </div>
     );
 }
 
@@ -365,6 +396,7 @@ async function getPublicProductWithSyllabus(id: string) {
             description: true,
             imageUrl: true,
             priceInDollars: true,
+            contentSummary: true,
         },
         where: and(
             eq(ProductTable.id, id),

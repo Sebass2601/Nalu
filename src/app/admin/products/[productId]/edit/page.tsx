@@ -56,6 +56,7 @@ async function getProduct(id: string) {
             priceInDollars: true,
             status: true,
             imageUrl: true,
+            contentSummary: true,
             externalProductId: true,
             checkoutCode: true,
             externalOfferCode: true,

@@ -49,6 +49,7 @@ export function ProductForm({
         imageUrl: string
         status: productStatus
         courseIds: string[]
+        contentSummary?: string | null
         externalProductId?: string | null
         checkoutCode?: string | null
         externalOfferCode?: string | null
@@ -84,6 +85,7 @@ export function ProductForm({
             externalProductId: "",
             checkoutCode: "",
             externalOfferCode: "",
+            contentSummary: "",
             promoOfferCode: "",
             promoPriceInDollars: null,
             promoEndsAt: null,
@@ -417,6 +419,34 @@ export function ProductForm({
                             <FormControl>
                                 <Textarea className="min-h-20 resize-none" {...field} />
                             </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                {/* The long-form panel under the syllabus, as opposed to the
+                    one-paragraph pitch above. Taller and resizable because it
+                    is written at whatever length the material needs, and
+                    `value ?? ""` because a stored null must not hand a
+                    controlled textarea an undefined value. */}
+                <FormField
+                    control={form.control}
+                    name="contentSummary"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Contenido del curso</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                    className="min-h-40"
+                                    {...field}
+                                    value={field.value ?? ""}
+                                />
+                            </FormControl>
+                            <FormDescription>
+                                Opcional. Se muestra en su propio recuadro
+                                debajo de las clases. Los saltos de línea se
+                                respetan; si lo dejas vacío, el recuadro no
+                                aparece.
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}

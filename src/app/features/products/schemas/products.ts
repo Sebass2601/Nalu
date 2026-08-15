@@ -25,6 +25,10 @@ export const productSchema = z.object({
         z.string().startsWith("/", "Invalid url"),
     ]),
     status: z.enum(productStatuses),
+    // The long-form panel under the syllabus. Optional, and blank means the
+    // panel is left off the page rather than drawn empty — so an untouched
+    // textarea has to arrive as null, not "".
+    contentSummary: emptyToNull(z.string()),
     // A product must bundle at least one course, otherwise buying it grants
     // access to nothing.
     courseIds: z.array(z.string()).min(1, "At least one course is required"),

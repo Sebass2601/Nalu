@@ -46,6 +46,17 @@ export const ProductTable = pgTable("products", {
     promoOfferCode: text(),
     promoPriceInDollars: integer(),
     promoEndsAt: timestamp({ withTimezone: true }),
+
+    // Long-form copy about what the course actually contains, shown as its own
+    // panel under the syllabus on the product page.
+    //
+    // Separate from `description` because the two answer different questions at
+    // different lengths: `description` is the one-paragraph pitch that sits
+    // beside the price and also has to fit on a catalogue card, while this is
+    // however many paragraphs it takes to lay out the material. Nullable, and
+    // the panel is simply absent when it is null — every product that predates
+    // this column keeps the page it already had.
+    contentSummary: text(),
     createdAt,
     updatedAt,
 });
