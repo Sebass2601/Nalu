@@ -215,8 +215,12 @@ function ContentSummary({ summary }: { summary: string | null }) {
                 this is body copy someone reads at length, and Cinzel stays on
                 the heading. `whitespace-pre-line` preserves the paragraph
                 breaks typed into the admin textarea while still wrapping each
-                line to the width of the panel. */}
-            <p className="mt-3 font-sans text-lg whitespace-pre-line text-ink-body">
+                line to the width of the panel.
+
+                The hairline above it is the same `gold/20` the syllabus draws
+                between its sections, so the two panels rule their contents off
+                the same way. */}
+            <p className="mt-3 border-t border-gold/20 pt-4 font-sans text-lg whitespace-pre-line text-ink-body">
                 {summary}
             </p>
         </div>
