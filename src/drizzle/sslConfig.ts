@@ -23,10 +23,11 @@ export function sslConfig(): false | { ca: string; rejectUnauthorized: true } {
 
     if (!env.DB_CA_CERT_PATH) {
         throw new Error(
-            "DB_SSL is enabled but DB_CA_CERT_PATH is not set. Supabase signs " +
-                "its certificates with a private CA, so verification needs the " +
-                "root certificate downloaded from the dashboard " +
-                "(Settings -> Database -> SSL Configuration).",
+            "DB_SSL is enabled but DB_CA_CERT_PATH is not set. The production " +
+                "Postgres is signed by our own private CA, so verification " +
+                "needs that root certificate: point this at " +
+                "certs/nalu-prod-ca.crt (see \"Direct database access\" in " +
+                "deploy/README.md).",
         );
     }
 
@@ -38,8 +39,9 @@ export function sslConfig(): false | { ca: string; rejectUnauthorized: true } {
     if (!fs.existsSync(certPath)) {
         throw new Error(
             `DB_CA_CERT_PATH points at ${certPath}, which does not exist. ` +
-                "Download the certificate from the Supabase dashboard " +
-                "(Settings -> Database -> SSL Configuration) and save it there.",
+                "The certificate is committed at certs/nalu-prod-ca.crt — " +
+                "point this at that file, or clear DB_SSL if this connection " +
+                "does not cross the public internet.",
         );
     }
 

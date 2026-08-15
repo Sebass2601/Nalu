@@ -5,10 +5,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Deployment
 
-Every push to `main` deploys to BOTH Vercel (its Git integration, Supabase
-DB) and a self-hosted Hetzner server (naluescuela.com, own Postgres) via
-`.github/workflows/deploy-hetzner.yml`. Hetzner migrations and seed run
-automatically on deploy; Supabase migrations are manual
-(`pnpm db:migrate:remote`). Server access is SSH-key-only — no passwords
-exist. Read `deploy/README.md` before touching anything deployment-related.
+Every push to `main` deploys to the self-hosted Hetzner server
+(naluescuela.com, own Postgres) via `.github/workflows/deploy-hetzner.yml`,
+which is the only deployment target. Migrations and seed run automatically
+on deploy — there is no manual migration step anywhere. Server access is
+SSH-key-only — no passwords exist. Read `deploy/README.md` before touching
+anything deployment-related.
 <!-- END:nextjs-agent-rules -->

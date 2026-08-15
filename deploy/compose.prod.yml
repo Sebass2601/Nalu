@@ -25,8 +25,8 @@ services:
     ports:
       # Loopback publish for the deploy workflow's SSH-tunnelled migrations.
       - "127.0.0.1:5432:5432"
-      # Public, Supabase-style direct access: TLS-only (enforced by pg_hba),
-      # scram auth, dedicated roles. Clients verify the server with
+      # Public direct access: TLS-only (enforced by pg_hba), scram auth,
+      # dedicated roles. Clients verify the server with
       # certs/nalu-prod-ca.crt from the repo.
       - "6543:5432"
     volumes:

@@ -8,39 +8,42 @@ export const env = createEnv ({
         DB_NAME: z.string().min(1),
         DB_HOST: z.string().min(1),
 
-        // Which Supabase pooler to talk to. The port is the only thing that
-        // distinguishes them, and the right choice depends on the caller:
+        // Which way in to the production Postgres. It publishes two ports,
+        // and which one applies depends on where the caller is standing:
         //
-        //   5432  session mode — one server connection held for the whole
-        //         session. Supports prepared statements, SET, and advisory
-        //         locks, so migrations need it. Used locally and by the
-        //         :remote scripts.
-        //   6543  transaction mode — a server connection is borrowed per
-        //         transaction and handed back. No session state survives
-        //         between statements, but thousands of clients can share a
-        //         few connections. Serverless needs it, so this is what
-        //         Vercel is configured with.
+        //   5432  the ordinary Postgres port. Published on loopback only, so
+        //         it is reachable from the server itself or through an SSH
+        //         tunnel — which is how the deploy workflow runs migrations.
+        //         Also what the app uses in-network, where compose overrides
+        //         DB_HOST/DB_PORT to reach the `db` service directly.
+        //   6543  the public, TLS-only port for people connecting from
+        //         outside (a psql session, a GUI client). pg_hba refuses an
+        //         unencrypted connection here, so DB_SSL and DB_CA_CERT_PATH
+        //         below are required with it.
         //
         // Defaults to 5432 because that is also plain Postgres's port, which
         // keeps the local Docker setup free of extra configuration.
         DB_PORT: z.coerce.number().int().positive().default(5432),
 
         // Whether to encrypt the database connection. Local Postgres runs in
-        // Docker on loopback, where TLS buys nothing and would only add setup;
-        // Supabase is reached across the public internet, where the password
-        // and every row would otherwise travel in the clear. Defaults to off
-        // so the local path stays zero-config — remote env files opt in.
+        // Docker on loopback, and in production the app reaches the database
+        // over the private compose network — neither crosses a hostile link,
+        // so TLS buys nothing and would only add setup. It matters on the
+        // public 6543 port above, where the password and every row would
+        // otherwise travel in the clear. Defaults to off so both zero-config
+        // paths stay zero-config; a client on 6543 opts in.
         DB_SSL: z
             .enum(["true", "false"])
             .default("false")
             .transform(value => value === "true"),
 
         // Path to the certificate authority that signed the database's TLS
-        // certificate. Supabase signs with its own private CA rather than a
-        // public one, so the system trust store rejects it and verification
-        // needs this file explicitly. Optional only because DB_SSL=false has
-        // nothing to verify; sslConfig() rejects the half-configured case of
-        // SSL on with no CA, which would otherwise silently skip validation.
+        // certificate. Production Postgres is signed by our own root CA
+        // (certs/nalu-prod-ca.crt) rather than a public one, so the system
+        // trust store rejects it and verification needs this file explicitly.
+        // Optional only because DB_SSL=false has nothing to verify;
+        // sslConfig() rejects the half-configured case of SSL on with no CA,
+        // which would otherwise silently skip validation.
         DB_CA_CERT_PATH: z.string().optional(),
 
         AUTH_SECRET: z.string().min(1),

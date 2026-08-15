@@ -1,11 +1,9 @@
 # Deploying Nalu
 
-Every push to `main` deploys twice, independently:
-
-- **Vercel** — through its own Git integration, using the Vercel project's
-  environment (Supabase database). Nothing in this folder affects it.
-- **Hetzner** — `naluescuela.com`, a single server with its own Postgres,
-  deployed by [`.github/workflows/deploy-hetzner.yml`](../.github/workflows/deploy-hetzner.yml).
+Every push to `main` deploys to **Hetzner** — `naluescuela.com`, a single
+server with its own Postgres, deployed by
+[`.github/workflows/deploy-hetzner.yml`](../.github/workflows/deploy-hetzner.yml).
+That is the only deployment target.
 
 ## How the Hetzner deploy works
 
@@ -143,10 +141,10 @@ There are no passwords anywhere in this setup — do not go looking for one:
 
   Contributors without SSH access use the direct TLS port below.
 
-## Direct database access (Supabase-style)
+## Direct database access (public TLS port)
 
-Postgres is also published on **`naluescuela.com:6543`**, protected the
-same way Supabase protects theirs: TLS is mandatory (`pg_hba.conf` rejects
+Postgres is also published on **`naluescuela.com:6543`** for connections
+from outside the server. TLS is mandatory (`pg_hba.conf` rejects
 unencrypted remote connections outright), auth is scram-sha-256, and every
 person gets their own role — never the app's `nalu` user.
 

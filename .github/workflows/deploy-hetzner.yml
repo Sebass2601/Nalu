@@ -1,6 +1,5 @@
-# Deploys to the Hetzner server on every push to main. Vercel deploys the
-# same push independently through its Git integration; the two share nothing
-# but the commit — the Hetzner stack has its own Postgres.
+# Deploys to the Hetzner server on every push to main. This is the only
+# deployment target — the stack there runs its own Postgres.
 #
 # Required repository secrets:
 #   NALU_SSH_KEY        private key whose public half is on the server
@@ -17,8 +16,7 @@
 # with no courses in it.
 #
 # So the build now talks to the real production database through the SSH tunnel
-# this workflow already opens, which is what Vercel effectively does on its side
-# (its build reads Supabase). Migrations run first, because the new code is
+# this workflow already opens. Migrations run first, because the new code is
 # prerendered against the schema it expects.
 #
 # Consequence worth knowing: if the build fails, production has already been
