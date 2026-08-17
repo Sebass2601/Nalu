@@ -28,6 +28,7 @@ import {
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { BackLink } from "@/components/ui/BackToHomeLink";
 import { formatPlural } from "@/lib/formatters";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -44,8 +45,10 @@ export default function ProductPage({
 }) {
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="pt-32 px-4 max-w-6xl mx-auto pb-16">
                 {/* Outside the boundary below, and above everything the
                     product itself draws. Where it goes does not depend on

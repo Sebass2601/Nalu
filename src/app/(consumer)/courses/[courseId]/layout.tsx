@@ -8,6 +8,7 @@ import {
 } from "@/app/features/courses/db/courseOutline";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { userHasCourseAccess } from "@/app/features/courses/db/courseAccess";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -33,8 +34,10 @@ export default function CourseLayout({
 }: LayoutProps<"/courses/[courseId]">) {
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             {/* Two columns side by side on a wide screen. On a phone they stack
                 into one, and `order` on the children puts the lesson — or the
                 course heading — above the contents list, which is the sequence

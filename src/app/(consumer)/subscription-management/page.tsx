@@ -8,6 +8,7 @@ import { getUserSubscription } from "@/app/features/subscriptions/db/subscriptio
 import { cancelSubscription } from "@/app/features/subscriptions/actions/subscriptions";
 import { cinzel } from "@/components/ui/fonts";
 import { PlaqueSubmitButton } from "@/components/ui/PlaqueSubmitButton";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 // The state of your plan, and the button that ends it.
 //
@@ -30,8 +31,10 @@ export default function SubscriptionManagementPage() {
 
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="mx-auto w-full max-w-2xl px-4 pt-28 pb-16 sm:pt-32">
                 <Suspense fallback={<Skeleton />}>
                     <SubscriptionDetails />

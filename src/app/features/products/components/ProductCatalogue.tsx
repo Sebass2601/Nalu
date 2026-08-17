@@ -2,6 +2,7 @@ import { CategoryNav } from "@/app/features/categories/components/CategoryNav";
 import { ProductCard } from "./ProductCard";
 import { DraggableStrip } from "@/components/ui/DraggableStrip";
 import { Cinzel } from "next/font/google";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -24,8 +25,10 @@ export type CatalogueProduct = {
 export function CatalogueShell({ children }: { children: React.ReactNode }) {
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="pt-32 px-4 max-w-6xl mx-auto pb-16">{children}</div>
         </main>
     );

@@ -5,6 +5,7 @@ import { MyCourseCard } from "@/app/features/courses/components/MyCourseCard";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { DraggableStrip } from "@/components/ui/DraggableStrip";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -18,8 +19,10 @@ const cinzel = Cinzel({ subsets: ["latin"] });
 export default function MyCoursesPage() {
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="mx-auto max-w-6xl px-4 pt-32 pb-16">
                 <h1 className="mb-8 text-center text-4xl tracking-widest text-ink">
                     Mis cursos

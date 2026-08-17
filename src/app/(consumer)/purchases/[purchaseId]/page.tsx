@@ -11,6 +11,7 @@ import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { formatDate, formatPrice } from "@/lib/formatters";
 import { cinzel } from "@/components/ui/fonts";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 // The receipt for a single purchase, kept here rather than only on Hotmart.
 //
@@ -26,8 +27,10 @@ export default function PurchaseReceiptPage({
 }) {
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="mx-auto w-full max-w-2xl px-4 pt-32 pb-16">
                 {/* The params promise is handed down rather than awaited here.
                     Awaiting it in the shell would make the whole route wait on

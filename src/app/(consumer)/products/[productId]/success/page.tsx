@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getPublicProduct } from "@/app/features/products/db/products";
 import { cinzel } from "@/components/ui/fonts";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 // Where the buyer lands after the webhook has granted their access. By the time
 // this renders the purchase is already recorded — the GET handler on the
@@ -16,8 +17,10 @@ export default function PurchaseSuccessPage({
 }) {
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="mx-auto max-w-3xl px-4 pt-32 pb-16">
                 <Suspense fallback={<SuccessSkeleton />}>
                     <SuccessDetails params={params} />

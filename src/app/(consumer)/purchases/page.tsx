@@ -4,6 +4,7 @@ import { getUserPurchases } from "@/app/features/purchases/db/userPurchases";
 import { PurchaseRow } from "@/app/features/purchases/components/PurchaseRow";
 import { cinzel } from "@/components/ui/fonts";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 // The receipt log behind the Compras tab: every one-time purchase this person
 // has made, newest first.
@@ -15,8 +16,10 @@ import { PlaqueButton } from "@/components/ui/PlaqueButton";
 export default function PurchasesPage() {
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="mx-auto w-full max-w-4xl px-4 pt-32 pb-16">
                 <h1 className="mb-8 text-center text-4xl tracking-widest text-ink">
                     Mis compras

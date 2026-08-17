@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { getProfileUser } from "@/app/features/users/db/users";
 import { ProfileForm } from "@/app/features/users/components/ProfileForm";
 import { cinzel } from "@/components/ui/fonts";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 // Where a person edits their own account: photo, name, email, password.
 //
@@ -13,8 +14,10 @@ import { cinzel } from "@/components/ui/fonts";
 export default function ProfilePage() {
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="mx-auto w-full max-w-2xl px-4 pt-28 pb-16 sm:pt-32">
                 <h1 className="mb-8 text-4xl tracking-wide text-ink-bright">
                     Editar perfil

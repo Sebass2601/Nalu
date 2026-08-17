@@ -1,5 +1,6 @@
 import { cinzel } from "@/components/ui/fonts";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 // Where Hotmart sends the buyer after a successful payment.
 //
@@ -26,8 +27,10 @@ import { PlaqueButton } from "@/components/ui/PlaqueButton";
 export default function PurchaseSuccessPage() {
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="mx-auto flex max-w-2xl flex-col items-center gap-8 px-4 pt-32 pb-16 text-center">
                 <div className="flex flex-col gap-3">
                     <p className="text-sm tracking-[0.3em] text-ink-body uppercase">

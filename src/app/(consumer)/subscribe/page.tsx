@@ -12,6 +12,7 @@ import {
     SubscriptionCourseRowsSkeleton,
 } from "@/app/features/courses/components/SubscriptionCourseRows";
 import { PlaqueSubmitButton } from "@/components/ui/PlaqueSubmitButton";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 // The subscription offer: both billing intervals side by side, plus the actual
 // list of courses it unlocks.
@@ -27,8 +28,10 @@ export default function SubscribePage() {
 
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <div className="mx-auto w-full max-w-4xl px-4 pt-28 pb-8 sm:pt-32">
                 <div className="flex flex-col items-center gap-3 text-center">
                     <p className="text-sm tracking-[0.3em] text-ink-body uppercase">

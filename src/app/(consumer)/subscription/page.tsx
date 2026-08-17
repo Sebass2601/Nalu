@@ -8,6 +8,7 @@ import {
     SubscriptionCourseRows,
     SubscriptionCourseRowsSkeleton,
 } from "@/app/features/courses/components/SubscriptionCourseRows";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 // What your plan gets you: the courses included in the subscription, and
 // nothing else.
@@ -26,8 +27,10 @@ export default function SubscriptionPage() {
 
     return (
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             {/* Wider than a reading column on purpose: a row that stops at a
                 panel's edge cannot show a card being cut off, and the cut is
                 what says the row continues. */}
