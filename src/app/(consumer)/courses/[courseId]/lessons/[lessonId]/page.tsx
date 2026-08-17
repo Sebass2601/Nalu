@@ -7,11 +7,10 @@ import { CheckSquare2, ChevronLeft, ChevronRight, Lock, Square } from "lucide-re
 import { db } from "@/drizzle/db";
 import {
     CourseSectionTable,
-    ImageLessonTable,
     LessonTable,
     UserLessonCompleteTable,
 } from "@/drizzle/schema";
-import { getLessonIdTag } from "@/app/features/lessons/db/cache/lessons";
+import { getPublishedLesson } from "@/app/features/lessons/db/lessonDetail";
 import { getUserLessonCompleteIdTag } from "@/app/features/lessons/db/cache/userLessonComplete";
 import { updateLessonCompleteStatus } from "@/app/features/lessons/actions/userLessonComplete";
 import { canUpdateUserLessonCompleteStatus } from "@/app/features/lessons/permissions/userLessonComplete";
@@ -55,7 +54,7 @@ async function Lesson({
     params: Promise<{ courseId: string; lessonId: string }>;
 }) {
     const { courseId, lessonId } = await params;
-    const lesson = await getLesson(lessonId);
+    const lesson = await getPublishedLesson(lessonId);
 
     if (lesson == null) return notFound();
 
@@ -366,58 +365,6 @@ function LessonSkeleton() {
             <div className="aspect-video w-full rounded-xl bg-[#0a1628]/40" />
         </div>
     );
-}
-
-// The lesson with everything needed to render it, including its pictures and the
-// name of the section it sits in. Private lessons are excluded outright, so an
-// unpublished lesson 404s rather than appearing locked.
-async function getLesson(id: string) {
-    "use cache";
-    cacheTag(getLessonIdTag(id));
-
-    const lesson = await db.query.LessonTable.findFirst({
-        columns: {
-            id: true,
-            name: true,
-            description: true,
-            type: true,
-            // The key, never a URL. A key is a plain identifier — safe to
-            // cache, safe to log. The signed URL built from it is neither,
-            // which is why it is minted outside this cached scope.
-            videoKey: true,
-            videoWidth: true,
-            videoHeight: true,
-            content: true,
-            status: true,
-            sectionId: true,
-            order: true,
-        },
-        where: and(
-            eq(LessonTable.id, id),
-            inArray(LessonTable.status, ["public", "preview"])
-        ),
-        with: {
-            section: { columns: { name: true, courseId: true, status: true } },
-            images: {
-                columns: { id: true, url: true, caption: true },
-                orderBy: asc(ImageLessonTable.order),
-            },
-        },
-    });
-
-    if (lesson == null) return null;
-
-    // A lesson inside an unpublished section is not part of the course yet,
-    // whatever the lesson's own status says.
-    if (lesson.section.status !== "public") return null;
-
-    const { section, ...rest } = lesson;
-
-    return {
-        ...rest,
-        sectionName: section.name,
-        courseId: section.courseId,
-    };
 }
 
 async function getIsLessonComplete({

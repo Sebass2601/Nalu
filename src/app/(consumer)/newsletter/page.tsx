@@ -1,32 +1,57 @@
-import { cinzel } from "@/components/ui/fonts";
-import { BackLink } from "@/components/ui/BackToHomeLink";
+import { redirect } from "next/navigation";
+import { getFreeCourseOutline } from "@/app/features/courses/db/freeCourse";
+import { landingLessonId } from "@/app/features/courses/lib/freeCourseLanding";
+import { FREE_COURSE_TITLE } from "@/app/features/courses/lib/freeCourseNames";
 
-// Behind the crystal on the salon table.
+// The door into the free course. It has no content of its own: it works out where
+// the course currently starts and sends the reader there, so /newsletter is an
+// address that keeps pointing at the newest material as more is added.
 //
-// Empty on purpose for now, like /announcements beside it — the doorway is drawn
-// and the room is bare, which beats a plaque that goes nowhere.
+// The redirect is what gives every section a URL of its own — shareable,
+// reloadable, reachable with the back button — while the bare /newsletter link on
+// the front page keeps meaning "the latest".
 //
-// Written out rather than shared with that page even though the two are the same
-// shape today. They are two stubs on their way to becoming different things: a
-// feed of notices on one side and a sign-up on the other, and an abstraction over
-// them would be predicting a resemblance that is not going to last.
-export default function NewsletterPage() {
+// The outline is awaited here, in the page itself, rather than inside a
+// <Suspense> boundary — which is deliberate and load-bearing. `redirect` behaves
+// differently depending on where it is called from: reached while the response is
+// already streaming, it can only ask the browser to redirect itself, which it
+// does by writing a `<meta http-equiv="refresh" content="1;...">` into the page —
+// a full second of blank screen before anything happens. Called before the
+// response has begun, it is a 307 and the browser never renders this page at all.
+//
+// Awaiting it up here is allowed because the outline is a cached read, not
+// request-time data: there is no `params`, no cookie and no header on this route,
+// so nothing forces the page to wait for a request to exist.
+export default async function NewsletterPage() {
+    const course = await getFreeCourseOutline();
+    const lessonId =
+        course == null ? null : landingLessonId(course.courseSections);
+
+    // Outside any try/catch, as it must be: `redirect` works by throwing, and
+    // catching it here would swallow the navigation.
+    if (lessonId != null) redirect(`/newsletter/${lessonId}`);
+
+    return <NothingPublishedYet />;
+}
+
+// Shown when there is no free course under the expected name, or when it exists
+// but has nothing published in it yet.
+//
+// The two cases are deliberately not distinguished. To a visitor they are the
+// same situation — there is nothing to read — and the difference between them is
+// an administrative detail that would only be alarming to see written down.
+function NothingPublishedYet() {
     return (
-        <main
-            className={`${cinzel.className} flex min-h-screen w-full flex-col bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
-        >
-            <div className="mx-auto w-full max-w-2xl px-4 pt-32">
-                <BackLink href="/">Volver al salón</BackLink>
-            </div>
-
-            <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-4 px-4 pt-12 pb-24 text-center">
-                <h1 className="text-4xl tracking-wide text-ink-bright sm:text-5xl">
-                    Lecciones semanales gratis
-                </h1>
-                <p className="text-xl text-ink-body">
-                    No hay lecciones por ahora, ¡revisa esta página en el futuro!
-                </p>
-            </div>
-        </main>
+        <div className="flex flex-col items-center gap-4 py-24 text-center">
+            {/* The same words as the plaque that leads here, from the same
+                constant — arriving at a page whose heading does not match the
+                thing you pressed reads as having ended up somewhere else. */}
+            <h1 className="text-4xl tracking-wide text-ink-bright sm:text-5xl">
+                {FREE_COURSE_TITLE}
+            </h1>
+            <p className="text-xl text-ink-body">
+                No hay lecciones por ahora, ¡revisa esta página en el futuro!
+            </p>
+        </div>
     );
 }

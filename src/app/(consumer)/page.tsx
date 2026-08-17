@@ -1,6 +1,7 @@
 import MultiLayerParallax from "@/components/ui/MultiLayerParallax";
 import { SalonHeading } from "@/components/ui/SalonHeading";
 import { type Entrance } from "@/components/ui/parallaxEntrances";
+import { FREE_COURSE_TITLE } from "@/app/features/courses/lib/freeCourseNames";
 import { Cinzel } from "next/font/google";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
@@ -32,9 +33,15 @@ const ENTRANCES: Entrance[] = [
   { id: "sobre-nosotros", label: "Sobre Nosotros", href: "/sobre-nosotros", x: 0.262, y: 0.588 },
   // The gutter of the open book, where the two pages meet.
   { id: "cursos", label: "Explorar los Cursos", href: "/fetch-courses", x: 0.502, y: 0.592 },
-  // The crystal cluster. The longest label on the page, so it is nudged left of
-  // the crystal's centre to keep its far end off the lantern behind it.
-  { id: "lecciones", label: "Lecciones semanales gratis", href: "/newsletter", x: 0.845, y: 0.591 },
+  // The crystal cluster. The label is imported rather than written here, so the
+  // plaque and the page it opens can never come to disagree about what this
+  // thing is called.
+  //
+  // It used to read "Lecciones semanales gratis" — the longest label on the page,
+  // which is why the plaque sits left of the crystal's centre rather than on it.
+  // The shorter title has room to spare, so the nudge is now only holding it off
+  // the lantern behind the crystal.
+  { id: "lecciones", label: FREE_COURSE_TITLE, href: "/newsletter", x: 0.845, y: 0.591 },
 ];
 
 // Where the lettering hangs in the arch. Centred on the opening, which spans
