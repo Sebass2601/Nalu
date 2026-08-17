@@ -13,6 +13,10 @@ export type CatalogueProduct = {
     description: string;
     imageUrl: string;
     priceInDollars: number;
+    // True when any course inside this product is still being uploaded weekly.
+    // Derived by the queries rather than stored on the product — see
+    // `productHasWeeklyCourse`.
+    uploadedWeekly: boolean;
 };
 
 // The page frame shared by the full catalogue and every category page.

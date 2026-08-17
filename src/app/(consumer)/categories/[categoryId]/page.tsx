@@ -18,6 +18,7 @@ import {
     CatalogueSkeleton,
 } from "@/app/features/products/components/ProductCatalogue";
 import { BackLink } from "@/components/ui/BackToHomeLink";
+import { productHasWeeklyCourse } from "@/app/features/products/db/products";
 
 // One page serving every category: the doorway clicked on the home page decides
 // which id lands in the URL, and the same template renders that category's
@@ -102,6 +103,7 @@ async function getCategoryProducts(categoryId: string) {
             description: ProductTable.description,
             imageUrl: ProductTable.imageUrl,
             priceInDollars: ProductTable.priceInDollars,
+            uploadedWeekly: productHasWeeklyCourse(),
         })
         .from(ProductTable)
         .innerJoin(

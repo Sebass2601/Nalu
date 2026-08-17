@@ -32,6 +32,17 @@ export const CourseTable = pgTable("courses", {
     // course removed from the subscription is still owned by anyone who bought
     // it outright: purchases and subscriptions are checked independently.
     includedInSubscription: boolean().notNull().default(false),
+    // Whether material is still being added to this course week by week, as
+    // opposed to a finished course that is complete on the day it is bought.
+    // Drawn as a tag on every card the course appears on, and on the cards of
+    // the products that bundle it.
+    //
+    // Nullable rather than `notNull().default(false)`, which is the one place
+    // this column differs from `includedInSubscription` above. Null is not a
+    // third state: it means the same thing as false to every reader, and exists
+    // only because the courses that predate this column were never asked the
+    // question. Anything written through the admin form is a true boolean.
+    uploadedWeekly: boolean(),
     createdAt,
     updatedAt,
 });

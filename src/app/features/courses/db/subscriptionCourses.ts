@@ -23,6 +23,9 @@ export type SubscriptionCourse = {
     imageUrl: string | null;
     sectionCount: number;
     lessonCount: number;
+    // Whether material is still going up week by week. Null on courses that
+    // predate the column, and the card treats null and false alike.
+    uploadedWeekly: boolean | null;
 };
 
 // One row of the band. `categoryId` is null for the catch-all row.
@@ -110,6 +113,7 @@ export async function getSubscriptionCourseRows(): Promise<
             id: CourseTable.id,
             name: CourseTable.name,
             imageUrl: CourseTable.imageUrl,
+            uploadedWeekly: CourseTable.uploadedWeekly,
             categoryId: CategoryTable.id,
             categoryName: CategoryTable.name,
         })
@@ -132,6 +136,7 @@ export async function getSubscriptionCourseRows(): Promise<
             id: row.id,
             name: row.name,
             imageUrl: row.imageUrl,
+            uploadedWeekly: row.uploadedWeekly,
             sectionCount: counts.get(row.id)?.sectionCount ?? 0,
             lessonCount: counts.get(row.id)?.lessonCount ?? 0,
         };
@@ -192,6 +197,7 @@ export async function getSubscriptionCoursesByCategory(
             id: CourseTable.id,
             name: CourseTable.name,
             imageUrl: CourseTable.imageUrl,
+            uploadedWeekly: CourseTable.uploadedWeekly,
         })
         .from(CourseTable)
         .where(

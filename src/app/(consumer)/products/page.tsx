@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { db } from "@/drizzle/db";
 import { ProductTable } from "@/drizzle/schema";
@@ -8,6 +8,8 @@ import {
     CatalogueShell,
 } from "@/app/features/products/components/ProductCatalogue";
 import { BackLink } from "@/components/ui/BackToHomeLink";
+import { productHasWeeklyCourse } from "@/app/features/products/db/products";
+import { getCourseGlobalTag } from "@/app/features/courses/db/cache/courses";
 
 // The whole catalogue, reached from the Todos plaque on any category page.
 //
@@ -39,19 +41,35 @@ export default async function ProductsPage() {
 // Public products only, cached under the shared product tag so admin edits
 // refresh this list. Sorted by name to match the category pages, so the order
 // does not lurch when switching between plaques.
+//
+// Tagged on courses as well, because `uploadedWeekly` below is derived from
+// them: ticking "contenido semanal" on a course revalidates the course tag and
+// nothing else, so without this the card keeps showing yesterday's answer. The
+// category pages already tagged both, which is why they were right and this was
+// wrong.
 async function getPublicProducts() {
     "use cache";
-    cacheTag(getProductGlobalTag());
+    cacheTag(getProductGlobalTag(), getCourseGlobalTag());
 
-    return db.query.ProductTable.findMany({
-        where: eq(ProductTable.status, "public"),
-        columns: {
-            id: true,
-            name: true,
-            description: true,
-            imageUrl: true,
-            priceInDollars: true,
-        },
-        orderBy: (products, { asc }) => asc(products.name),
-    });
+    // A plain select rather than the relational query this used to be, and
+    // deliberately the same shape as the category page's version.
+    //
+    // `uploadedWeekly` is a correlated subquery: it asks about the product row
+    // it sits beside. Passed through the relational builder's `extras` it came
+    // back false for every product, because that builder renames the table it
+    // selects from and the subquery's reference to `products.id` no longer meant
+    // the row being returned. Here the table is itself, so the correlation
+    // holds — verified against the database rather than assumed.
+    return db
+        .select({
+            id: ProductTable.id,
+            name: ProductTable.name,
+            description: ProductTable.description,
+            imageUrl: ProductTable.imageUrl,
+            priceInDollars: ProductTable.priceInDollars,
+            uploadedWeekly: productHasWeeklyCourse(),
+        })
+        .from(ProductTable)
+        .where(eq(ProductTable.status, "public"))
+        .orderBy(asc(ProductTable.name));
 }

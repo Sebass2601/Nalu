@@ -24,4 +24,9 @@ export const courseSchema = z.object({
     // default instead, so a course is still never added to the subscription by
     // omission.
     includedInSubscription: z.boolean(),
+    // Whether material is still being added week by week. Required here for the
+    // same resolver reason as the flag above, and the form supplies `false` as
+    // its default — so the column's null, which older courses carry, is never
+    // written back by an edit: saving a course answers the question either way.
+    uploadedWeekly: z.boolean(),
 });

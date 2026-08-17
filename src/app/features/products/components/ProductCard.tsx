@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Image from "next/image";
 import { ProductPrice, FullPrice } from "./ProductPrice";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { WeeklyContentTag } from "@/components/ui/WeeklyContentTag";
 
 // One product as it appears in any listing grid: cover image, price, name,
 // a clipped description and the button that opens it. Kept as a component so
@@ -12,12 +13,15 @@ export function ProductCard({
     description,
     imageUrl,
     priceInDollars,
+    uploadedWeekly,
 }: {
     id: string;
     name: string;
     description: string;
     imageUrl: string;
     priceInDollars: number;
+    // True when any course inside this product is still being uploaded weekly.
+    uploadedWeekly: boolean;
 }) {
     return (
         <div className="rounded-2xl border border-gold/40 bg-[#0a1628]/70 backdrop-blur-md overflow-hidden flex flex-col w-full max-w-125 mx-auto">
@@ -28,6 +32,13 @@ export function ProductCard({
                     fill
                     className="object-cover"
                 />
+
+                {/* In the cover's lower-right rather than the card's, which is
+                    where the button is. The cover is empty in every card, so the
+                    tag never covers anything that has to be read or pressed. */}
+                {uploadedWeekly && (
+                    <WeeklyContentTag className="absolute right-2 bottom-2" />
+                )}
             </div>
             <div className="p-5 flex flex-col gap-3 flex-1">
                 <h2 className="text-xl tracking-wide text-ink-bright">

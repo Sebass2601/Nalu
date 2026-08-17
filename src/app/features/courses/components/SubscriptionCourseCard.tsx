@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatPlural } from "@/lib/formatters";
 import type { SubscriptionCourse } from "../db/subscriptionCourses";
+import { WeeklyContentTag } from "@/components/ui/WeeklyContentTag";
 
 // One course inside the subscription band, and on the per-category pages.
 //
@@ -50,6 +51,12 @@ export function SubscriptionCourseCard({
                     />
                 ) : (
                     <TypographicCover name={course.name} />
+                )}
+
+                {/* Over the cover, image or not: this card always draws one, so
+                    the tag has the same place on every card in a row. */}
+                {course.uploadedWeekly && (
+                    <WeeklyContentTag className="absolute right-2 bottom-2" />
                 )}
             </div>
 

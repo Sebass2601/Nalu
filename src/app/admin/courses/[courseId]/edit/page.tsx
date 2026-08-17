@@ -135,6 +135,7 @@ async function getCourse(id: string) {
             imageUrl: true,
             categoryId: true,
             includedInSubscription: true,
+            uploadedWeekly: true,
         },
         where: eq(CourseTable.id, id),
         with: {

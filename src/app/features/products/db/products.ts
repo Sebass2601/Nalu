@@ -1,6 +1,6 @@
 import { db } from "@/drizzle/db";
-import { CourseProductTable, ProductTable } from "@/drizzle/schema";
-import { and, asc, eq, isNotNull } from "drizzle-orm";
+import { CourseProductTable, CourseTable, ProductTable } from "@/drizzle/schema";
+import { and, asc, eq, exists, isNotNull, sql } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { deleteUploadThingFiles } from "@/lib/uploadthingServer";
 import {
@@ -10,6 +10,51 @@ import {
 } from "./cache/products";
 import { wherePublicProducts } from "../permissions/products";
 import { getHotmartProduct } from "@/lib/hotmartApi";
+
+// Whether any course this product bundles is still being uploaded week by week.
+//
+// A product has no weekly flag of its own: the flag lives on the course, because
+// that is what the material belongs to. A product is a way of buying courses, so
+// what it can honestly say is "something in here is still growing" — which is
+// what this asks. `exists` rather than a join and a `bool_or`, so it adds one
+// boolean column and changes neither the row count nor the grouping of whatever
+// query it is dropped into.
+//
+// Written once and shared, because two catalogue queries need the same answer and
+// two hand-written copies of a correlated subquery is how they come to disagree.
+// Both call it for a column named `uploadedWeekly`, matching the course column it
+// is derived from.
+export function productHasWeeklyCourse() {
+    // Built through the query builder rather than as a hand-written `sql`
+    // template, and that is the whole point of it.
+    //
+    // Written by hand, drizzle interpolated the columns UNQUALIFIED — the
+    // correlation `course_products."productId" = products."id"` came out as
+    // `"productId" = "id"`, and Postgres bound that bare `"id"` to the
+    // subquery's own `courses` table. The result was a comparison between a
+    // product id and a course id, which is false for every row, so the tag
+    // simply never appeared. Letting drizzle build the select makes it qualify
+    // every column against the table it came from, which is what keeps the
+    // correlation pointing at the outer product.
+    // `exists()` is typed `unknown`, so it is wrapped in a typed template. The
+    // wrapper interpolates the built SQL object verbatim — the qualification
+    // above survives it — and only tells TypeScript what comes back.
+    return sql<boolean>`${exists(
+        db
+            .select({ one: sql`1` })
+            .from(CourseProductTable)
+            .innerJoin(
+                CourseTable,
+                eq(CourseTable.id, CourseProductTable.courseId)
+            )
+            .where(
+                and(
+                    eq(CourseProductTable.productId, ProductTable.id),
+                    eq(CourseTable.uploadedWeekly, true)
+                )
+            )
+    )}`;
+}
 
 // Confirms a pasted Hotmart product ID actually resolves, and refuses the save
 // if it does not.

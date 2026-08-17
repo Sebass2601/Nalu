@@ -3,6 +3,7 @@ import { formatPlural } from "@/lib/formatters";
 import type { MyCourse } from "../db/myCourses";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { CourseUpgradeButton } from "./CourseUpgradeOffer";
+import { WeeklyContentTag } from "@/components/ui/WeeklyContentTag";
 
 // One course on the shelf.
 //
@@ -35,13 +36,27 @@ export function MyCourseCard({ course }: { course: MyCourse }) {
                         fill
                         className="object-cover"
                     />
+
+                    {course.uploadedWeekly && (
+                        <WeeklyContentTag className="absolute right-2 bottom-2" />
+                    )}
                 </div>
             )}
 
             <div className="flex flex-1 flex-col gap-3 p-5">
-                <h2 className="text-xl tracking-wide text-ink-bright">
-                    {course.name}
-                </h2>
+                {/* The tag rides beside the name only on a course with no cover
+                    art, where there is no image for it to sit over — this card
+                    draws no placeholder cover on purpose. `items-start` keeps it
+                    level with the first line of a name that wraps. */}
+                <div className="flex items-start justify-between gap-3">
+                    <h2 className="text-xl tracking-wide text-ink-bright">
+                        {course.name}
+                    </h2>
+
+                    {course.uploadedWeekly && !course.imageUrl && (
+                        <WeeklyContentTag className="mt-1" />
+                    )}
+                </div>
 
                 <p className="text-sm tracking-widest text-gold uppercase">
                     {formatPlural(course.sectionCount, {

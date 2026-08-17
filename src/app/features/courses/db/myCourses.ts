@@ -31,6 +31,9 @@ export type MyCourse = {
     sectionCount: number;
     lessonCount: number;
     completedCount: number;
+    // Whether material is still going up week by week. Null on courses that
+    // predate the column, and the card treats null and false alike.
+    uploadedWeekly: boolean | null;
     // The product to send them to if this course is on the shelf only because
     // they subscribe and something is still selling it. Null for a course they
     // bought — there is nothing left to sell — and null when no public product
@@ -213,6 +216,7 @@ async function getCourseCards(courseIds: string[]) {
             description: CourseTable.description,
             imageUrl: CourseTable.imageUrl,
             categoryName: CategoryTable.name,
+            uploadedWeekly: CourseTable.uploadedWeekly,
         })
         .from(CourseTable)
         // Left, not inner: a course with no category still belongs on the shelf.

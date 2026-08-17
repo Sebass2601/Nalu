@@ -33,6 +33,9 @@ export function CourseForm({ course, categories }: {
         imageUrl: string | null
         categoryId: string | null
         includedInSubscription: boolean
+        // Null on every course that predates the column; the checkbox reads it
+        // as unchecked, which is what it means.
+        uploadedWeekly: boolean | null
     }
     categories: {
         id: string
@@ -42,13 +45,16 @@ export function CourseForm({ course, categories }: {
 
     const form = useForm<z.infer<typeof courseSchema>>({
         resolver: zodResolver(courseSchema),
-        defaultValues: course ?? {
-            name: "",
-            description: "",
-            imageUrl: null,
-            categoryId: null,
-            includedInSubscription: false
-        }
+        defaultValues: course
+            ? { ...course, uploadedWeekly: course.uploadedWeekly ?? false }
+            : {
+                  name: "",
+                  description: "",
+                  imageUrl: null,
+                  categoryId: null,
+                  includedInSubscription: false,
+                  uploadedWeekly: false,
+              }
     })
 
     // In create mode, always start blank. Next.js keeps a recently visited
@@ -179,6 +185,43 @@ export function CourseForm({ course, categories }: {
                                     curso sin comprarlo. Puedes activarlo o
                                     desactivarlo cuando quieras; quienes lo
                                     hayan comprado conservan su acceso.
+                                </p>
+                            </div>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            {/* Whether the course is still being written. A checkbox for the
+                same reason as the one above: it changes what every card for
+                this course says to a visitor, so it should be a deliberate
+                tick rather than a value buried in a dropdown. */}
+            <FormField
+                control={form.control}
+                name="uploadedWeekly"
+                render={({ field }) => (
+                    <FormItem>
+                        <div className="flex items-start gap-3 rounded-md border p-4">
+                            <FormControl>
+                                <input
+                                    type="checkbox"
+                                    checked={field.value ?? false}
+                                    onChange={event =>
+                                        field.onChange(event.target.checked)
+                                    }
+                                    className="mt-1 size-4 cursor-pointer"
+                                />
+                            </FormControl>
+                            <div className="flex flex-col gap-1">
+                                <FormLabel className="cursor-pointer">
+                                    Contenido semanal
+                                </FormLabel>
+                                <p className="text-muted-foreground text-xs">
+                                    Marca esto si sigues subiendo material a
+                                    este curso cada semana. Las tarjetas del
+                                    curso — y las de los productos que lo
+                                    incluyen — mostrarán una etiqueta de
+                                    &ldquo;Contenido semanal&rdquo;.
                                 </p>
                             </div>
                         </div>
