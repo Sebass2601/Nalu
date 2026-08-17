@@ -86,11 +86,22 @@ export function FreeCourseFrame({
 
     return (
         <div className="mx-auto w-full max-w-7xl px-4 pt-32 pb-16">
-            {/* Lifted above the menu and its backdrop, which on a phone are
-                drawn over the page. Without this the button that opens the menu
-                would be *behind* it once open — the X that closes it hidden
-                underneath the panel it belongs to, leaving the dimmed strip down
-                the side as the only way out. */}
+            {/* This row has to sit in a specific slot in the stack, between two
+                things:
+
+                ABOVE the menu (z-40) and its backdrop (z-30), which on a phone
+                are drawn over the page. Otherwise the button would be behind the
+                panel it opens — the X hidden underneath it, leaving the dimmed
+                strip down the side as the only way out.
+
+                BELOW the site navbar, which is `fixed z-50`. At z-50 this row
+                tied with it and won, because page content comes after the navbar
+                in the document and a tie is broken by document order — so
+                scrolling dragged the back link and the button up through the bar
+                and left them floating over the logo. 45 keeps them under it.
+
+                Any value in 41..49 does the job; the two neighbours are what the
+                number means, not the number itself. */}
             {/* One row holding the two ends: the way out in the left corner, the
                 way into the menu in the right one. `justify-between` at every
                 width, so neither moves as the screen changes.
@@ -98,7 +109,7 @@ export function FreeCourseFrame({
                 The button opens a panel on the *left*, away from itself, which is
                 deliberate: it puts the list where there is room for it beside the
                 text rather than under the thumb that opened it. */}
-            <div className="relative z-50 mb-8 flex items-center justify-between gap-4">
+            <div className="relative z-45 mb-8 flex items-center justify-between gap-4">
                 <BackLink href="/">Volver al salón</BackLink>
 
                 <button
