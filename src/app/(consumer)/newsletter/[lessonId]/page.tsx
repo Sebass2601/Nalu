@@ -7,6 +7,7 @@ import { getPublishedLesson } from "@/app/features/lessons/db/lessonDetail";
 import { getLessonVideoUrl } from "@/app/features/lessons/lib/lessonVideoUrl";
 import { LessonBody } from "@/app/features/lessons/components/LessonBody";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
+import { ReaderSkeleton } from "@/components/ui/ReaderSkeleton";
 
 // One section of the free course: the video or the writing, and the way to the
 // sections either side of it within the same class.
@@ -30,7 +31,7 @@ export default function FreeLessonPage({
     params,
 }: PageProps<"/newsletter/[lessonId]">) {
     return (
-        <Suspense fallback={<FreeLessonSkeleton />}>
+        <Suspense fallback={<ReaderSkeleton />}>
             <FreeLesson params={params} />
         </Suspense>
     );
@@ -138,15 +139,5 @@ async function FreeLesson({
                 </div>
             </footer>
         </article>
-    );
-}
-
-function FreeLessonSkeleton() {
-    return (
-        <div className="flex animate-pulse flex-col gap-6">
-            <div className="h-4 w-32 rounded bg-gold/10" />
-            <div className="h-9 w-80 max-w-full rounded bg-gold/20" />
-            <div className="aspect-video w-full rounded-xl bg-[#0a1628]/40" />
-        </div>
     );
 }

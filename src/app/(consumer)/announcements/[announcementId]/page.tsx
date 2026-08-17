@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPublishedAnnouncement } from "@/app/features/announcements/db/announcementFeed";
 import { ProseWithImages } from "@/components/prose/ProseWithImages";
 import { formatDate } from "@/lib/formatters";
+import { ReaderSkeleton } from "@/components/ui/ReaderSkeleton";
 
 // One announcement: its heading, the day it went up, and the writing with its
 // pictures set into it.
@@ -20,7 +21,7 @@ export default function AnnouncementPage({
     params,
 }: PageProps<"/announcements/[announcementId]">) {
     return (
-        <Suspense fallback={<AnnouncementSkeleton />}>
+        <Suspense fallback={<ReaderSkeleton />}>
             <Announcement params={params} />
         </Suspense>
     );
@@ -57,16 +58,5 @@ async function Announcement({
                 images={announcement.images}
             />
         </article>
-    );
-}
-
-function AnnouncementSkeleton() {
-    return (
-        <div className="flex animate-pulse flex-col gap-6">
-            <div className="h-4 w-40 rounded bg-gold/10" />
-            <div className="h-9 w-80 max-w-full rounded bg-gold/20" />
-            <div className="h-4 w-full rounded bg-gold/10" />
-            <div className="h-4 w-5/6 rounded bg-gold/10" />
-        </div>
     );
 }
