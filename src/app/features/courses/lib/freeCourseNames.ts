@@ -16,7 +16,7 @@
 // exact.
 //
 // Visitors never see it.
-export const FREE_COURSE_NAME = "Contenido del Curso Gratis";
+export const FREE_COURSE_NAME = "Contenido Gratis";
 
 // What visitors see: the plaque on the front page, the heading over the menu,
 // and the page's own heading when there is nothing published yet. Changing this
