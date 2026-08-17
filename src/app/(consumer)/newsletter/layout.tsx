@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { cinzel } from "@/components/ui/fonts";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 import { SideMenuFrame } from "@/components/ui/SideMenuFrame";
 import { FreeCourseNav } from "@/app/features/courses/components/FreeCourseNav";
 import { getFreeCourseOutline } from "@/app/features/courses/db/freeCourse";
@@ -21,9 +22,17 @@ export default function NewsletterLayout({
     children,
 }: LayoutProps<"/newsletter">) {
     return (
+        // No background of its own, which is what lets the carved wall show
+        // through. CarvedBackdrop paints at `-z-10`, and a negative-z-index
+        // descendant is painted before the in-flow backgrounds above it — so any
+        // opaque colour here would land on top and hide it entirely. The canvas
+        // navy still comes from <body>, which is what fills an overscroll bounce
+        // where a fixed layer cannot reach.
         <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
+            className={`${cinzel.className} relative min-h-screen w-full`}
         >
+            <CarvedBackdrop />
+
             <SideMenuFrame
                 menuLabel="Clases"
                 // Passed as a prop rather than nested inside `children` so the

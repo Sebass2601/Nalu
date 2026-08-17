@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { cinzel } from "@/components/ui/fonts";
+import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 import { SideMenuFrame } from "@/components/ui/SideMenuFrame";
 import { AnnouncementNav } from "@/app/features/announcements/components/AnnouncementNav";
 import { getPublishedAnnouncements } from "@/app/features/announcements/db/announcementFeed";
@@ -20,9 +21,13 @@ export default function AnnouncementsLayout({
     children,
 }: LayoutProps<"/announcements">) {
     return (
-        <main
-            className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
-        >
+        // No background of its own — see /sobre-nosotros and /newsletter, which
+        // are hosted the same way. CarvedBackdrop paints at `-z-10`, so an opaque
+        // colour on this element would be painted over it and hide it; the canvas
+        // navy comes from <body> instead, where an overscroll bounce can find it.
+        <main className={`${cinzel.className} relative min-h-screen w-full`}>
+            <CarvedBackdrop />
+
             <SideMenuFrame
                 menuLabel="Anuncios"
                 menu={
