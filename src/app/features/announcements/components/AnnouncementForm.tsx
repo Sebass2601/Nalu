@@ -126,11 +126,38 @@ export function AnnouncementForm({
                                 <FormLabel>Estado</FormLabel>
                                 <Select
                                     onValueChange={field.onChange}
-                                    defaultValue={field.value}
+                                    value={field.value}
                                 >
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue />
+                                            {/* The label is passed in rather
+                                                than left for the Select to work
+                                                out on its own.
+
+                                                Radix derives it from whichever
+                                                <SelectItem> is selected, and the
+                                                items live in a portal that only
+                                                mounts once the menu is opened —
+                                                so on the server there is nothing
+                                                to read the label from and the
+                                                field renders blank. The name and
+                                                the content are plain inputs
+                                                whose `value` is in the HTML,
+                                                which is why this was the one
+                                                field that looked empty until the
+                                                JavaScript arrived.
+
+                                                Derived from `field.value`, so it
+                                                still follows the form: picking a
+                                                new status updates form state,
+                                                and this reads from it. */}
+                                            <SelectValue>
+                                                {
+                                                    announcementStatusLabels[
+                                                        field.value
+                                                    ]
+                                                }
+                                            </SelectValue>
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
