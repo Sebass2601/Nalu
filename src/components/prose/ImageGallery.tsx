@@ -3,15 +3,15 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
-import { galleryNeighbourIndexes } from "../lib/galleryNeighbours";
+import { galleryNeighbourIndexes } from "./galleryNeighbours";
 
-export type LessonImage = {
+export type GalleryImage = {
     id: string;
     url: string;
     caption: string | null;
 };
 
-// Every image in a lesson is drawn at the same size, quality and breakpoints,
+// Every image is drawn at the same size, quality and breakpoints,
 // and that has to stay true of the invisible copies used to fetch ahead as well
 // as the one on screen. The browser picks which entry of `srcSet` to download
 // from `sizes`, not from how big the element happens to be, so a hidden image
@@ -22,18 +22,19 @@ const IMAGE_SIZES = "(max-width: 768px) 100vw, 40vw";
 const IMAGE_WIDTH = 1200;
 const IMAGE_HEIGHT = 900;
 
-// The picture that sits inside a lesson's text, with its own caption underneath
-// and arrows to move between pictures when there is more than one.
+// The picture that sits inside a piece of writing — a text lesson or an
+// announcement — with its own caption underneath and arrows to move between
+// pictures when there is more than one.
 //
 // A client component only because of the arrows: which image is showing is
-// browser state and nothing else on the page depends on it. A lesson with a
-// single image never changes what it shows, but it renders through here anyway
-// so the frame, the sizing and the caption are defined once instead of twice.
+// browser state and nothing else on the page depends on it. A single image never
+// changes what it shows, but it renders through here anyway so the frame, the
+// sizing and the caption are defined once instead of twice.
 //
-// It floats left on wide screens so the lesson text wraps around it, and drops
-// to a full-width block on narrow ones — a floated image in a column that
-// narrow leaves text in unreadable slivers beside it.
-export function LessonGallery({ images }: { images: LessonImage[] }) {
+// It floats left on wide screens so the text wraps around it, and drops to a
+// full-width block on narrow ones — a floated image in a column that narrow
+// leaves text in unreadable slivers beside it.
+export function ImageGallery({ images }: { images: GalleryImage[] }) {
     const [index, setIndex] = useState(0);
     // Which images have arrived and been decoded, held by URL rather than by
     // position. An image the reader has already been shown stays marked when

@@ -1,7 +1,8 @@
 import { revalidateTag } from "next/cache"
 
 type CACHE_TAG =
-    | "products" 
+    | "announcements"
+    | "products"
     | "users" 
     | "courses" 
     | "userCourseAccess" 

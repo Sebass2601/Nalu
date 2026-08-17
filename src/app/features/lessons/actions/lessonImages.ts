@@ -9,12 +9,12 @@ import {
     updateLessonImageOrders as updateLessonImageOrdersDB,
     deleteLessonImage as deleteLessonImageDB,
 } from "../db/lessonImages";
-import { MAX_LESSON_IMAGE_CAPTION_LENGTH } from "../lessonImages.constants";
+import { MAX_IMAGE_CAPTION_LENGTH } from "@/lib/imageUploads.constants";
 
 const lessonImageCaptionSchema = z
     .string()
     .trim()
-    .max(MAX_LESSON_IMAGE_CAPTION_LENGTH)
+    .max(MAX_IMAGE_CAPTION_LENGTH)
     .transform(caption => (caption === "" ? null : caption));
 
 export async function addLessonImages(lessonId: string, urls: string[]) {
@@ -57,7 +57,7 @@ export async function updateLessonImageCaption(
     if (!success) {
         return {
             error: true,
-            message: `El texto no puede exceder ${MAX_LESSON_IMAGE_CAPTION_LENGTH} caracteres.`,
+            message: `El texto no puede exceder ${MAX_IMAGE_CAPTION_LENGTH} caracteres.`,
         };
     }
 

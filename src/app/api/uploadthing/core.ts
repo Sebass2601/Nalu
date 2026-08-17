@@ -4,7 +4,8 @@ import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { canUpdateLessons } from "@/app/features/lessons/permissions/lessons";
 import { canUpdateProducts } from "@/app/features/products/permissions/products";
 import { canUpdateCourses } from "@/app/features/courses/permissions/courses";
-import { MAX_LESSON_IMAGES_PER_UPLOAD } from "@/app/features/lessons/lessonImages.constants";
+import { canUpdateAnnouncements } from "@/app/features/announcements/permissions/announcements";
+import { MAX_IMAGES_PER_UPLOAD } from "@/lib/imageUploads.constants";
 
 const f = createUploadthing();
 
@@ -18,7 +19,7 @@ export const fileRouter = {
     lessonImage: f({
         image: {
             maxFileSize: "4MB",
-            maxFileCount: MAX_LESSON_IMAGES_PER_UPLOAD,
+            maxFileCount: MAX_IMAGES_PER_UPLOAD,
         },
     })
         // Runs on our server before the upload is allowed. If it throws, the
@@ -34,6 +35,30 @@ export const fileRouter = {
         })
         // Runs on our server after the file lands in UploadThing storage.
         // Whatever we return here is sent back to the browser.
+        .onUploadComplete(async ({ file }) => {
+            return { url: file.ufsUrl };
+        }),
+
+    // The images inside an announcement. Same shape as `lessonImage` and the
+    // same UI on top of it, but its own endpoint rather than a shared one,
+    // because the permission it checks is the one that matches what is being
+    // edited — an admin-only check either way today, and the two are free to
+    // diverge without one feature silently deciding the other's access.
+    announcementImage: f({
+        image: {
+            maxFileSize: "4MB",
+            maxFileCount: MAX_IMAGES_PER_UPLOAD,
+        },
+    })
+        .middleware(async () => {
+            const user = await getCurrentUser();
+
+            if (!canUpdateAnnouncements({ role: user.role })) {
+                throw new UploadThingError("No autorizado");
+            }
+
+            return { userId: user.userId };
+        })
         .onUploadComplete(async ({ file }) => {
             return { url: file.ufsUrl };
         }),

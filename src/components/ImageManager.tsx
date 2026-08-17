@@ -18,35 +18,63 @@ import { formatPlural } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { useUploadThing } from "@/lib/uploadthing";
 import {
-    addLessonImages,
-    deleteLessonImage,
-    updateLessonImageCaption,
-    updateLessonImageOrders,
-} from "../actions/lessonImages";
-import {
-    MAX_LESSON_IMAGES_PER_UPLOAD,
-    MAX_LESSON_IMAGE_CAPTION_LENGTH,
-} from "../lessonImages.constants";
+    MAX_IMAGES_PER_UPLOAD,
+    MAX_IMAGE_CAPTION_LENGTH,
+} from "@/lib/imageUploads.constants";
 
-export function LessonImages({
-    lessonId,
+// What the browser is allowed to ask the server to do with these images. Every
+// entry is a server action belonging to whichever feature is using this — the
+// lesson set writes `lesson_images`, the announcement set writes
+// `announcement_images` — and this component never learns which.
+//
+// Injecting them rather than importing them is the whole reason this is one
+// component instead of two: the dropzone, the drag-to-reorder, the caption
+// editor and the delete confirmation are identical work, and only the four calls
+// underneath them differ.
+export type ImageManagerActions = {
+    addImages: (urls: string[]) => Promise<ActionResult>;
+    updateOrders: (imageIds: string[]) => Promise<ActionResult>;
+    updateCaption: (id: string, caption: string) => Promise<ActionResult>;
+    deleteImage: (id: string) => Promise<ActionResult>;
+};
+
+type ActionResult = { error: boolean; message: string };
+
+export type ManagedImage = { id: string; url: string; caption: string | null };
+
+// The upload route to send the files to. Typed against the app's file router, so
+// naming an endpoint that does not exist is a compile error rather than a failed
+// upload at runtime.
+type UploadEndpoint = Parameters<typeof useUploadThing>[0];
+
+// The images attached to one piece of writing, with a dropzone to add more,
+// drag-to-reorder, a caption editor per picture and a guarded delete.
+//
+// Shared by the lesson form and the announcement form. It holds no knowledge of
+// either: what it is editing arrives as `images`, and what it may do about it
+// arrives as `actions`.
+export function ImageManager({
     images,
+    actions,
+    uploadEndpoint,
 }: {
-    lessonId: string;
-    images: { id: string; url: string; caption: string | null }[];
+    images: ManagedImage[];
+    actions: ImageManagerActions;
+    uploadEndpoint: UploadEndpoint;
 }) {
     const router = useRouter();
     const [isSaving, startTransition] = useTransition();
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const { startUpload, isUploading } = useUploadThing("lessonImage", {
+    const { startUpload, isUploading } = useUploadThing(uploadEndpoint, {
         // Fires after the browser finishes uploading to UploadThing. We take
-        // the returned URLs and persist them as lesson_images rows.
+        // the returned URLs and hand them to whichever feature owns them, which
+        // is what turns them into rows.
         onClientUploadComplete: files => {
             const urls = files.map(file => file.ufsUrl);
             startTransition(async () => {
-                const data = await addLessonImages(lessonId, urls);
+                const data = await actions.addImages(urls);
                 actionToast({ actionData: data });
                 router.refresh();
             });
@@ -68,8 +96,8 @@ export function LessonImages({
             <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold">Imágenes</span>
                 {/* A plain count, not "3/3". There is no ceiling to count
-                    towards any more, so the number is just information about
-                    the lesson rather than a budget being spent. */}
+                    towards any more, so the number is just information rather
+                    than a budget being spent. */}
                 {images.length > 0 && (
                     <span className="text-xs text-muted-foreground">
                         {formatPlural(images.length, {
@@ -81,7 +109,7 @@ export function LessonImages({
             </div>
 
             {images.length > 0 && (
-                <SortableList items={images} onOrderChange={updateLessonImageOrders}>
+                <SortableList items={images} onOrderChange={actions.updateOrders}>
                     {items =>
                         items.map(image => (
                             <SortableItem
@@ -89,15 +117,18 @@ export function LessonImages({
                                 id={image.id}
                                 className="items-start"
                             >
-                                <LessonImageEditor image={image} />
+                                <ImageEditor
+                                    image={image}
+                                    actions={actions}
+                                />
                             </SortableItem>
                         ))
                     }
                 </SortableList>
             )}
 
-            {/* Always available — there is no longer a state in which the
-                lesson is "full" and the dropzone has to be taken away. */}
+            {/* Always available — there is no state in which this is "full" and
+                the dropzone has to be taken away. */}
             <div
                 role="button"
                 tabIndex={0}
@@ -137,7 +168,7 @@ export function LessonImages({
                 {/* The only limits left are per-file size and how many can go
                     up in a single batch, so those are what the hint names. */}
                 <span className="text-xs">
-                    Máx. 4MB por imagen, hasta {MAX_LESSON_IMAGES_PER_UPLOAD} a
+                    Máx. 4MB por imagen, hasta {MAX_IMAGES_PER_UPLOAD} a
                     la vez
                 </span>
                 <input
@@ -156,10 +187,14 @@ export function LessonImages({
     );
 }
 
-function LessonImageEditor({
+// One picture: a thumbnail, the words that travel with it, and the way to remove
+// it.
+function ImageEditor({
     image,
+    actions,
 }: {
-    image: { id: string; url: string; caption: string | null };
+    image: ManagedImage;
+    actions: ImageManagerActions;
 }) {
     const router = useRouter();
     const [caption, setCaption] = useState(image.caption ?? "");
@@ -172,7 +207,7 @@ function LessonImageEditor({
         const normalizedCaption = caption.trim();
 
         startTransition(async () => {
-            const data = await updateLessonImageCaption(
+            const data = await actions.updateCaption(
                 image.id,
                 normalizedCaption
             );
@@ -197,23 +232,23 @@ function LessonImageEditor({
 
             <div className="flex min-w-0 flex-col gap-2">
                 <label
-                    htmlFor={`lesson-image-caption-${image.id}`}
+                    htmlFor={`image-caption-${image.id}`}
                     className="text-sm font-semibold"
                 >
                     Texto de la imagen{" "}
                     <span className="text-muted-foreground">(opcional)</span>
                 </label>
                 <Textarea
-                    id={`lesson-image-caption-${image.id}`}
+                    id={`image-caption-${image.id}`}
                     value={caption}
-                    maxLength={MAX_LESSON_IMAGE_CAPTION_LENGTH}
+                    maxLength={MAX_IMAGE_CAPTION_LENGTH}
                     onChange={event => setCaption(event.target.value)}
                     placeholder="Agrega un texto relacionado con esta imagen."
                     className="min-h-20 resize-y"
                 />
                 <div className="flex items-center justify-between gap-2">
                     <span className="text-xs text-muted-foreground">
-                        {caption.length}/{MAX_LESSON_IMAGE_CAPTION_LENGTH}
+                        {caption.length}/{MAX_IMAGE_CAPTION_LENGTH}
                     </span>
                     <Button
                         type="button"
@@ -233,7 +268,7 @@ function LessonImageEditor({
 
             <ActionButton
                 type="button"
-                action={deleteLessonImage.bind(null, image.id)}
+                action={() => actions.deleteImage(image.id)}
                 requireAreYouSure
                 variant="destructiveOutline"
                 size="sm"

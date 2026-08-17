@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { cinzel } from "@/components/ui/fonts";
-import { FreeCourseFrame } from "@/app/features/courses/components/FreeCourseFrame";
+import { SideMenuFrame } from "@/components/ui/SideMenuFrame";
 import { FreeCourseNav } from "@/app/features/courses/components/FreeCourseNav";
 import { getFreeCourseOutline } from "@/app/features/courses/db/freeCourse";
 
@@ -24,7 +24,8 @@ export default function NewsletterLayout({
         <main
             className={`${cinzel.className} min-h-screen w-full bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
         >
-            <FreeCourseFrame
+            <SideMenuFrame
+                menuLabel="Clases"
                 // Passed as a prop rather than nested inside `children` so the
                 // two are independent: the section someone asked for is not held
                 // up by the query that lists every class, and vice versa.
@@ -35,7 +36,7 @@ export default function NewsletterLayout({
                 }
             >
                 {children}
-            </FreeCourseFrame>
+            </SideMenuFrame>
         </main>
     );
 }

@@ -1,3 +1,5 @@
+export * from "./schema/announcement";
+export * from "./schema/announcementImage";
 export * from "./schema/authTables";
 export * from "./schema/category";
 export * from "./schema/course";

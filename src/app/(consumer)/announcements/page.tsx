@@ -1,37 +1,42 @@
-import { cinzel } from "@/components/ui/fonts";
-import { BackLink } from "@/components/ui/BackToHomeLink";
+import { redirect } from "next/navigation";
+import { getPublishedAnnouncements } from "@/app/features/announcements/db/announcementFeed";
 
-// Behind the globe on the salon table.
+// The door onto the announcements. It has nothing of its own to show: it finds the
+// newest notice and sends the reader to it, so /announcements is an address that
+// keeps pointing at the latest news as more is published.
 //
-// Empty on purpose for now: the doorway is drawn and the room it opens onto is
-// bare, which is a better answer than a plaque that goes nowhere — a visitor who
-// presses something and lands on nothing at all decides the site is broken.
+// The list arrives newest-first from the query, so the newest one is simply the
+// first — there is no rule here to get wrong.
 //
-// The same navy wash and the same 32 of top padding as every other consumer
-// page, that padding being what clears the 96px bar. When there is something to
-// announce, the block in the middle is what gives way to it.
-export default function AnnouncementsPage() {
+// Awaited in the page itself rather than inside a <Suspense> boundary, and that
+// placement is load-bearing. `redirect` reached while the response is already
+// streaming can only ask the browser to redirect itself, which it does with a
+// `<meta http-equiv="refresh" content="1;...">` — a full second of blank screen.
+// Called before the response begins, it is a 307 and this page never renders at
+// all. The list is a cached read with no request-time data behind it, so there is
+// nothing forcing it to wait for a request to exist.
+export default async function AnnouncementsPage() {
+    const announcements = await getPublishedAnnouncements();
+    const newest = announcements[0];
+
+    // Outside any try/catch, as it must be: `redirect` works by throwing.
+    if (newest != null) redirect(`/announcements/${newest.id}`);
+
+    return <NothingPublishedYet />;
+}
+
+// Shown when nothing is published. Kept close to the words this page has always
+// carried, since the situation it describes has not changed — there is simply
+// nothing to read yet.
+function NothingPublishedYet() {
     return (
-        <main
-            className={`${cinzel.className} flex min-h-screen w-full flex-col bg-[#0a1628] bg-linear-to-b from-[#12243f] via-[#0d1c31] to-[#0a1628]`}
-        >
-            <div className="mx-auto w-full max-w-2xl px-4 pt-32">
-                {/* Back to the salon rather than the castle: the globe this
-                    page hangs off is on the salon table, and that is where
-                    pressing it came from. */}
-                <BackLink href="/">Volver al salón</BackLink>
-            </div>
-
-            {/* Centred in what is left below the way out, so a page with one
-                line on it reads as quiet rather than unfinished. */}
-            <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-4 px-4 pt-12 pb-24 text-center">
-                <h1 className="text-4xl tracking-wide text-ink-bright sm:text-5xl">
-                    Anuncios
-                </h1>
-                <p className="text-xl text-ink-body">
-                    No hay anuncios por ahora, ¡revisa esta página en el futuro!
-                </p>
-            </div>
-        </main>
+        <div className="flex flex-col items-center gap-4 py-24 text-center">
+            <h1 className="text-4xl tracking-wide text-ink-bright sm:text-5xl">
+                Anuncios
+            </h1>
+            <p className="text-xl text-ink-body">
+                No hay anuncios por ahora, ¡revisa esta página en el futuro!
+            </p>
+        </div>
     );
 }

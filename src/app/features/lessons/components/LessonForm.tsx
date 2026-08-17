@@ -14,7 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createLesson, updateLesson } from "../actions/lessons";
 import { lessonSchema } from "../schemas/lessons";
 import { VideoUploadField } from "./VideoUploadField";
-import { LessonImages } from "./LessonImages";
+import { ImageManager } from "@/components/ImageManager";
+import {
+    addLessonImages,
+    deleteLessonImage,
+    updateLessonImageCaption,
+    updateLessonImageOrders,
+} from "../actions/lessonImages";
 
 // Display-only Spanish labels for the DB status enum (values stay in English).
 const lessonStatusLabels: Record<LessonStatus, string> = {
@@ -267,7 +273,20 @@ export function LessonForm({
 
             {type === "text" &&
                 (lesson != null ? (
-                    <LessonImages lessonId={lesson.id} images={lesson.images} />
+                    <ImageManager
+                        images={lesson.images}
+                        uploadEndpoint="lessonImage"
+                        // The lesson half of the shared manager: the same four
+                        // actions it has always called, now handed to it rather
+                        // than imported by it.
+                        actions={{
+                            addImages: urls =>
+                                addLessonImages(lesson.id, urls),
+                            updateOrders: updateLessonImageOrders,
+                            updateCaption: updateLessonImageCaption,
+                            deleteImage: deleteLessonImage,
+                        }}
+                    />
                 ) : (
                     <p className="text-sm text-muted-foreground">
                         Guarda la sección primero para poder agregar imágenes.

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FileText, Video } from "lucide-react";
 import type { LessonType } from "@/drizzle/schema";
-import { useFreeCourseMenu } from "./FreeCourseFrame";
+import { useSideMenu } from "@/components/ui/SideMenuFrame";
 import { FREE_COURSE_TITLE } from "../lib/freeCourseNames";
 
 // A "Sección" on the page — a `lesson` row underneath.
@@ -42,7 +42,7 @@ export function FreeCourseNav({ classes }: { classes: NavClass[] }) {
 
     // Closing the menu on a phone is the frame's business, not this list's —
     // this only reports that a row was used.
-    const { onNavigate } = useFreeCourseMenu();
+    const { onNavigate } = useSideMenu();
 
     // The class holding the section being read is the one that stands open.
     // Because this is derived from the URL rather than from state, it follows
@@ -57,9 +57,9 @@ export function FreeCourseNav({ classes }: { classes: NavClass[] }) {
     return (
         <nav aria-label="Clases del curso gratis" className="flex flex-col">
             {/* The title visitors know this by, not the course row's name. The
-                row is called "Contenido del Curso Gratis" so it is recognisable
-                in the admin panel's list of courses; that phrase is for whoever
-                edits it, and never appears on the page. */}
+                row is named separately so it is recognisable in the admin panel's
+                list of courses; that name is for whoever edits it, and never
+                appears on the page. Both strings live in `lib/freeCourseNames`. */}
             <p className="mb-4 text-xl tracking-wide text-ink-bright">
                 {FREE_COURSE_TITLE}
             </p>
