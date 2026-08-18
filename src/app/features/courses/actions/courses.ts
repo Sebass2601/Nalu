@@ -1,14 +1,14 @@
 "use server"
 
 import z from "zod";
-import { courseSchema } from "../schemas/courses";
+import { courseSchema, courseServerSchema } from "../schemas/courses";
 import { redirect } from "next/navigation";
 import { insertCourse, deleteCourse as deleteCourseDB, updateCourse as updateCourseDB } from "../db/courses";
 import { canCreateCourses, canDeleteCourses, canUpdateCourses } from "../permissions/courses";
 import { getCurrentUser } from "../../users/actions/currentUser";
 
 export async function createCourse(unsafeData: z.infer<typeof courseSchema>) {
-    const {success, data} = courseSchema.safeParse(unsafeData);
+    const {success, data} = courseServerSchema.safeParse(unsafeData);
 
     if (!success || !canCreateCourses(await getCurrentUser())) {
         return { error: true, message: "Hubo un error creando el curso."}
@@ -20,7 +20,7 @@ export async function createCourse(unsafeData: z.infer<typeof courseSchema>) {
 }
 
 export async function updateCourse(id: string, unsafeData: z.infer<typeof courseSchema>) {
-    const {success, data} = courseSchema.safeParse(unsafeData);
+    const {success, data} = courseServerSchema.safeParse(unsafeData);
 
     if (!success || !canUpdateCourses(await getCurrentUser())) {
         return  { error: true, message: "Hubo un error al actualizar el curso."}

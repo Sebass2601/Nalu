@@ -119,7 +119,17 @@ export async function getSubscriptionCourseRows(): Promise<
         })
         .from(CourseTable)
         .leftJoin(CategoryTable, eq(CategoryTable.id, CourseTable.categoryId))
-        .where(eq(CourseTable.includedInSubscription, true))
+        // Free classes are excluded even if somebody manages to set both flags.
+        // The course form refuses to save a course with both, so this is the
+        // belt to that pair of braces — and it states the rule where the band is
+        // actually built: nothing already given away is advertised as a reason
+        // to subscribe.
+        .where(
+            and(
+                eq(CourseTable.includedInSubscription, true),
+                eq(CourseTable.freeContent, false)
+            )
+        )
         .orderBy(asc(CourseTable.name));
 
     if (rows.length === 0) return [];
@@ -203,6 +213,9 @@ export async function getSubscriptionCoursesByCategory(
         .where(
             and(
                 eq(CourseTable.includedInSubscription, true),
+                // Same exclusion as the band this page is the "Ver todos" of,
+                // so the two cannot disagree about what the subscription holds.
+                eq(CourseTable.freeContent, false),
                 categoryId == null
                     ? isNull(CourseTable.categoryId)
                     : eq(CourseTable.categoryId, categoryId)

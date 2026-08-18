@@ -70,10 +70,14 @@ async function Lesson({
     // readable by anyone as a teaser — the product page already advertises it
     // as one — but progress is only recorded for people who actually have the
     // course, which is what `canUpdateUserLessonCompleteStatus` decides.
+    //
+    // No `userId != null` guard around the access check any more: a free-content
+    // course is open to a signed-out visitor, and that guard would refuse them
+    // before the question was asked. `userHasCourseAccess` handles the null
+    // itself, after the one test that does not need a user.
     const canView =
         lesson.status === "preview" ||
-        (userId != null &&
-            (await userHasCourseAccess({ userId, courseId })));
+        (await userHasCourseAccess({ userId, courseId }));
 
     const canComplete = await canUpdateUserLessonCompleteStatus(
         { userId },

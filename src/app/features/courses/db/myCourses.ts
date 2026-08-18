@@ -9,7 +9,7 @@ import {
     UserCourseAccessTable,
     UserLessonCompleteTable,
 } from "@/drizzle/schema";
-import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { getCourseGlobalTag } from "./cache/courses";
 import { getCategoryGlobalTag } from "@/app/features/categories/db/cache/categories";
@@ -21,6 +21,11 @@ import { getSubscriptionUserTag } from "@/app/features/subscriptions/db/cache/su
 import { hasActiveSubscription } from "@/app/features/subscriptions/db/subscriptions";
 import { getProductGlobalTag } from "@/app/features/products/db/cache/products";
 import { getCheapestPurchasableProductForCourse } from "@/app/features/products/db/products";
+import {
+    getCompletedLessonCounts,
+    getPublishedLessonTotals,
+} from "./courseCounts";
+import { orderByProgressBand } from "../lib/courseProgressOrder";
 
 export type MyCourse = {
     id: string;
@@ -101,18 +106,29 @@ export async function getMyCourses(userId: string): Promise<MyCourse[]> {
 
     const [courses, totals, completed, upgrades] = await Promise.all([
         getCourseCards(visibleIds),
-        getLessonTotals(visibleIds),
-        getCompletedCounts({ userId, courseIds: visibleIds }),
+        getPublishedLessonTotals(visibleIds),
+        getCompletedLessonCounts({ userId, courseIds: visibleIds }),
         getUpgradeProductIds({ visibleIds, purchasedIds }),
     ]);
 
-    return courses.map(course => ({
-        ...course,
-        sectionCount: totals.get(course.id)?.sectionCount ?? 0,
-        lessonCount: totals.get(course.id)?.lessonCount ?? 0,
-        completedCount: completed.get(course.id) ?? 0,
-        upgradeProductId: upgrades.get(course.id) ?? null,
-    }));
+    // Sorted here rather than in SQL, because the order depends on a figure
+    // SQL has not produced yet: `completedCount` is stitched on in this very
+    // map, from a separate query. Ordering the shelf in the database would mean
+    // computing the completions twice.
+    //
+    // The bands are what move — half-read courses to the front, finished ones
+    // to the back — and nothing else. `getCourseCards` already returned these
+    // in name order and `orderByProgressBand` sorts stably, so each band comes
+    // out alphabetical, exactly as the whole shelf used to be.
+    return orderByProgressBand(
+        courses.map(course => ({
+            ...course,
+            sectionCount: totals.get(course.id)?.sectionCount ?? 0,
+            lessonCount: totals.get(course.id)?.lessonCount ?? 0,
+            completedCount: completed.get(course.id) ?? 0,
+            upgradeProductId: upgrades.get(course.id) ?? null,
+        }))
+    );
 }
 
 // Which of these cards should offer "buy it for good", and what to sell.
@@ -221,73 +237,19 @@ async function getCourseCards(courseIds: string[]) {
         .from(CourseTable)
         // Left, not inner: a course with no category still belongs on the shelf.
         .leftJoin(CategoryTable, eq(CategoryTable.id, CourseTable.categoryId))
-        .where(inArray(CourseTable.id, courseIds))
-        .orderBy(CourseTable.name);
-}
-
-// Published sections and lessons per course, counted in one pass. `countDistinct`
-// on sections because the join multiplies a section by its lessons.
-async function getLessonTotals(courseIds: string[]) {
-    const rows = await db
-        .select({
-            courseId: CourseSectionTable.courseId,
-            sectionCount: sql<number>`count(distinct ${CourseSectionTable.id})::int`,
-            lessonCount: count(LessonTable.id),
-        })
-        .from(CourseSectionTable)
-        .innerJoin(
-            LessonTable,
-            and(
-                eq(LessonTable.sectionId, CourseSectionTable.id),
-                inArray(LessonTable.status, ["public", "preview"])
-            )
-        )
+        // Free classes are filtered out here rather than earlier, so the rule
+        // sits on the query that decides what the shelf actually draws: it is
+        // this list that the returned cards are built from, and an id left in
+        // `visibleIds` with no row here simply produces no card.
+        //
+        // A free class can be bought — nothing stops a product bundling one —
+        // and this hides it from the shelf anyway. That is deliberate: its
+        // progress is kept, and /newsletter is the one place it is shown.
         .where(
             and(
-                inArray(CourseSectionTable.courseId, courseIds),
-                eq(CourseSectionTable.status, "public")
+                inArray(CourseTable.id, courseIds),
+                eq(CourseTable.freeContent, false)
             )
         )
-        .groupBy(CourseSectionTable.courseId);
-
-    return new Map(
-        rows.map(row => [
-            row.courseId,
-            { sectionCount: row.sectionCount, lessonCount: row.lessonCount },
-        ])
-    );
-}
-
-async function getCompletedCounts({
-    userId,
-    courseIds,
-}: {
-    userId: string;
-    courseIds: string[];
-}) {
-    const rows = await db
-        .select({
-            courseId: CourseSectionTable.courseId,
-            completedCount: count(UserLessonCompleteTable.lessonId),
-        })
-        .from(UserLessonCompleteTable)
-        .innerJoin(
-            LessonTable,
-            and(
-                eq(LessonTable.id, UserLessonCompleteTable.lessonId),
-                inArray(LessonTable.status, ["public", "preview"])
-            )
-        )
-        .innerJoin(
-            CourseSectionTable,
-            and(
-                eq(CourseSectionTable.id, LessonTable.sectionId),
-                eq(CourseSectionTable.status, "public"),
-                inArray(CourseSectionTable.courseId, courseIds)
-            )
-        )
-        .where(eq(UserLessonCompleteTable.userId, userId))
-        .groupBy(CourseSectionTable.courseId);
-
-    return new Map(rows.map(row => [row.courseId, row.completedCount]));
+        .orderBy(CourseTable.name);
 }

@@ -29,4 +29,28 @@ export const courseSchema = z.object({
     // its default — so the column's null, which older courses carry, is never
     // written back by an edit: saving a course answers the question either way.
     uploadedWeekly: z.boolean(),
+    // Whether this course is one of the free classes on /newsletter. Required
+    // rather than defaulted for the same resolver reason as the two flags above.
+    freeContent: z.boolean(),
 });
+
+// The two giveaway flags cannot both be on.
+//
+// A free course is already readable by everyone, so listing it as something the
+// subscription includes would be selling a thing that is not for sale. The
+// checks that hide free courses from the subscription rows would win anyway —
+// this exists so the impossible course is refused at the door rather than saved
+// and then quietly ignored, and so a request sent straight to the server action
+// is held to the same rule as the form.
+//
+// A separate export rather than a `.refine` on `courseSchema` itself: the form's
+// resolver needs the plain object schema to read its shape and drive per-field
+// validation, and a refined schema is a wrapper that no longer exposes it.
+export const courseServerSchema = courseSchema.refine(
+    course => !(course.freeContent && course.includedInSubscription),
+    {
+        message:
+            "Un curso gratis no puede estar incluido en la suscripción",
+        path: ["freeContent"],
+    }
+);

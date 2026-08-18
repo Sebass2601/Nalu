@@ -1,22 +1,34 @@
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { CheckoutButton } from "./CheckoutButton";
 import { userOwnsProduct } from "../db/purchases";
+import { userHasManualCourseAccess } from "@/app/features/courses/db/courseAccess";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { bevelFace } from "@/components/ui/plaque";
 
 // Decides what the main control on a product page does: sell the product, or
 // open what was already bought.
 //
-// The check is deliberately "did this person buy THIS product", not "can this
-// person watch these courses". A subscriber can already watch every course in
-// the subscription, but buying the product still gets them something the
-// subscription does not — permanent access that survives cancelling. Asking the
-// wider question would hide the buy button from exactly the people most likely
-// to want it.
+// Two separate things take the buy button away, and they are deliberately NOT
+// the same test as "can this person watch these courses":
 //
-// A refund undoes this on its own: `userOwnsProduct` ignores purchases with
+//   1. They bought THIS product. A subscriber can already watch every course in
+//      the subscription, but buying still gets them something the subscription
+//      does not — permanent access that survives cancelling. Asking the wider
+//      question would hide the buy button from exactly the people most likely to
+//      want it.
+//   2. An admin handed them any ONE of the courses inside it. Access given by
+//      hand is access somebody decided this person should have without paying,
+//      and continuing to ask them for money for a bundle they have been let into
+//      reads as the site not knowing what it already gave away. One course is
+//      enough on purpose — a partial grant is still a grant.
+//
+// A subscription does neither, which is the line between them: it is a rental
+// that lapses, and this button sells the thing outright.
+//
+// A refund undoes the first on its own: `userOwnsProduct` ignores purchases with
 // `refundedAt` set, so a refunded product goes back to being for sale with no
-// extra handling here.
+// extra handling here. Buying a course that was granted by hand undoes the
+// second, because the purchase overwrites `grantedBy` with NULL.
 export async function ProductCallToAction({
     productId,
     courses,
@@ -34,7 +46,17 @@ export async function ProductCallToAction({
     const owned =
         userId != null && (await userOwnsProduct({ userId, productId }));
 
-    if (!owned) {
+    // Not asked of somebody who already owns the product: the answer cannot
+    // change what is drawn, and this is a second query.
+    const granted =
+        !owned &&
+        userId != null &&
+        (await userHasManualCourseAccess({
+            userId,
+            courseIds: courses.map(course => course.id),
+        }));
+
+    if (!owned && !granted) {
         // A lone course has nowhere else to be reached from: the page draws no
         // syllabus card for a single-course product, because that card said the
         // course's name where the title already stood, its size where the
@@ -77,6 +99,11 @@ export async function ProductCallToAction({
     // Nothing to open. A product that bundles no courses is unusual but
     // possible, and a button leading nowhere is worse than a sentence — so this
     // says what is true and stops there.
+    //
+    // Only ever reached by an owner. A product with no courses in it has nothing
+    // that could have been granted by hand, so `granted` is false here by
+    // construction and the wording cannot be shown to someone who does not in
+    // fact have the product.
     if (courses.length === 0) {
         return (
             <p className="text-xl tracking-widest text-ink uppercase">
@@ -86,7 +113,8 @@ export async function ProductCallToAction({
     }
 
     // One course means there is no choice to make, so the button skips the
-    // choosing entirely and goes straight in.
+    // choosing entirely and goes straight in. True of a granted reader as well
+    // as a buyer: a one-course product they were given IS that course.
     if (courses.length === 1) {
         return (
             <PlaqueButton href={`/courses/${courses[0].id}`}>
@@ -101,6 +129,11 @@ export async function ProductCallToAction({
     // information to make it already is: each syllabus card below carries its
     // own "Ver curso" link, next to the sections and lessons that distinguish
     // one course from another.
+    //
+    // Someone holding a grant on only part of the bundle lands here too, and
+    // sees no way to buy the rest from this page. That is the instruction taken
+    // at its word — no buy button for a granted reader — and the syllabus cards
+    // still lead into whichever courses they can open.
     return null;
 }
 

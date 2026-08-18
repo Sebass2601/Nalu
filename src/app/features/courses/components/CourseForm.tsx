@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { courseSchema } from "../schemas/courses";
 import z from "zod";
@@ -36,6 +36,7 @@ export function CourseForm({ course, categories }: {
         // Null on every course that predates the column; the checkbox reads it
         // as unchecked, which is what it means.
         uploadedWeekly: boolean | null
+        freeContent: boolean
     }
     categories: {
         id: string
@@ -54,7 +55,21 @@ export function CourseForm({ course, categories }: {
                   categoryId: null,
                   includedInSubscription: false,
                   uploadedWeekly: false,
+                  freeContent: false,
               }
+    })
+
+    // Watched rather than read once, because the subscription checkbox below
+    // has to react to it as it is ticked. A free course is already readable by
+    // everyone, so "included in the subscription" has nothing left to mean —
+    // the box is emptied and closed for as long as this is on.
+    //
+    // `useWatch` rather than `form.watch`: the latter hands back a value read
+    // through a function the React Compiler cannot see into, so it gives up on
+    // memoizing this whole component. This subscribes to the one field instead.
+    const isFreeContent = useWatch({
+        control: form.control,
+        name: "freeContent",
     })
 
     // In create mode, always start blank. Next.js keeps a recently visited
@@ -169,11 +184,18 @@ export function CourseForm({ course, categories }: {
                             <FormControl>
                                 <input
                                     type="checkbox"
-                                    checked={field.value ?? false}
+                                    // `&& !isFreeContent` as well as the
+                                    // `disabled` below: the value is also
+                                    // cleared when "Contenido gratis" is
+                                    // ticked, and this keeps the box from
+                                    // showing a tick for the instant between
+                                    // the two.
+                                    checked={(field.value ?? false) && !isFreeContent}
+                                    disabled={isFreeContent}
                                     onChange={event =>
                                         field.onChange(event.target.checked)
                                     }
-                                    className="mt-1 size-4 cursor-pointer"
+                                    className="mt-1 size-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                             </FormControl>
                             <div className="flex flex-col gap-1">
@@ -222,6 +244,56 @@ export function CourseForm({ course, categories }: {
                                     curso — y las de los productos que lo
                                     incluyen — mostrarán una etiqueta de
                                     &ldquo;Contenido semanal&rdquo;.
+                                </p>
+                            </div>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            {/* The switch that moves a course out of the shop and into
+                /newsletter. A checkbox for the same reason as the two above,
+                and the most consequential of the three: it opens the course to
+                everyone on the internet, signed in or not. */}
+            <FormField
+                control={form.control}
+                name="freeContent"
+                render={({ field }) => (
+                    <FormItem>
+                        <div className="flex items-start gap-3 rounded-md border p-4">
+                            <FormControl>
+                                <input
+                                    type="checkbox"
+                                    checked={field.value ?? false}
+                                    onChange={event => {
+                                        const checked = event.target.checked
+                                        field.onChange(checked)
+                                        // Emptied rather than merely ignored.
+                                        // The schema refuses to save a course
+                                        // with both flags on, so leaving a
+                                        // stale tick here would mean a form
+                                        // that looks fine and cannot be saved.
+                                        if (checked) {
+                                            form.setValue(
+                                                "includedInSubscription",
+                                                false
+                                            )
+                                        }
+                                    }}
+                                    className="mt-1 size-4 cursor-pointer"
+                                />
+                            </FormControl>
+                            <div className="flex flex-col gap-1">
+                                <FormLabel className="cursor-pointer">
+                                    Contenido gratis
+                                </FormLabel>
+                                <p className="text-muted-foreground text-xs">
+                                    Este curso aparecerá en las clases
+                                    gratuitas y cualquiera podrá verlo, con
+                                    cuenta o sin ella. No se mostrará en la
+                                    suscripción, en el catálogo ni en
+                                    &ldquo;Mis cursos&rdquo;; el progreso de
+                                    quien lo vea se guarda y solo se ve ahí.
                                 </p>
                             </div>
                         </div>

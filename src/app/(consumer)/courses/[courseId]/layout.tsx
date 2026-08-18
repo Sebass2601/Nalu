@@ -71,10 +71,13 @@ async function CourseNavigation({
 
     // Whether the "Vista previa" badges are worth drawing at all. To someone
     // who bought the course or subscribes, every lesson is already open, so the
-    // badge would be marking a distinction that no longer exists for them.
-    const hasAccess =
-        userId != null &&
-        (await userHasCourseAccess({ userId, courseId: course.id }));
+    // badge would be marking a distinction that no longer exists for them — and
+    // the same is true of everyone on a free-content course, signed in or not,
+    // which is why the null check that used to sit here has gone.
+    const hasAccess = await userHasCourseAccess({
+        userId,
+        courseId: course.id,
+    });
 
     // A Set because this is asked once per lesson in the course, and `includes`
     // on an array would walk the whole list every time.
