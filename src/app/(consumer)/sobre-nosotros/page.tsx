@@ -4,6 +4,7 @@ import { BackLink } from "@/components/ui/BackToHomeLink";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { bevelFace, bevelOutline } from "@/components/ui/plaque";
 import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
+import { AboutVideo } from "./AboutVideo";
 
 // Behind the pair of closed books on the salon table.
 //
@@ -145,6 +146,20 @@ export default function AboutPage() {
             </div>
 
             <Opening />
+
+            {/* The portals explained aloud, standing between the line that
+                hands over to them and the seven panels themselves. Its own
+                section rather than a tail on `Opening`, which is prose set to a
+                reading measure and has no business holding a picture. */}
+            <section className="mx-auto w-full max-w-2xl px-4 pt-4 pb-8">
+                <AboutVideo
+                    src="/sobre_nosotros_video_2.mp4"
+                    width={576}
+                    height={576}
+                    label="Explicación de cada uno de los portales, las categorías de cursos."
+                />
+            </section>
+
             <Portals />
             <Closing />
         </main>
@@ -165,6 +180,18 @@ function Opening() {
             </h1>
 
             <Rule className="my-10" />
+
+            {/* The identity piece, sitting between the welcome and the verses
+                that unpack it. Portrait, and narrower than the column it is in:
+                the source is 576px wide and enlarging it past that only makes
+                the softness legible. */}
+            <AboutVideo
+                src="/sobre_nosotros_video_1.mp4"
+                width={576}
+                height={1024}
+                label="Descripción de la identidad de Nalu."
+                className="mb-12"
+            />
 
             <div className="flex flex-col gap-12">
                 <Verse lead="Dicen que existen lugares que no aparecen en los mapas.">
