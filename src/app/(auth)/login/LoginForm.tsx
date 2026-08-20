@@ -3,11 +3,16 @@
 import { useActionState } from "react";
 import { login } from "./actions";
 
-export default function LoginForm() {
+export default function LoginForm({ next }: { next: string }) {
     const [state, action, pending] = useActionState(login, undefined);
 
     return (
         <form action={action} className="flex flex-col gap-4 w-full">
+            {/* Where to land after signing in, carried from the page's
+                `next` query parameter. Validated again in the action before it
+                becomes a redirect — a hidden field is still a field, and the
+                browser will send whatever it is edited to say. */}
+            <input type="hidden" name="next" value={next} />
             <h1 className="text-2xl tracking-widest text-ink-bright text-center">
                 Iniciar sesión
             </h1>

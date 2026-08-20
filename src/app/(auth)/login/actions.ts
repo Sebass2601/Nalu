@@ -2,6 +2,7 @@
 
 import { AuthError } from "next-auth";
 import { signIn } from "@/auth";
+import { safeReturnPath } from "@/lib/returnPath";
 
 export type LoginState = { error?: string };
 
@@ -13,7 +14,11 @@ export async function login(
         await signIn("credentials", {
             email: formData.get("email"),
             password: formData.get("password"),
-            redirectTo: "/",
+            // Carried in a hidden field, having arrived as a query parameter, so
+            // it is checked here rather than trusted. `safeReturnPath` answers
+            // "/" for anything it does not positively recognise, which is what
+            // the redirect used to be unconditionally.
+            redirectTo: safeReturnPath(formData.get("next")?.toString()),
         });
         return {};
     } catch (error) {

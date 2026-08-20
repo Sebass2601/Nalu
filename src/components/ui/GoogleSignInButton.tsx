@@ -1,13 +1,21 @@
 import { signIn } from "@/auth";
+import { safeReturnPath } from "@/lib/returnPath";
 
 // Shared by the login and sign-up pages. It's a server component whose form
 // runs the Google sign-in server action, mirroring the navbar's approach.
-export default function GoogleSignInButton() {
+//
+// `next` is where to land afterwards, and it originates in a query parameter, so
+// it is run through `safeReturnPath` before being trusted. That happens inside
+// the action rather than only at the call site: this is the last point before
+// the value becomes a real redirect, and validating here means no future caller
+// can hand it an unchecked one. Absent or refused, it falls back to the
+// homepage — the behaviour before any of this existed.
+export default function GoogleSignInButton({ next }: { next?: string }) {
     return (
         <form
             action={async () => {
                 "use server";
-                await signIn("google", { redirectTo: "/" });
+                await signIn("google", { redirectTo: safeReturnPath(next) });
             }}
             className="w-full"
         >

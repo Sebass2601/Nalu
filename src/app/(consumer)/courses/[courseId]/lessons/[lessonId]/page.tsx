@@ -14,6 +14,7 @@ import { getPublishedLesson } from "@/app/features/lessons/db/lessonDetail";
 import { getUserLessonCompleteIdTag } from "@/app/features/lessons/db/cache/userLessonComplete";
 import { updateLessonCompleteStatus } from "@/app/features/lessons/actions/userLessonComplete";
 import { canUpdateUserLessonCompleteStatus } from "@/app/features/lessons/permissions/userLessonComplete";
+import { canViewLesson } from "@/app/features/lessons/permissions/lessonViewAccess";
 import { LessonBody } from "@/app/features/lessons/components/LessonBody";
 import { getLessonVideoUrl } from "@/app/features/lessons/lib/lessonVideoUrl";
 import {
@@ -66,18 +67,28 @@ async function Lesson({
 
     const { userId } = await getCurrentUser();
 
-    // Viewing and completing are separate permissions. A `preview` lesson is
-    // readable by anyone as a teaser — the product page already advertises it
-    // as one — but progress is only recorded for people who actually have the
-    // course, which is what `canUpdateUserLessonCompleteStatus` decides.
+    const isSignedIn = userId != null;
+
+    // Viewing and completing are separate permissions. Progress is only recorded
+    // for people who actually have the course, which is what
+    // `canUpdateUserLessonCompleteStatus` decides below.
     //
-    // No `userId != null` guard around the access check any more: a free-content
-    // course is open to a signed-out visitor, and that guard would refuse them
-    // before the question was asked. `userHasCourseAccess` handles the null
-    // itself, after the one test that does not need a user.
-    const canView =
-        lesson.status === "preview" ||
-        (await userHasCourseAccess({ userId, courseId }));
+    // Asked even for a `preview` lesson, where the answer cannot change the
+    // outcome. It is a cached read, and paying for it once buys the rule being
+    // stated in exactly one place — `canViewLesson` — instead of half of it
+    // being re-implemented here as a short-circuit that could drift from it.
+    const hasCourseAccess = isSignedIn
+        ? await userHasCourseAccess({ userId, courseId })
+        : false;
+
+    // Signing in is now required for every lesson, `preview` and free-content
+    // ones included. See `canViewLesson` for why the wall lives there and not
+    // inside `userHasCourseAccess`.
+    const canView = canViewLesson({
+        isSignedIn,
+        status: lesson.status,
+        hasCourseAccess,
+    });
 
     const canComplete = await canUpdateUserLessonCompleteStatus(
         { userId },
@@ -150,8 +161,17 @@ async function Lesson({
                             : undefined
                     }
                 />
-            ) : (
+            ) : isSignedIn ? (
                 <LockedLesson courseId={courseId} />
+            ) : (
+                /* The two refusals are not the same refusal. Someone signed in
+                   without the course needs a way to buy it; someone with no
+                   account needs a way to make one, and would be baffled by a
+                   checkout button for a course they cannot yet be told the
+                   price of. */
+                <SignInWall
+                    returnTo={`/courses/${courseId}/lessons/${lessonId}`}
+                />
             )}
 
             {/* On a phone: the two navigation buttons on one row at opposite
@@ -228,6 +248,47 @@ async function Lesson({
                 </div>
             </footer>
         </article>
+    );
+}
+
+// Shown in place of the lesson body to a visitor with no account, which is now
+// every visitor with no account — `preview` lessons and free-content courses
+// included.
+//
+// It refuses the content and nothing else. The title, the section and the
+// description above it still render, so a link somebody was sent still says what
+// it leads to; what it will not do is play the video or print the writing.
+//
+// `returnTo` is carried into the login URL so signing in lands back here rather
+// than on the homepage. `/login` runs it through `safeReturnPath` before trusting
+// it — see `lib/returnPath` — so nothing downstream depends on this caller being
+// the only one who ever sets it.
+function SignInWall({ returnTo }: { returnTo: string }) {
+    return (
+        <div className="flex flex-col items-center gap-6 rounded-xl border border-gold/40 bg-[#0a1628]/70 px-6 py-16 text-center backdrop-blur-md">
+            <Lock className="size-12 text-ink-meta" />
+            <p className="font-sans text-base leading-relaxed tracking-normal text-ink-body">
+                Necesitas una cuenta para ver esta clase. Inicia sesión y
+                volverás directamente aquí.
+            </p>
+
+            <PlaqueButton
+                href={`/login?next=${encodeURIComponent(returnTo)}`}
+                size="sm"
+            >
+                Iniciar sesión
+            </PlaqueButton>
+
+            <p className="font-sans text-sm leading-relaxed tracking-normal text-ink-meta">
+                ¿No tienes cuenta?{" "}
+                <Link
+                    href={`/sign-up?next=${encodeURIComponent(returnTo)}`}
+                    className="text-gold underline-offset-4 transition-colors hover:text-gold-bright hover:underline"
+                >
+                    Regístrate aquí
+                </Link>
+            </p>
+        </div>
     );
 }
 

@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { signUp } from "./actions";
 
-export default function SignUpForm() {
+export default function SignUpForm({ next }: { next: string }) {
     // useActionState wires this component to the server action. It returns:
     //  - state:   whatever the action last returned (errors, etc.)
     //  - action:  a wrapped version to hand to <form action={...}>
@@ -13,6 +13,11 @@ export default function SignUpForm() {
 
     return (
         <form action={action} className="flex flex-col gap-4 w-full">
+            {/* Where to land after signing in, carried from the page's
+                `next` query parameter. Validated again in the action before it
+                becomes a redirect — a hidden field is still a field, and the
+                browser will send whatever it is edited to say. */}
+            <input type="hidden" name="next" value={next} />
             <h1 className="text-2xl tracking-widest text-ink-bright text-center">
                 Crear cuenta
             </h1>

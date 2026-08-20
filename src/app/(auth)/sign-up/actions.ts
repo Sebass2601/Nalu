@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/drizzle/db";
 import { UserTable } from "@/drizzle/schema";
 import { signIn } from "@/auth";
+import { safeReturnPath } from "@/lib/returnPath";
 import { signUpSchema } from "@/data/schemas/auth";
 
 // The shape of what this action hands back to the form. Either a general
@@ -50,7 +51,13 @@ export async function signUp(
     await db.insert(UserTable).values({ name, email, password: hashedPassword });
 
     // On success this redirects (it throws internally), so nothing below runs.
-    await signIn("credentials", { email, password, redirectTo: "/" });
+    // Same validated hand-off as the login form: the value came from a query
+    // parameter, so it is checked immediately before it becomes a redirect.
+    await signIn("credentials", {
+        email,
+        password,
+        redirectTo: safeReturnPath(formData.get("next")?.toString()),
+    });
 
     // Only here to satisfy the return type; unreachable on success.
     return {};
