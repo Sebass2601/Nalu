@@ -178,7 +178,10 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         {children}
-        <Toaster />
+        {/* Top-centre rather than sonner's bottom-right default, which is
+            where the contact mark now lives. A toast landing on top of a fixed
+            button covers it and steals the taps meant for it. */}
+        <Toaster position="top-center" />
       </body>
     </html>
   );

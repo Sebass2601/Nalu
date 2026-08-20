@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { NavBarFrame } from "@/components/ui/NavBarFrame";
 import { NavItem } from "@/components/ui/NavItem";
 import { UserMenu } from "@/components/ui/UserMenu";
+import { ContactWidget } from "@/components/ui/ContactWidget";
 
 
 
@@ -21,6 +22,12 @@ export default function ConsumerLayout({
             <Navbar />
         </Suspense>
         {children}
+        {/* Fixed to the corner of every consumer page, so a question never
+            depends on the visitor being on the right one. Mounted here rather
+            than in the root layout deliberately: the admin side is the school's
+            own workspace, and a permanent floating mark over the course editor
+            is in the way rather than useful. */}
+        <ContactWidget />
         </>
     );
 }
