@@ -43,7 +43,7 @@ export const CourseTable = pgTable("courses", {
     // only because the courses that predate this column were never asked the
     // question. Anything written through the admin form is a true boolean.
     uploadedWeekly: boolean(),
-    // Whether this course is one of the free classes shown on /newsletter.
+    // Whether this course is one of the free classes shown on /clases-gratuitas.
     //
     // Free content is readable by anyone, signed in or not — the flag is the
     // first thing `userHasCourseAccess` checks, before it has even asked who is
@@ -55,7 +55,7 @@ export const CourseTable = pgTable("courses", {
     // the form's schema rather than here: a course already given away cannot
     // also be a reason to subscribe. Free courses are filtered out of the
     // subscription rows, the per-category subscription pages and "Mis cursos" —
-    // progress through them is still recorded, but /newsletter is the only
+    // progress through them is still recorded, but /clases-gratuitas is the only
     // place it is shown.
     //
     // `notNull().default(false)` like `includedInSubscription`, and unlike the

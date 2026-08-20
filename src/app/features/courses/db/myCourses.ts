@@ -244,7 +244,7 @@ async function getCourseCards(courseIds: string[]) {
         //
         // A free class can be bought — nothing stops a product bundling one —
         // and this hides it from the shelf anyway. That is deliberate: its
-        // progress is kept, and /newsletter is the one place it is shown.
+        // progress is kept, and /clases-gratuitas is the one place it is shown.
         .where(
             and(
                 inArray(CourseTable.id, courseIds),

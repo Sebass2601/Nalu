@@ -9,7 +9,7 @@ import { formatShortDate } from "@/lib/formatters";
 // The frame shared by every announcement: the list of notices down the left,
 // whichever one is open beside it.
 //
-// The same frame /newsletter uses, with a different panel inside it. Being a
+// The same frame /clases-gratuitas uses, with a different panel inside it. Being a
 // layout is what makes the panel survive moving between announcements — a layout
 // is not re-rendered when you navigate between its own pages, so the menu stays
 // open and stays scrolled where it was.
@@ -21,7 +21,7 @@ export default function AnnouncementsLayout({
     children,
 }: LayoutProps<"/announcements">) {
     return (
-        // No background of its own — see /sobre-nosotros and /newsletter, which
+        // No background of its own — see /sobre-nosotros and /clases-gratuitas, which
         // are hosted the same way. CarvedBackdrop paints at `-z-10`, so an opaque
         // colour on this element would be painted over it and hide it; the canvas
         // navy comes from <body> instead, where an overscroll bounce can find it.

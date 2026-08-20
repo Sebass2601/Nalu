@@ -36,7 +36,7 @@ const WIDE_SCREEN = "(min-width: 64rem)";
 // A page whose contents are chosen from a panel down the left: the button that
 // opens it, the panel itself, and whatever was chosen.
 //
-// Shared by /newsletter, where the panel lists a free course's classes, and
+// Shared by /clases-gratuitas, where the panel lists a free course's classes, and
 // /announcements, where it lists notices. Everything about how the panel behaves
 // lives here; what goes inside it is the caller's business.
 //
@@ -57,7 +57,7 @@ export function SideMenuFrame({
 }: {
     menu: ReactNode;
     // What the button says, and therefore what the panel is called: "Clases" on
-    // /newsletter, "Anuncios" on /announcements. There is no default — a button
+    // /clases-gratuitas, "Anuncios" on /announcements. There is no default — a button
     // labelled for the wrong page is worse than a compile error.
     menuLabel: string;
     backHref?: string;

@@ -21,7 +21,7 @@ import { FreeClassesSkeleton } from "./FreeClassesSkeleton";
 // Nothing is awaited out here. The wall and the heading are the same for
 // everybody and are drawn immediately, while the cards — which depend on who is
 // asking, because the order does — arrive behind their own boundary.
-export default function NewsletterPage() {
+export default function FreeClassesPage() {
     return (
         // No background of its own, which is what lets the carved wall show
         // through: CarvedBackdrop paints at `-z-10`, and a negative-z-index
@@ -36,7 +36,7 @@ export default function NewsletterPage() {
                     to a corner, the way the catalogue pages carry theirs.
 
                     This is the way out the side menu used to provide, before
-                    /newsletter stopped being a reader with a frame around it —
+                    /clases-gratuitas stopped being a reader with a frame around it —
                     a gallery has no menu to hang it off, so the page carries it
                     itself. */}
                 <BackLink href="/" className="mb-8">

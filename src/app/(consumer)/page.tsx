@@ -41,7 +41,7 @@ const ENTRANCES: Entrance[] = [
   // which is why the plaque sits left of the crystal's centre rather than on it.
   // The shorter title has room to spare, so the nudge is now only holding it off
   // the lantern behind the crystal.
-  { id: "lecciones", label: FREE_COURSE_TITLE, href: "/newsletter", x: 0.845, y: 0.591 },
+  { id: "lecciones", label: FREE_COURSE_TITLE, href: "/clases-gratuitas", x: 0.845, y: 0.591 },
 ];
 
 // Where the lettering hangs in the arch. Centred on the opening, which spans

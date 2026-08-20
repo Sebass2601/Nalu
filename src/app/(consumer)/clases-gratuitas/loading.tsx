@@ -4,7 +4,7 @@ import { BackLink } from "@/components/ui/BackToHomeLink";
 import { FreeClassesSkeleton } from "./FreeClassesSkeleton";
 import { FREE_COURSE_TITLE } from "@/app/features/courses/lib/freeCourseNames";
 
-// Shown while arriving at /newsletter from elsewhere on the site.
+// Shown while arriving at /clases-gratuitas from elsewhere on the site.
 //
 // The page's own <Suspense> covers the cards once this route is rendering; this
 // covers the gap before that, when the browser has left the salon and nothing
@@ -13,7 +13,7 @@ import { FREE_COURSE_TITLE } from "@/app/features/courses/lib/freeCourseNames";
 //
 // It draws the same wall, the same heading and the same card shapes as the page
 // itself, so arriving is one continuous picture rather than two.
-export default function LoadingNewsletter() {
+export default function LoadingFreeClasses() {
     return (
         <main className={`${cinzel.className} relative min-h-screen w-full`}>
             <CarvedBackdrop />

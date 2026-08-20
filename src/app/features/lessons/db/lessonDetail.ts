@@ -17,7 +17,7 @@ import { getLessonIdTag } from "./cache/lessons";
 //   - nor is a lesson inside a private section, whatever the lesson's own status
 //     says, because publishing a lesson cannot publish the class around it.
 //
-// Shared by the paid course viewer and the free course at /newsletter. They
+// Shared by the paid course viewer and the free course at /clases-gratuitas. They
 // differ over who may *read* what comes back — that check belongs to each page,
 // because it is request-time work about the viewer — but they must never differ
 // over what counts as published, and a second copy of these two filters is

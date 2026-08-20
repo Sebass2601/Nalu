@@ -29,7 +29,7 @@ export const courseSchema = z.object({
     // its default — so the column's null, which older courses carry, is never
     // written back by an edit: saving a course answers the question either way.
     uploadedWeekly: z.boolean(),
-    // Whether this course is one of the free classes on /newsletter. Required
+    // Whether this course is one of the free classes on /clases-gratuitas. Required
     // rather than defaulted for the same resolver reason as the two flags above.
     freeContent: z.boolean(),
 });

@@ -252,7 +252,7 @@ export function CourseForm({ course, categories }: {
                 )}
             />
             {/* The switch that moves a course out of the shop and into
-                /newsletter. A checkbox for the same reason as the two above,
+                /clases-gratuitas. A checkbox for the same reason as the two above,
                 and the most consequential of the three: it opens the course to
                 everyone on the internet, signed in or not. */}
             <FormField

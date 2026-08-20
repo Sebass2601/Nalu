@@ -139,10 +139,10 @@ export async function courseIsInSubscription(courseId: string) {
     return (await getCourseGiveawayFlags(courseId)).includedInSubscription;
 }
 
-// Whether this is one of the free classes on /newsletter, and therefore open to
+// Whether this is one of the free classes on /clases-gratuitas, and therefore open to
 // everyone.
 //
-// Exported for the same kind of reason as the one above: /newsletter's own
+// Exported for the same kind of reason as the one above: /clases-gratuitas's own
 // gallery and the course page both need the answer for reasons other than
 // gating a lesson body.
 export async function courseIsFreeContent(courseId: string) {

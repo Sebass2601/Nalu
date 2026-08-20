@@ -5,7 +5,7 @@ import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { WeeklyContentTag } from "@/components/ui/WeeklyContentTag";
 import { TypographicCover } from "./TypographicCover";
 
-// One free class on /newsletter.
+// One free class on /clases-gratuitas.
 //
 // Built on the same bones as `MyCourseCard` — cover, title, size, progress,
 // plaque — and different from it in three ways, each of which follows from what

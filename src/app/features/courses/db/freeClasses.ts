@@ -14,7 +14,7 @@ import {
 } from "./courseCounts";
 import { orderFreeClasses } from "../lib/courseProgressOrder";
 
-// The free classes on /newsletter: every course marked `freeContent`, with
+// The free classes on /clases-gratuitas: every course marked `freeContent`, with
 // enough about each to draw its card, in the order that page wants them.
 //
 // A course row, but read as a single class — the convention is one Clase per
@@ -23,7 +23,7 @@ import { orderFreeClasses } from "../lib/courseProgressOrder";
 // free course with three Clases in it renders perfectly well and simply reports
 // what it holds.
 //
-// This is what replaced the old arrangement, where /newsletter found its course
+// This is what replaced the old arrangement, where /clases-gratuitas found its course
 // by matching `name` against a hard-coded constant. Renaming that course in the
 // admin panel emptied the page with no error and nothing to see; a column and a
 // checkbox cannot be broken by a rename.

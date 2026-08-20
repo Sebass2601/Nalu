@@ -11,7 +11,7 @@ import { and, count, eq, inArray, sql } from "drizzle-orm";
 // How big a course is, and how far through it somebody is — the two numbers
 // every course card draws under its title.
 //
-// Shared by "Mis cursos" and the free classes on /newsletter, which ask exactly
+// Shared by "Mis cursos" and the free classes on /clases-gratuitas, which ask exactly
 // the same two questions of exactly the same tables and would otherwise each
 // keep a copy. The copies are what matter here rather than the line count: both
 // queries filter on `status`, and a rule about what counts as published that is

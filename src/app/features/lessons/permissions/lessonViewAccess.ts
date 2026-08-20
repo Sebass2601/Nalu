@@ -15,7 +15,7 @@ import type { LessonStatus } from "@/drizzle/schema";
 // ever looked at who was asking. Neither is a bug in those pieces — both were
 // written to be open on purpose — so the wall goes here, where the two doors
 // meet, rather than inside either of them. `userHasCourseAccess` in particular
-// is also read by the course layout, the newsletter gallery and the product
+// is also read by the course layout, the free classes gallery and the product
 // page, and tightening it there would gate things that were never meant to be.
 //
 // What `preview` still means afterwards: a teaser for anyone holding an account,
