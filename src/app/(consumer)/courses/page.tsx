@@ -10,7 +10,7 @@ import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 const cinzel = Cinzel({ subsets: ["latin"] });
 
 // The shelf: everything this person can open — a grid on a wide screen, a
-// dragged row on a phone.
+// scrolled column on a phone.
 //
 // No category navigation, unlike the catalogue pages. Those pills exist to move
 // around a shop with more in it than fits on a screen; here they would filter a
@@ -50,25 +50,40 @@ async function MyCourses() {
 
     return (
         <>
-            {/* Phone: a dragged row, not looping. A shelf is a finite thing and
-                reaching its end is part of what it tells you — that these are
-                the courses you have. */}
+            {/* Phone: a column scrolled downwards inside a capped box, not
+                looping. A shelf is a finite thing and reaching its end is part
+                of what it tells you — that these are the courses you have.
+                The cap is what keeps the shelf a window rather than the whole
+                page, and reaching the last card hands the scroll on to the
+                page so the footer stays reachable. */}
             <div className="lg:hidden">
                 <DraggableStrip
                     label="Mis cursos"
+                    orientation="vertical"
+                    // 11rem taller than the default cap, because this page has
+                    // no back link and no category nav above the shelf — the
+                    // two together are what push the catalogue's box down far
+                    // enough that its bottom edge lands past the fold. Measured
+                    // rather than guessed: on a 390x844 screen the catalogue
+                    // box starts at 378px and this one at 200px, and closing
+                    // that 178px leaves both bottom edges at the same place.
+                    //
+                    // A fixed length rather than more vh: the gap is the height
+                    // of that missing chrome, which does not grow with the
+                    // screen. In vh it would be right on one phone only.
+                    maxHeightClassName="max-h-[calc(70vh+11rem)]"
                     previousLabel="Ver cursos anteriores"
                     nextLabel="Ver más cursos"
                 >
                     {courses.map(course => (
-                        // Nearly the full width of the screen, the size these
-                        // cards were before the strip — but not quite all of
-                        // it: the sliver of the next card showing past the
-                        // edge is what says the row moves sideways. Capped so
-                        // a large phone or a tablet does not stretch one card
-                        // wider than the grid ever draws them.
+                        // The full width of the column, now that what says
+                        // there is more to see is the card clipped by the
+                        // bottom edge rather than one showing past the side.
+                        // The shelf keeps the order `getMyCourses` gives it —
+                        // by progress band — and opens on the first of them.
                         <div
                             key={course.id}
-                            className="w-[85vw] max-w-125 shrink-0 snap-start"
+                            className="w-full shrink-0 snap-start"
                         >
                             <MyCourseCard course={course} />
                         </div>
@@ -121,25 +136,26 @@ function CatalogueLink() {
 }
 
 // The shelf before it is known what is on it. Both of the layouts above, at the
-// same breakpoint: the dragged row on a phone, the grid on a wide screen. A
-// grid alone was a desktop-only fallback — on a phone it became a column of
-// tall boxes that the horizontal row then replaced, and the page rearranged
+// same breakpoint: the scrolled column on a phone, the grid on a wide screen. A
+// grid alone was a desktop-only fallback — on a phone it ran the whole list down
+// the page instead of the capped box that replaced it, and the page rearranged
 // itself at the swap.
 //
 // Plain markup rather than a DraggableStrip. The strip mounts, measures and
 // parks itself, and none of that is worth doing for cards about to be
-// discarded; at rest it is a row clipped at the column's edge, which is all
-// this has to look like.
+// discarded; at rest it is a column clipped at the box's bottom edge, which is
+// all this has to look like.
 function MyCoursesSkeleton() {
     return (
         <div className="animate-pulse">
-            {/* The strip's own card width, so the sliver of the next card
-                past the right edge is already there — a shelf holding one
-                course and a shelf holding several look different from the
-                first frame, and this one should not promise only one. */}
-            <div className="flex gap-4 overflow-hidden px-1 pb-2 lg:hidden">
+            {/* The column the strip becomes, capped at the height it caps
+                itself to, so the card clipped by the bottom edge is already
+                there — a shelf holding one course and a shelf holding several
+                look different from the first frame, and this one should not
+                promise only one. */}
+            <div className="flex max-h-[calc(70vh+11rem)] flex-col gap-4 overflow-hidden px-1 py-1 lg:hidden">
                 {Array.from({ length: 3 }, (_, index) => (
-                    <div key={index} className="w-[85vw] max-w-125 shrink-0">
+                    <div key={index} className="w-full shrink-0">
                         <MyCourseCardSkeleton />
                     </div>
                 ))}
