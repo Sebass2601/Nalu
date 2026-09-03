@@ -10,10 +10,9 @@ import {
 // them is off-by-a-few-pixels arithmetic whose failure looks like a slightly
 // wrong resting position rather than anything that throws.
 //
-// They are also axis-blind on purpose. The strip runs sideways as a row and
-// downwards as a column, reading a different pair of DOM properties for each,
-// and these are what both cases share — so the corners below are stated once
-// and hold for either direction.
+// They matter most to the strips that loop — the free classes and the
+// subscription rows — where `wrapOntoMiddleCopy` runs on every swipe and a
+// wrong answer shows up as a stutter at one point in the loop.
 
 describe("snapToCardGrid", () => {
     test("an offset already on a boundary does not move", () => {
@@ -65,8 +64,8 @@ describe("pageDistance", () => {
         expect(pageDistance(800, 200)).toBe(800);
     });
 
-    // The phone case for the vertical strip: the box is 70vh and a card is
-    // most of it, so one card is all that fits.
+    // The phone case: a card is nearly the width of the screen, so one card is
+    // all that fits and a page is one card.
     test("one card per page when only one fits", () => {
         expect(pageDistance(560, 400)).toBe(400);
     });

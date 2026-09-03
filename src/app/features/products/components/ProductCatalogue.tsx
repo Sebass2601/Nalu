@@ -1,6 +1,5 @@
 import { CategoryNav } from "@/app/features/categories/components/CategoryNav";
 import { ProductCard } from "./ProductCard";
-import { DraggableStrip } from "@/components/ui/DraggableStrip";
 import { Cinzel } from "next/font/google";
 import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
@@ -70,51 +69,20 @@ export function Catalogue({
                     {emptyMessage}
                 </p>
             ) : (
-                <>
-                    {/* Phone: a column scrolled downwards, inside a box the
-                        strip caps so it stays a window onto the catalogue
-                        rather than becoming the page. Down rather than
-                        sideways because the page already scrolls that way, and
-                        asking for a sideways swipe in the middle of it is a
-                        second gesture to discover.
+                /* One grid at every width. `auto-fill` with a 300px minimum
+                   lays the cards out in as many columns as fit, which on a
+                   phone is exactly one — so the catalogue is a plain column of
+                   full-width cards that the page itself scrolls.
 
-                        It does not loop — this is every product in the
-                        category, and the bottom of the column is the answer to
-                        "how many are there". Reaching it also hands the scroll
-                        back to the page, which is what keeps the footer
-                        within reach of a finger that started on a card. */}
-                    <div className="mt-8 lg:hidden">
-                        <DraggableStrip
-                            label="Cursos"
-                            orientation="vertical"
-                            previousLabel="Ver cursos anteriores"
-                            nextLabel="Ver más cursos"
-                        >
-                            {products.map(product => (
-                                // The full width of the column now that the
-                                // cards are stacked: there is no next card to
-                                // leave showing past the edge, because the one
-                                // below already does that job. The order is
-                                // the query's — name-ascending — and the
-                                // column opens on the first of them.
-                                <div
-                                    key={product.id}
-                                    className="w-full shrink-0 snap-start"
-                                >
-                                    <ProductCard {...product} />
-                                </div>
-                            ))}
-                        </DraggableStrip>
-                    </div>
-
-                    {/* Wide screens keep the grid: the cards are the page
-                        here, and there is room to lay them out in full. */}
-                    <div className="mt-8 hidden grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 lg:grid">
-                        {products.map(product => (
-                            <ProductCard key={product.id} {...product} />
-                        ))}
-                    </div>
-                </>
+                   Nothing here scrolls on its own. A card is reached by moving
+                   the page, the same gesture that reaches everything else,
+                   which is what a shop that is a list of things should ask
+                   for. */
+                <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 lg:gap-6">
+                    {products.map(product => (
+                        <ProductCard key={product.id} {...product} />
+                    ))}
+                </div>
             )}
         </>
     );
@@ -122,17 +90,9 @@ export function Catalogue({
 
 // What stands in while a catalogue is still being read.
 //
-// It mirrors `Catalogue` above rather than approximating it: the same two
-// layouts at the same breakpoint, so nothing rearranges underneath the reader
-// when the real cards arrive. A single grid here was a desktop-only fallback —
-// on a phone it collapsed to one column of tall boxes, which is not what
-// replaced it, and the swap moved the whole page.
-//
-// The phone column is plain markup rather than a DraggableStrip: the strip
-// measures itself and parks its scroll position on mount, and there is no
-// reason to mount, hydrate and measure a client component for cards that are
-// about to be thrown away. It only has to *look* like the strip at rest, which
-// is a column clipped at the box's bottom edge.
+// It mirrors `Catalogue` above rather than approximating it: the same grid at
+// the same widths, so nothing rearranges underneath the reader when the real
+// cards arrive.
 export function CatalogueSkeleton() {
     return (
         <div className="animate-pulse">
@@ -162,19 +122,9 @@ export function CatalogueSkeleton() {
 
             <div className="mx-auto h-8 w-64 rounded bg-gold/20" />
 
-            {/* The column the strip becomes, at the height it caps itself
-                to, so the card clipped by the bottom edge — the thing that
-                says this column keeps going — is there before the products
-                are. */}
-            <div className="mt-8 flex max-h-[70vh] flex-col gap-4 overflow-hidden px-1 py-1 lg:hidden">
-                {Array.from({ length: 3 }, (_, index) => (
-                    <div key={index} className="w-full shrink-0">
-                        <ProductCardSkeleton />
-                    </div>
-                ))}
-            </div>
-
-            <div className="mt-8 hidden grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 lg:grid">
+            {/* The same grid the real catalogue uses, so the cards land where
+                these stood rather than beside them. */}
+            <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 lg:gap-6">
                 {Array.from({ length: 3 }, (_, index) => (
                     <ProductCardSkeleton key={index} />
                 ))}

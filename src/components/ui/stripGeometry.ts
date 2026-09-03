@@ -1,11 +1,13 @@
 // The arithmetic behind `DraggableStrip`, kept apart from it.
 //
-// The strip reads these numbers off the DOM along whichever axis it runs — x
-// when it is a row, y when it is a column — and the whole point of pulling the
-// sums out here is that none of them care which. `offset`, `viewport` and
-// `step` are distances along the strip's own axis, and that is all they need to
-// be. It is also what makes them testable: the strip itself cannot be, without
-// a browser to measure.
+// The strip reads these numbers off the DOM; these functions only do sums on
+// them. That separation is what makes them testable — the strip itself is not,
+// without a browser to measure — and these are the parts where a mistake hides,
+// because every one of them is off-by-a-few-pixels work whose failure looks
+// like a slightly wrong resting position rather than anything that throws.
+//
+// Nothing here mentions left or width: `offset`, `viewport` and `step` are
+// distances along the strip, which is all the sums need to know.
 
 // Round a scroll offset onto the nearest card boundary.
 //
