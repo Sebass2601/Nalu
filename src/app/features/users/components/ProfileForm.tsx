@@ -8,6 +8,7 @@ import {
     type ProfileState,
 } from "../actions/profile"
 import { PasswordInput } from "@/components/ui/PasswordInput"
+import { useForgetOnLeave } from "@/components/ui/useForgetOnLeave"
 import { ProfileAvatarField } from "./ProfileAvatarField"
 
 // The three things a person can change about their own account, as three
@@ -227,6 +228,13 @@ function Field({
     const inputClassName =
         "font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
 
+    // Leaving /profile puts every box back to what it said on arrival. For the
+    // two email boxes that means empty; for the name it means the name on file
+    // rather than the half-finished edit that was abandoned, which is the whole
+    // reason the hook restores `defaultValue` instead of blanking the field.
+    // `PasswordInput` brings its own, so this ref goes unused on that branch.
+    const inputRef = useForgetOnLeave()
+
     return (
         <div className="flex flex-col gap-1.5">
             <label
@@ -246,6 +254,7 @@ function Field({
                 <input
                     id={id}
                     name={id}
+                    ref={inputRef}
                     type={type}
                     className={inputClassName}
                     {...props}

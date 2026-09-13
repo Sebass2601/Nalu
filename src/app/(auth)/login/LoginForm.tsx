@@ -3,10 +3,15 @@
 import { useActionState } from "react";
 
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { useForgetOnLeave } from "@/components/ui/useForgetOnLeave";
 import { login } from "./actions";
 
 export default function LoginForm({ next }: { next: string }) {
     const [state, action, pending] = useActionState(login, undefined);
+    // Leaving the screen clears the box. The password field does this for
+    // itself; the address has to ask, and an address half typed and thought
+    // better of should not be waiting here on the way back either.
+    const emailRef = useForgetOnLeave();
 
     return (
         <form action={action} className="flex flex-col gap-4 w-full">
@@ -30,6 +35,7 @@ export default function LoginForm({ next }: { next: string }) {
                 <input
                     id="email"
                     name="email"
+                    ref={emailRef}
                     type="text"
                     className=" font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
                 />

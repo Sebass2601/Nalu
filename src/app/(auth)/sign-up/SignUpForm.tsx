@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { useForgetOnLeave } from "@/components/ui/useForgetOnLeave";
 import { signUp } from "./actions";
 
 export default function SignUpForm({ next }: { next: string }) {
@@ -12,6 +13,9 @@ export default function SignUpForm({ next }: { next: string }) {
     //  - pending: true while the action is running (for disabling the button)
     // The second argument (undefined) is the initial state before first submit.
     const [state, action, pending] = useActionState(signUp, undefined);
+    // Half-finished answers do not wait here for whoever opens the page next.
+    const nameRef = useForgetOnLeave();
+    const emailRef = useForgetOnLeave();
 
     return (
         <form action={action} className="flex flex-col gap-4 w-full">
@@ -36,6 +40,7 @@ export default function SignUpForm({ next }: { next: string }) {
                 <input
                     id="name"
                     name="name"
+                    ref={nameRef}
                     type="text"
                     className="font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
                 />
@@ -53,6 +58,7 @@ export default function SignUpForm({ next }: { next: string }) {
                 <input
                     id="email"
                     name="email"
+                    ref={emailRef}
                     type="text"
                     className="font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
                 />
