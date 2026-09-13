@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
+
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { signUp } from "./actions";
 
 export default function SignUpForm({ next }: { next: string }) {
@@ -65,10 +67,9 @@ export default function SignUpForm({ next }: { next: string }) {
                 <label htmlFor="password" className="text-xs tracking-widest text-ink-body">
                     Contraseña
                 </label>
-                <input
+                <PasswordInput
                     id="password"
                     name="password"
-                    type="password"
                     className="font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
                 />
                 {state?.fieldErrors?.password && (

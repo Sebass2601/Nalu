@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 
+import { cn } from "@/lib/utils";
 import { ImageGallery, type GalleryImage } from "./ImageGallery";
 import { splitIntoBoldSegments } from "./inlineBold";
 import { splitIntoParagraphs } from "./paragraphs";
@@ -18,9 +19,20 @@ import { splitIntoParagraphs } from "./paragraphs";
 // a word inside a sentence should claim. 600 is the one step up that ladder
 // means. Geist is a variable font, so it is drawn as a true 600 rather than a
 // smeared 500.
+//
+// `whitespace-pre-line` is what makes a single newline visible. The admin types
+// a list a line at a time, and HTML left alone collapses every one of those
+// newlines into a space and runs the lines together into one block of prose —
+// which is the bug this fixes. `pre-line` keeps the newlines and still wraps a
+// long line normally, so what the textarea shows is what the page draws. Blank
+// lines are not involved: those were already cut into separate paragraphs
+// before the text reached here, and still open the wider gap between them.
+//
+// The product page sets the same class on its description, so this is a rule
+// the site already had in one place rather than a new one invented here.
 function Paragraph({ text, className }: { text: string; className?: string }) {
     return (
-        <p className={className}>
+        <p className={cn("whitespace-pre-line", className)}>
             {splitIntoBoldSegments(text).map((segment, index) =>
                 segment.bold ? (
                     <strong key={index} className="font-semibold">

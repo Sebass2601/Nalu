@@ -7,6 +7,7 @@ import {
     updateProfile,
     type ProfileState,
 } from "../actions/profile"
+import { PasswordInput } from "@/components/ui/PasswordInput"
 import { ProfileAvatarField } from "./ProfileAvatarField"
 
 // The three things a person can change about their own account, as three
@@ -206,16 +207,26 @@ function Section({
 // `font-sans` on the input itself: the page is set in Cinzel, which is a display
 // face — fine for a label, wrong for an email address or a row of password dots.
 // The auth screens make the same split.
+//
+// A password asks for `PasswordInput` rather than a bare `<input>`, so the eye
+// that uncovers what is typed arrives on all four password boxes on this page —
+// the one guarding the email change, and the three that change the password —
+// from this one place. Every field keeps its own eye: uncovering the current
+// password does not uncover the new one.
 function Field({
     id,
     label,
     errors,
+    type = "text",
     ...props
 }: {
     id: string
     label: string
     errors?: string[]
 } & React.ComponentProps<"input">) {
+    const inputClassName =
+        "font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
+
     return (
         <div className="flex flex-col gap-1.5">
             <label
@@ -224,13 +235,22 @@ function Field({
             >
                 {label}
             </label>
-            <input
-                id={id}
-                name={id}
-                type="text"
-                className="font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
-                {...props}
-            />
+            {type === "password" ? (
+                <PasswordInput
+                    id={id}
+                    name={id}
+                    className={inputClassName}
+                    {...props}
+                />
+            ) : (
+                <input
+                    id={id}
+                    name={id}
+                    type={type}
+                    className={inputClassName}
+                    {...props}
+                />
+            )}
             {errors?.map(message => (
                 <p key={message} className="text-sm text-red-400">
                     {message}

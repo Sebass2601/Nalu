@@ -9,12 +9,23 @@ describe("splitIntoParagraphs", () => {
         expect(splitIntoParagraphs("Uno\n\nDos")).toEqual(["Uno", "Dos"]);
     });
 
-    test("a single newline does not — it is a wrapped line, not a break", () => {
-        // Typing a line break to keep a sentence tidy in the textarea must not
-        // split the sentence in half on the page.
+    test("a single newline does not — it stays inside the paragraph", () => {
+        // It is not discarded either: the newline survives into the string, and
+        // `ProseWithImages` draws it as a line break with `whitespace-pre-line`.
+        // Cutting here instead would put the two lines in separate paragraphs
+        // and open the wider blank-line gap between them.
         expect(splitIntoParagraphs("Una frase\ncontinúa aquí")).toEqual([
             "Una frase\ncontinúa aquí",
         ]);
+    });
+
+    test("a list typed a line at a time stays one paragraph", () => {
+        // The shape an admin actually writes. Every line is kept, in order, in
+        // one paragraph — so the page draws them stacked rather than running
+        // them together into a block of prose.
+        expect(
+            splitIntoParagraphs("✦ fechas que se espejan\n✦ patrones\n✦ edades"),
+        ).toEqual(["✦ fechas que se espejan\n✦ patrones\n✦ edades"]);
     });
 
     test("a run of blank lines counts as one break", () => {
