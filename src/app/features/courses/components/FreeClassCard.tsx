@@ -12,9 +12,8 @@ import { TypographicCover } from "./TypographicCover";
 // this card is for:
 //
 //   - it always draws a cover, image or not. The shelf card omits the block when
-//     there is no art, which is fine in a grid where every card starts at the
-//     top of its own cell. Here the cards also sit in a strip, where one shorter
-//     card reads as a mistake;
+//     there is no art; here a class without its own picture gets a typographic
+//     one, so every card in a row starts with a cover;
 //   - the plaque says "Ver clase", not "Ver curso". A free course is one class by
 //     convention, and calling it a course would promise more than is behind the
 //     button;
@@ -28,21 +27,19 @@ export function FreeClassCard({ freeClass }: { freeClass: FreeClass }) {
 
     return (
         <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gold/40 bg-[#0a1628]/70 backdrop-blur-md">
-            {/* Always present, image or not, so every card in the row is the
-                same height and the strip keeps one baseline. */}
+            {/* Always present, image or not, so every card in a row starts
+                with a cover. */}
             <div className="relative aspect-video w-full">
                 {freeClass.imageUrl ? (
                     <Image
                         src={freeClass.imageUrl}
                         alt={freeClass.name}
                         fill
-                        // Two shapes, as with the subscription card: a card
-                        // nearly the width of a phone in the strip, and a grid
-                        // cell of about 300px on a wide screen. The grid is
-                        // `auto-fill, minmax(300px, 1fr)`, so above `lg` a cell
-                        // never grows far past 300px; below it the strip card
-                        // is 85vw, which the vw fallback serves.
-                        sizes="(min-width: 1024px) 300px, 85vw"
+                        // The grid is `auto-fill, minmax(300px, 1fr)`, so above
+                        // `lg` a cell never grows far past 300px. Below it a
+                        // phone gets one full-width column, which the vw
+                        // fallback serves.
+                        sizes="(min-width: 1024px) 300px, 100vw"
                         className="object-cover"
                     />
                 ) : (

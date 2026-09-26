@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { cinzel } from "@/components/ui/fonts";
 import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 import { BackLink } from "@/components/ui/BackToHomeLink";
-import { DraggableStrip } from "@/components/ui/DraggableStrip";
 import { getFreeClasses } from "@/app/features/courses/db/freeClasses";
 import { FreeClassCard } from "@/app/features/courses/components/FreeClassCard";
 import { FREE_COURSE_TITLE } from "@/app/features/courses/lib/freeCourseNames";
@@ -69,48 +68,15 @@ async function FreeClasses() {
     if (classes.length === 0) return <NothingPublishedYet />;
 
     return (
-        <>
-            {/* Phone: a looping row. A sampler of separate one-off classes has
-                no end worth reaching — unlike "Mis cursos", where hitting the
-                last card is part of what the shelf tells you — so running past
-                the last one back to the first costs nothing and keeps the row
-                moving under a thumb.
-
-                The strip only clones itself when one copy is already wider than
-                the screen, so two or three free classes simply stop at the end
-                instead of looping over a gap. */}
-            <div className="lg:hidden">
-                <DraggableStrip
-                    label={FREE_COURSE_TITLE}
-                    previousLabel="Ver clases anteriores"
-                    nextLabel="Ver más clases"
-                    loop
-                >
-                    {classes.map(freeClass => (
-                        // Nearly the full width of the screen, but not quite:
-                        // the sliver of the next card showing past the edge is
-                        // what says the row moves sideways. Capped so a large
-                        // phone or a tablet does not stretch one card wider
-                        // than the grid ever draws them.
-                        <div
-                            key={freeClass.id}
-                            className="w-[85vw] max-w-125 shrink-0 snap-start"
-                        >
-                            <FreeClassCard freeClass={freeClass} />
-                        </div>
-                    ))}
-                </DraggableStrip>
-            </div>
-
-            {/* Wide screen: the same grid as "Mis cursos". A row that had to be
-                paged with arrows would be hiding classes on a screen with room
-                to show all of them. */}
-            <div className="hidden grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6 lg:grid">
-                {classes.map(freeClass => (
-                    <FreeClassCard key={freeClass.id} freeClass={freeClass} />
-                ))}
-            </div>
-        </>
+        /* The same grid as "Mis cursos", at every width. On a phone `auto-fill`
+           with a 300px minimum resolves to a single column, so the classes are
+           a plain stack of full-width cards moved by scrolling the page — the
+           same gesture that reaches everything else on it. */
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 lg:gap-6">
+            {classes.map(freeClass => (
+                <FreeClassCard key={freeClass.id} freeClass={freeClass} />
+            ))}
+        </div>
     );
 }
 
