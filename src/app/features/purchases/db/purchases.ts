@@ -3,6 +3,9 @@ import { PurchaseTable } from "@/drizzle/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { expirePurchaseCache, getPurchaseUserTag } from "./cache/purchases";
+import { getProductCourseIds } from "@/app/features/products/db/products";
+import { getOwnedCourseIds } from "@/app/features/courses/db/courseAccess";
+import { productIsForSale } from "../lib/productForSale";
 
 // Has this person already bought this product and kept it? A refunded purchase
 // (`refundedAt` set) no longer grants anything, so it reads as "not owned" and
@@ -30,6 +33,31 @@ export async function userOwnsProduct({
     });
 
     return existingPurchase != null;
+}
+
+// Whether this person can still be sold this product.
+//
+// The one question the product page and `startCheckout` both ask, so the button
+// that is drawn and the request that is accepted cannot disagree. The answer is
+// `productIsForSale`; this only gathers what that rule needs.
+//
+// Three reads, none depending on another, so they go out together. All three
+// are cached: the purchase and the owned courses per user, the product's
+// courses per product.
+export async function productIsForSaleTo({
+    userId,
+    productId,
+}: {
+    userId: string;
+    productId: string;
+}) {
+    const [ownsProduct, productCourseIds, ownedCourseIds] = await Promise.all([
+        userOwnsProduct({ userId, productId }),
+        getProductCourseIds(productId),
+        getOwnedCourseIds(userId),
+    ]);
+
+    return productIsForSale({ ownsProduct, productCourseIds, ownedCourseIds });
 }
 
 // Records a completed payment.

@@ -112,6 +112,31 @@ export async function getPublicProduct(id: string) {
     });
 }
 
+// The courses a product bundles, as ids — the same set a completed purchase
+// grants, read the same way the webhook reads it.
+//
+// Its own query rather than a field added to `getPublicProduct`, because the
+// caller is deciding whether this product has anything new for one person and
+// needs nothing else about it. `startCheckout` asks through here instead of
+// being handed the ids by the page: a Server Action's arguments arrive from the
+// browser, and a list of courses supplied that way could be edited to say
+// whatever lets the purchase through.
+//
+// Tagged per product. Every write to these links — `insertProduct`,
+// `updateProduct`, and the cascade behind `deleteProduct` — ends in
+// `revalidateProductCache`.
+export async function getProductCourseIds(productId: string) {
+    "use cache";
+    cacheTag(getProductIdTag(productId));
+
+    const rows = await db
+        .select({ courseId: CourseProductTable.courseId })
+        .from(CourseProductTable)
+        .where(eq(CourseProductTable.productId, productId));
+
+    return rows.map(row => row.courseId);
+}
+
 // The cheapest way to buy one particular course, or null if there is no way at
 // all. Used by a locked lesson, which knows the course it belongs to but not
 // which product sells it — a course can be bundled into several.

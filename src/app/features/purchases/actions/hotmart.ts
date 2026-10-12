@@ -5,7 +5,7 @@ import { getPublicProduct } from "@/app/features/products/db/products";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { activeOfferCode } from "@/app/features/products/lib/promoOffer";
 import { buildCheckoutUrl } from "../lib/checkoutLink";
-import { userOwnsProduct } from "../db/purchases";
+import { productIsForSaleTo } from "../db/purchases";
 
 // Sends the buyer to Hotmart's payment page.
 //
@@ -29,26 +29,30 @@ export async function startCheckout(productId: string) {
     // These two redirect rather than throw, because this action is reachable
     // straight from the product page. A thrown error there would show a crash
     // screen for two entirely ordinary situations: not being signed in yet, and
-    // already owning the thing.
+    // already having everything the product contains.
     const { user } = await getCurrentUser({ withFullUser: true });
     if (user == null) redirect("/login");
 
     // Together rather than in sequence. Neither needs what the other produces,
     // and awaited one after another they cost two round trips the buyer spends
     // looking at a page that cannot yet tell them anything.
-    const [product, alreadyOwned] = await Promise.all([
+    const [product, forSale] = await Promise.all([
         // Shared with the purchase page, and it filters to public products — so
         // someone who guessed the ID of an unpublished product cannot buy it
         // straight from this endpoint.
         getPublicProduct(productId),
         // Re-checked here and not only on the page, because this endpoint is
-        // reachable directly and a page-level check protects nothing.
-        userOwnsProduct({ userId: user.id, productId }),
+        // reachable directly and a page-level check protects nothing. The same
+        // question the page's button asks, so the two cannot disagree: nobody
+        // is taken to a payment page for a product whose every course they
+        // already keep — bought as this product, bought inside another one, or
+        // handed to them by an admin.
+        productIsForSaleTo({ userId: user.id, productId }),
     ]);
 
     if (product == null) throw new Error("Producto no encontrado.");
 
-    if (alreadyOwned) {
+    if (!forSale) {
         redirect("/products");
     }
 

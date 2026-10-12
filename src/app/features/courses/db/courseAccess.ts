@@ -2,7 +2,7 @@ import "server-only";
 
 import { db } from "@/drizzle/db";
 import { CourseTable, UserCourseAccessTable } from "@/drizzle/schema";
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { getUSerCourseAccessUserTag } from "./cache/userCourseAccess";
 import { getCourseIdTag } from "./cache/courses";
@@ -83,50 +83,35 @@ export async function userOwnsCourse({
     return access != null;
 }
 
-// Whether an admin has handed this person any of these courses by hand.
+// Every course this person keeps for good, as ids.
 //
-// `grantedBy IS NOT NULL` is the whole definition of a manual grant — the same
-// rule `accessOrigin` states in `lib/courseAccessGrant` and
-// `revokeManualCourseAccess` writes into its WHERE clause. It is expressed in
-// SQL here for the same reason it is there: the question is "does such a row
-// exist", and fetching every access row to decide it in JavaScript would be
-// reading a table to answer a yes/no.
+// A row in user_course_access is the whole definition, and where the row came
+// from does not matter here: a course somebody bought and a course an admin
+// handed them are both theirs permanently, which is the only thing the caller
+// is asking. Subscription access is absent by construction — it is never
+// written to this table.
 //
-// The two kinds of row cannot be confused. A purchase writes NULL, and buying a
-// course that was previously granted by hand promotes the row by overwriting
-// `grantedBy` with NULL — see `addUserCourseAccess` — so a manual row is always
-// access nobody paid for.
+// The product page and `startCheckout` use this to decide whether a product
+// has anything left to sell: see `productIsForSale`, which holds the rule.
+// This returns the list rather than answering that question itself so the rule
+// stays in one tested place and this stays a plain read.
 //
-// Any one course is enough. The product page uses this to decide whether to
-// offer the product for sale at all, and somebody who was given part of a
-// bundle should not be sold the bundle.
-export async function userHasManualCourseAccess({
-    userId,
-    courseIds,
-}: {
-    userId: string;
-    courseIds: string[];
-}) {
+// Not narrowed to one product's courses. The list is short, the rule ignores
+// whatever is not in the product, and keying the cache on the user alone means
+// one entry serves every product page they open instead of one entry each.
+export async function getOwnedCourseIds(userId: string) {
     "use cache";
-    // Only this person's grants matter, and granting or revoking one already
-    // expires this tag — see `userCourseAccessTags`.
+    // Only this person's rows matter, and every write to them — a purchase, a
+    // refund, a grant, a revocation — already expires this tag. See
+    // `userCourseAccessTags`.
     cacheTag(getUSerCourseAccessUserTag(userId));
 
-    // A product bundling no courses cannot have been granted by hand. Guarded
-    // rather than left to `inArray`, which has no rows to compare against and
-    // would be asking the database a question with a known answer.
-    if (courseIds.length === 0) return false;
+    const rows = await db
+        .select({ courseId: UserCourseAccessTable.courseId })
+        .from(UserCourseAccessTable)
+        .where(eq(UserCourseAccessTable.userId, userId));
 
-    const access = await db.query.UserCourseAccessTable.findFirst({
-        columns: { courseId: true },
-        where: and(
-            eq(UserCourseAccessTable.userId, userId),
-            inArray(UserCourseAccessTable.courseId, courseIds),
-            isNotNull(UserCourseAccessTable.grantedBy)
-        ),
-    });
-
-    return access != null;
+    return rows.map(row => row.courseId);
 }
 
 // Whether the course is part of the subscription offering. Not user-specific,
