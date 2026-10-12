@@ -82,7 +82,7 @@ export async function revokeCourseAccess(
     return { error: false, message: "Acceso retirado." };
 }
 
-// Feeds the add-by-email box. Returns a bare array because it fills a list
+// Feeds the add-an-account box. Returns a bare array because it fills a list
 // rather than reporting on an attempt to change something; an unauthorized or
 // malformed call simply finds nobody.
 export async function searchAccountsForCourseAccess(

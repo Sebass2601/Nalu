@@ -131,7 +131,14 @@ export type UserSearchResult = {
 
 const SEARCH_LIMIT = 10;
 
-// Accounts matching what the admin has typed, for the add-by-email box.
+// Accounts matching what the admin has typed, for the add-an-account box.
+//
+// Matched on the account's name — the one its owner registered with and the
+// one shown for them across the platform — and never on the email. The email
+// still comes back with each result, because names are not unique the way
+// addresses are: it is what tells apart two accounts registered under the same
+// name, and granting access to the wrong one of them is the mistake this box
+// most needs to prevent.
 //
 // Not cached. It runs per keystroke against a term that is never the same
 // twice, so a cache entry here would be written once and read never — all cost,
@@ -170,15 +177,17 @@ export async function searchUsersWithoutCourseAccess({
         .from(UserTable)
         .where(
             and(
-                // `ilike` rather than lowercasing by hand: the accounts table
-                // already carries a lower(email) unique index, so emails cannot
-                // differ by case alone and a case-insensitive match is the one
-                // that matches how the column is used everywhere else.
-                ilike(UserTable.email, `%${term}%`),
+                // `ilike` because nobody types a name with the capitals its
+                // owner chose, and a match anywhere in it because an admin is as
+                // likely to remember a surname as a first name.
+                ilike(UserTable.name, `%${term}%`),
                 isNull(UserTable.deletedAt),
                 sql`not exists ${alreadyHasAccess}`
             )
         )
-        .orderBy(asc(UserTable.email))
+        // By name, since that is what was searched. The email breaks ties so
+        // accounts sharing a name always come back in the same order instead
+        // of whichever one Postgres happened to read first.
+        .orderBy(asc(UserTable.name), asc(UserTable.email))
         .limit(SEARCH_LIMIT);
 }

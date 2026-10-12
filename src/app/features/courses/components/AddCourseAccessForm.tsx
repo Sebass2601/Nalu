@@ -15,10 +15,15 @@ const DEBOUNCE_MS = 250;
 
 // Adds one account to a course's access list.
 //
-// It searches instead of taking a typed email straight, because the access row
-// needs a user id and an admin has only ever seen the address. Searching turns
-// "does this account exist?" into something answered before the click rather
-// than reported as an error after it.
+// It searches instead of taking something typed straight, because the access
+// row needs a user id and an admin knows the person by the name they use on the
+// platform. Searching turns "does this account exist?" into something answered
+// before the click rather than reported as an error after it.
+//
+// The search is by name only. Each result still shows its email underneath, and
+// that line is there to be read: two accounts can carry the same name, and the
+// address is the only thing on screen that says which one is about to be given
+// access.
 export function AddCourseAccessForm({ courseId }: { courseId: string }) {
     const [query, setQuery] = useState("");
     // What came back, together with the term it answers. Storing the term
@@ -98,7 +103,7 @@ export function AddCourseAccessForm({ courseId }: { courseId: string }) {
                 id="course-access-search"
                 type="search"
                 autoComplete="off"
-                placeholder="Buscar por email…"
+                placeholder="Buscar por nombre…"
                 value={query}
                 onChange={event => setQuery(event.target.value)}
             />
@@ -109,9 +114,9 @@ export function AddCourseAccessForm({ courseId }: { courseId: string }) {
 
             {!isSearching && hasSearched && results.length === 0 && (
                 <p className="text-muted-foreground mt-2 text-sm">
-                    No hay ninguna cuenta sin acceso con ese email. Si la persona
-                    todavía no se ha registrado, tiene que crear su cuenta
-                    primero.
+                    No hay ninguna cuenta sin acceso con ese nombre. Si la
+                    persona todavía no se ha registrado, tiene que crear su
+                    cuenta primero.
                 </p>
             )}
 
