@@ -1,17 +1,22 @@
 import { CategoryNav } from "@/app/features/categories/components/CategoryNav";
 import { ProductCard } from "./ProductCard";
+import type { PromoPriceFields } from "../lib/promoOffer";
 import { Cinzel } from "next/font/google";
 import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
 // The shape every listing grid needs from a product row.
-export type CatalogueProduct = {
+//
+// `PromoPriceFields` is the price: the base figure plus the promotion's code,
+// price and end date. A grid that left those three out would still compile if
+// they were optional, and would quietly show full price during a sale — so
+// they are required, and a query that forgets them is a type error.
+export type CatalogueProduct = PromoPriceFields & {
     id: string;
     name: string;
     description: string;
     imageUrl: string;
-    priceInDollars: number;
     // True when any course inside this product is still being uploaded weekly.
     // Derived by the queries rather than stored on the product — see
     // `productHasWeeklyCourse`.

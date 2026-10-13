@@ -103,6 +103,9 @@ async function getCategoryProducts(categoryId: string) {
             description: ProductTable.description,
             imageUrl: ProductTable.imageUrl,
             priceInDollars: ProductTable.priceInDollars,
+            promoOfferCode: ProductTable.promoOfferCode,
+            promoPriceInDollars: ProductTable.promoPriceInDollars,
+            promoEndsAt: ProductTable.promoEndsAt,
             uploadedWeekly: productHasWeeklyCourse(),
         })
         .from(ProductTable)

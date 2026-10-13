@@ -181,6 +181,43 @@ export async function getCheapestPurchasableProductForCourse(courseId: string) {
     return product ?? null;
 }
 
+// The price columns of every public product that has a promotion configured —
+// what the Samhain announcement needs to decide whether a sale is on and how
+// large it is.
+//
+// "Configured" rather than "live": this filters on the two columns that never
+// change by themselves, and leaves the end date to `summarizeLivePromos`. A
+// cached query that compared `promoEndsAt` against the database's clock would
+// keep answering for the moment it was cached at, and go on announcing a sale
+// after it had ended.
+//
+// The same two conditions `ProductPrice` needs before it strikes a price
+// through, so the announcement and the cards agree on what counts.
+//
+// Tagged globally for the reason `getCheapestPurchasableProductForCourse` is:
+// it asks about products it has not identified, and every product write ends
+// in `revalidateProductCache`.
+export async function getPublicPromoPrices() {
+    "use cache";
+    cacheTag(getProductGlobalTag());
+
+    return db
+        .select({
+            priceInDollars: ProductTable.priceInDollars,
+            promoOfferCode: ProductTable.promoOfferCode,
+            promoPriceInDollars: ProductTable.promoPriceInDollars,
+            promoEndsAt: ProductTable.promoEndsAt,
+        })
+        .from(ProductTable)
+        .where(
+            and(
+                wherePublicProducts,
+                isNotNull(ProductTable.promoOfferCode),
+                isNotNull(ProductTable.promoPriceInDollars)
+            )
+        );
+}
+
 export async function insertProduct(
     data: typeof ProductTable.$inferInsert & { courseIds: string[] }
 ) {

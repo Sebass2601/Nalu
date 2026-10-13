@@ -14,8 +14,9 @@ import { getCourseGlobalTag } from "@/app/features/courses/db/cache/courses";
 // The whole catalogue, reached from the Todos plaque on any category page.
 //
 // No <Suspense> boundary here: this page takes no params and its queries are
-// all "use cache" with no request-time input, so it prerenders whole. The
-// per-card price still streams inside ProductCard.
+// all "use cache" with no request-time input, so it prerenders whole. The one
+// thing that can still stream is the price of a product whose promotion has an
+// end date, and `ProductPrice` draws the boundary for that itself.
 export default async function ProductsPage() {
     const products = await getPublicProducts();
 
@@ -67,6 +68,9 @@ async function getPublicProducts() {
             description: ProductTable.description,
             imageUrl: ProductTable.imageUrl,
             priceInDollars: ProductTable.priceInDollars,
+            promoOfferCode: ProductTable.promoOfferCode,
+            promoPriceInDollars: ProductTable.promoPriceInDollars,
+            promoEndsAt: ProductTable.promoEndsAt,
             uploadedWeekly: productHasWeeklyCourse(),
         })
         .from(ProductTable)

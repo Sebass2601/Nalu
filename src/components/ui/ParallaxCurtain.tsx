@@ -198,6 +198,11 @@ export default function ParallaxCurtain({
             // Announced once on arrival rather than described as an image, so a
             // screen reader says the page is loading instead of naming a logo.
             role="status"
+            // How anything else on the page finds out the curtain is still up.
+            // The Samhain announcement waits on this rather than opening under
+            // a screen the visitor cannot see through — `role="status"` cannot
+            // serve, because every toast carries it too.
+            data-curtain
             onAnimationEnd={(e) => {
                 // Both the hold and the leave end here — the first at its eight
                 // second backstop, the second when the fade finishes — and either

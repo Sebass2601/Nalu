@@ -8,6 +8,7 @@ import { NavBarFrame } from "@/components/ui/NavBarFrame";
 import { NavItem } from "@/components/ui/NavItem";
 import { UserMenu } from "@/components/ui/UserMenu";
 import { ContactWidget } from "@/components/ui/ContactWidget";
+import { SamhainAnnouncement } from "@/app/features/products/components/SamhainAnnouncement";
 
 
 
@@ -28,6 +29,21 @@ export default function ConsumerLayout({
             own workspace, and a permanent floating mark over the course editor
             is in the way rather than useful. */}
         <ContactWidget />
+        {/* The Samhain sale, announced once per visit on whichever page the
+            visitor arrives at — which is why it lives here and not on the home
+            page: people land on a course someone sent them a link to. It
+            renders nothing at all unless a promotion is running, so the rest of
+            the year this line costs a cached query and draws nothing.
+
+            Its own boundary because whether a sale is still on depends on the
+            time of the request. With no fallback: there is nothing to hold a
+            place for, since the panel opens over the page rather than in it.
+
+            Consumer side only, for the reason the contact mark is. An admin
+            setting up a promotion should not be told about it. */}
+        <Suspense fallback={null}>
+            <SamhainAnnouncement />
+        </Suspense>
         </>
     );
 }

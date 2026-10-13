@@ -17,10 +17,7 @@ import { getProductIdTag } from "@/app/features/products/db/cache/products";
 import { getCourseIdTag } from "@/app/features/courses/db/cache/courses";
 import { getCourseSectionCourseTag } from "@/app/features/CourseSections/db/cache/courseSections";
 import { getLessonCourseTag } from "@/app/features/lessons/db/cache/lessons";
-import {
-    ProductPrice,
-    FullPrice,
-} from "@/app/features/products/components/ProductPrice";
+import { ProductPrice } from "@/app/features/products/components/ProductPrice";
 import {
     ProductCallToAction,
     ProductCallToActionSkeleton,
@@ -91,19 +88,7 @@ async function ProductDetails({
             <div className="flex flex-col-reverse gap-10 md:flex-row md:items-center md:gap-16">
                 <div className="flex flex-col items-start gap-6 md:flex-1">
                     <div className="flex flex-col gap-3">
-                        <Suspense
-                            fallback={
-                                <FullPrice
-                                    priceInDollars={product.priceInDollars}
-                                    className="text-3xl"
-                                />
-                            }
-                        >
-                            <ProductPrice
-                                priceInDollars={product.priceInDollars}
-                                className="text-3xl"
-                            />
-                        </Suspense>
+                        <ProductPrice product={product} className="text-3xl" />
                         <h1 className="text-5xl tracking-wide text-ink-bright">
                             {product.name}
                         </h1>
@@ -403,6 +388,12 @@ async function getPublicProductWithSyllabus(id: string) {
             description: true,
             imageUrl: true,
             priceInDollars: true,
+            // The promotion, so the price above can be drawn as the one
+            // "Comprar ahora" will actually open. Both read the same three
+            // columns through the same function — see `ProductPrice`.
+            promoOfferCode: true,
+            promoPriceInDollars: true,
+            promoEndsAt: true,
             contentSummary: true,
         },
         where: and(

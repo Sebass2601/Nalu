@@ -136,6 +136,26 @@
   /* The edge: a rule that has to stay visible against a gold face. */
   --color-gold-deep: oklch(79.2% 0.16 87.2); /* #e7b30e */
 
+  /* The pumpkin. A seasonal third scale, lit for Samhain.
+   *
+   * It has exactly two jobs, and both are the promotion: the price a product
+   * is on sale at (with the line struck through the price it was), and the
+   * announcement that says a sale is on. Nothing else on the site is orange,
+   * which is the only reason orange means anything here — gold is still what
+   * you press and ink is still what you read.
+   *
+   * Three values for the reason gold has three: the announcement's button is a
+   * pumpkin plaque, and a plaque needs a brighter face to lift to and a darker
+   * rule to be edged with.
+   *
+   * The middle one is the colour actually named "pumpkin", left unsoftened on
+   * purpose. On the navy it sits at 6.7:1, so a price set in it is as readable
+   * as it is loud.
+   */
+  --color-pumpkin: oklch(71.6% 0.191 47.1); /* #ff7518 */
+  --color-pumpkin-bright: oklch(76.6% 0.16 55.1); /* #ff9440 */
+  --color-pumpkin-deep: oklch(62.2% 0.177 45.1); /* #d95a00 */
+
   /* The two chevrons on the parallax pages' first-visit hint, drifting apart
    * and back to say the scene carries on past both edges of the screen.
    *
@@ -254,6 +274,38 @@
     }
     50% {
       opacity: 0.3;
+    }
+  }
+
+  /* The candle inside the Samhain lantern.
+   *
+   * Uneven stops at uneven heights, because a flame that dims and recovers on
+   * a regular beat reads as a loading indicator. It is put on the GLOW around
+   * the carved face and not on the face itself, which stays solid: the light
+   * spilling out of a lantern wavers, the holes it comes through do not. And
+   * it is opacity only, so nothing on the panel moves.
+   */
+  --animate-lantern-flicker: lantern-flicker 3.4s ease-in-out infinite;
+
+  @keyframes lantern-flicker {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    18% {
+      opacity: 0.7;
+    }
+    27% {
+      opacity: 0.95;
+    }
+    44% {
+      opacity: 0.55;
+    }
+    58% {
+      opacity: 0.9;
+    }
+    76% {
+      opacity: 0.65;
     }
   }
 }

@@ -65,32 +65,45 @@ export function bevelOutline({
 // gold works on a dark face and navy works on a gold one — and the navy is
 // ringed in gold, because its outer half sits on a dark page where a bare navy
 // diamond would vanish.
+//
+// `metal` is what the plaque it sits on is cast in. Gold everywhere but the
+// Samhain announcement, whose panel and button are pumpkin — and a gold diamond
+// pinned to an orange plaque is the one detail that would give away that the
+// two were not made together. It swaps the metal and leaves the tone's logic
+// exactly as it was.
+const METALS = {
+    gold: { fill: "bg-gold", ring: "ring-gold" },
+    pumpkin: { fill: "bg-pumpkin", ring: "ring-pumpkin" },
+} as const
+
 export function Diamond({
     className,
     tone = "gold",
+    metal = "gold",
 }: {
     className?: string
     tone?: "gold" | "navy"
+    metal?: keyof typeof METALS
 }) {
+    const { fill, ring } = METALS[metal]
+
     return (
         <span
             aria-hidden
             className={cn(
                 "pointer-events-none absolute left-1/2 grid size-2.5 -translate-x-1/2 rotate-45 place-items-center",
-                // Both tones now draw on the same `gold`, which is the point of
+                // Both tones draw on the same metal, which is the point of
                 // there being one: the ring around the navy diamond and the
                 // face it straddles are the same colour, so it reads as cut out
                 // of the plaque rather than laid on top of it.
-                tone === "gold"
-                    ? "bg-gold"
-                    : "bg-[#0a1628] ring-1 ring-gold",
+                tone === "gold" ? fill : cn("bg-[#0a1628] ring-1", ring),
                 className
             )}
         >
             <span
                 className={cn(
                     "size-1",
-                    tone === "gold" ? "bg-[#0a1628]" : "bg-gold"
+                    tone === "gold" ? "bg-[#0a1628]" : fill
                 )}
             />
         </span>

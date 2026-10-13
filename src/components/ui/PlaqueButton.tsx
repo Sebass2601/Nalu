@@ -42,8 +42,46 @@ const SHAPES = {
     },
 } as const
 
+// What each variant is made of.
+//
+// `primary` is solid gold — the plaque cast rather than glazed. `secondary`
+// keeps the frosted glass the navbar and the doorways are made of, which is
+// what makes it the quieter of the two.
+//
+// `pumpkin` is `primary` recast for Samhain: the same solid plaque, the same
+// navy lettering and engraved hairline, in the season's metal. It exists for
+// one button — the one on the announcement that a sale is on — and is solid
+// for the reason primary is: it is the only thing that panel wants pressed.
+//
+// The rules sit on top of the face, so on a solid plaque they change job: a
+// rule the colour of the face would be invisible, so it drops a shade to cut
+// the edge against the page.
+const VARIANTS = {
+    primary: {
+        solid: true,
+        metal: "gold",
+        face: "bg-gold group-hover/plaque:bg-gold-bright",
+        rule: "bg-gold-deep group-hover/plaque:bg-gold",
+        focus: "focus-visible:outline-gold",
+    },
+    pumpkin: {
+        solid: true,
+        metal: "pumpkin",
+        face: "bg-pumpkin group-hover/plaque:bg-pumpkin-bright",
+        rule: "bg-pumpkin-deep group-hover/plaque:bg-pumpkin",
+        focus: "focus-visible:outline-pumpkin",
+    },
+    secondary: {
+        solid: false,
+        metal: "gold",
+        face: "bg-[#0a1628]/70 backdrop-blur-md group-hover/plaque:bg-[#0a1628]/85",
+        rule: "bg-gold/40 group-hover/plaque:bg-gold/70",
+        focus: "focus-visible:outline-gold",
+    },
+} as const
+
 type PlaqueSize = keyof typeof SHAPES
-type PlaqueVariant = "primary" | "secondary"
+type PlaqueVariant = keyof typeof VARIANTS
 
 type PlaqueOwnProps = {
     variant?: PlaqueVariant
@@ -80,28 +118,24 @@ export function PlaqueButton({
     ...props
 }: PlaqueButtonProps) {
     const shape = SHAPES[size]
-    const isPrimary = variant === "primary"
+    const { solid, metal, face, rule, focus } = VARIANTS[variant]
 
     const body = (
         <>
-            {/* Primary is solid gold — the plaque cast rather than glazed.
-                Secondary keeps the frosted glass the navbar and the doorways
-                are made of, which is what makes it the quieter of the two. */}
             <span
                 className={cn(
                     "relative block transition-colors duration-300",
-                    isPrimary
-                        ? "bg-gold group-hover/plaque:bg-gold-bright"
-                        : "bg-[#0a1628]/70 backdrop-blur-md group-hover/plaque:bg-[#0a1628]/85",
+                    face,
                     size === "default" ? "px-8 py-3.5" : "px-5 py-2"
                 )}
                 style={{ clipPath: shape.face }}
             >
-                {/* Light sweep on hover. Primary only — it is the loudest thing
-                    the plaque does, and spending it on a secondary control is
-                    what would flatten the hierarchy. Heavier than the glass
-                    version, because white at 10% over gold is invisible. */}
-                {isPrimary && (
+                {/* Light sweep on hover. Solid plaques only — it is the loudest
+                    thing the plaque does, and spending it on a secondary
+                    control is what would flatten the hierarchy. Heavier than
+                    the glass version, because white at 10% over gold is
+                    invisible. */}
+                {solid && (
                     <span
                         aria-hidden
                         className="absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/40 blur-md transition-transform duration-700 ease-out group-hover/plaque:translate-x-[400%]"
@@ -113,7 +147,7 @@ export function PlaqueButton({
                         size === "default"
                             ? "text-base tracking-[0.2em]"
                             : "text-sm tracking-[0.18em]",
-                        isPrimary
+                        solid
                             ? "text-[#0a1628]"
                             : "text-ink-body group-hover/plaque:text-ink-bright"
                     )}
@@ -123,21 +157,18 @@ export function PlaqueButton({
             </span>
 
             {/* The rules sit on top, so a secondary plaque's glass stays
-                see-through underneath. On primary they change job: a gold rule
-                on a gold face would be invisible, so the outer one drops a
-                shade to cut the edge against the page and the inner hairline
-                goes navy — the engraved line rather than the drawn one. */}
+                see-through underneath. On a solid plaque the outer one is the
+                darker shade from the table above, and the inner hairline goes
+                navy — the engraved line rather than the drawn one. */}
             <span
                 aria-hidden
                 className={cn(
                     "pointer-events-none absolute inset-0 transition-colors duration-200",
-                    isPrimary
-                        ? "bg-gold-deep group-hover/plaque:bg-gold"
-                        : "bg-gold/40 group-hover/plaque:bg-gold/70"
+                    rule
                 )}
                 style={{ clipPath: shape.rule }}
             />
-            {isPrimary && (
+            {solid && (
                 <span
                     aria-hidden
                     className="pointer-events-none absolute inset-0 bg-[#0a1628] opacity-25"
@@ -151,11 +182,13 @@ export function PlaqueButton({
             {size === "default" && (
                 <>
                     <Diamond
-                        tone={isPrimary ? "navy" : "gold"}
+                        tone={solid ? "navy" : "gold"}
+                        metal={metal}
                         className="top-0 -translate-y-1/2"
                     />
                     <Diamond
-                        tone={isPrimary ? "navy" : "gold"}
+                        tone={solid ? "navy" : "gold"}
+                        metal={metal}
                         className="bottom-0 translate-y-1/2"
                     />
                 </>
@@ -181,7 +214,8 @@ export function PlaqueButton({
         // clip-path has cut that box into an octagon — but removing it without
         // a replacement, which is what CategoryButton does, leaves a keyboard
         // user with no idea where they are.
-        "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold",
+        "focus-visible:outline-2 focus-visible:outline-offset-4",
+        focus,
         "disabled:pointer-events-none disabled:opacity-50",
         className
     )

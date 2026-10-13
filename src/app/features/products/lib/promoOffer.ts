@@ -9,13 +9,20 @@
 // keeping it separate is what lets the product page and the checkout action
 // agree without either calling the other.
 
-export type OfferFields = {
-    externalOfferCode: string | null;
+// The two columns that say whether a promotion is running. Everything below is
+// typed against the narrowest set it actually reads, so a caller that only
+// wants a price to display is not made to fetch an offer code it has no use
+// for.
+export type PromoFields = {
     promoOfferCode: string | null;
     promoEndsAt: Date | null;
 };
 
-export type PromoPriceFields = OfferFields & {
+export type OfferFields = PromoFields & {
+    externalOfferCode: string | null;
+};
+
+export type PromoPriceFields = PromoFields & {
     priceInDollars: number;
     promoPriceInDollars: number | null;
 };
@@ -32,11 +39,18 @@ export type PromoPriceFields = OfferFields & {
 //
 // `now` is injectable so the behaviour at the boundary is testable without
 // waiting for real time to pass.
-export function isPromoLive(product: OfferFields, now: Date = new Date()) {
+//
+// It is also read LAZILY, on the last line and nowhere earlier, rather than as
+// a `now = new Date()` default. A default is evaluated on every call, including
+// the ones that return before ever looking at it — and under Cache Components
+// asking the time while a page is being prerendered is a build error. Written
+// this way a product with no deadline never touches the clock at all, which is
+// what lets its price be part of the static page. See `priceDependsOnClock`.
+export function isPromoLive(product: PromoFields, now?: Date) {
     if (product.promoOfferCode == null) return false;
     if (product.promoEndsAt == null) return true;
 
-    return product.promoEndsAt.getTime() > now.getTime();
+    return product.promoEndsAt.getTime() > (now ?? new Date()).getTime();
 }
 
 // The offer code checkout should use, or null when the product has no usable
@@ -48,7 +62,7 @@ export function isPromoLive(product: OfferFields, now: Date = new Date()) {
 // refuses.
 export function activeOfferCode(
     product: OfferFields,
-    now: Date = new Date()
+    now?: Date
 ): string | null {
     if (isPromoLive(product, now)) return product.promoOfferCode;
 
@@ -62,7 +76,7 @@ export function activeOfferCode(
 // Display only. Hotmart charges whatever its offer says and nothing in this
 // codebase ever sends an amount — see the spec's "Known drift" note on why the
 // two numbers cannot be verified against each other.
-export function displayPrice(product: PromoPriceFields, now: Date = new Date()) {
+export function displayPrice(product: PromoPriceFields, now?: Date) {
     if (isPromoLive(product, now) && product.promoPriceInDollars != null) {
         return {
             priceInDollars: product.promoPriceInDollars,
@@ -73,5 +87,82 @@ export function displayPrice(product: PromoPriceFields, now: Date = new Date()) 
     return {
         priceInDollars: product.priceInDollars,
         wasPriceInDollars: null,
+    };
+}
+
+// Whether what `displayPrice` returns can change with the time of day.
+//
+// Only a promotion that has both a price to show and a date to stop showing it
+// on. Everything else gives the same answer at any instant — no promotion, a
+// promotion that runs until it is switched off, or one with no price filled in
+// — and so can be drawn once and kept, instead of being worked out again for
+// every visitor.
+//
+// The page asks this first and only waits for a request when the answer is yes.
+export function priceDependsOnClock(product: PromoPriceFields) {
+    return (
+        product.promoOfferCode != null &&
+        product.promoPriceInDollars != null &&
+        product.promoEndsAt != null
+    );
+}
+
+// What the promotions running right now add up to, for announcing them: how
+// much comes off, and until when.
+export type PromoSummary = {
+    // The smallest and the largest reduction, as whole percentages. Equal when
+    // there is one promotion or they all take off the same share, which is how
+    // the announcement tells "30%" from "hasta 30%".
+    minPercentOff: number;
+    maxPercentOff: number;
+    // The first deadline among them, or null when any of them has none.
+    endsAt: Date | null;
+};
+
+// Null when there is nothing worth announcing.
+//
+// A promotion counts here only if it is live AND actually cheaper. A promo
+// offer priced at or above the base price is still honoured at checkout and
+// still shown on the product — that is what will be charged — but it is not a
+// discount, and neither is one so small it rounds to 0%.
+//
+// `now` is required, unlike above. This always compares against it, and a
+// caller summarising several products has to hold one instant for all of them.
+export function summarizeLivePromos(
+    products: PromoPriceFields[],
+    now: Date
+): PromoSummary | null {
+    const reductions = products.flatMap(product => {
+        const { priceInDollars, wasPriceInDollars } = displayPrice(product, now);
+
+        if (wasPriceInDollars == null || wasPriceInDollars <= 0) return [];
+
+        const percentOff = Math.round(
+            (1 - priceInDollars / wasPriceInDollars) * 100
+        );
+
+        return percentOff >= 1
+            ? [{ percentOff, endsAt: product.promoEndsAt }]
+            : [];
+    });
+
+    if (reductions.length === 0) return null;
+
+    const percentages = reductions.map(reduction => reduction.percentOff);
+
+    // The earliest deadline is the one date true of every promotion: none of
+    // them stops before it. Any open-ended one makes even that misleading, so
+    // then there is no date to give.
+    const deadlines = reductions.flatMap(reduction =>
+        reduction.endsAt == null ? [] : [reduction.endsAt.getTime()]
+    );
+
+    return {
+        minPercentOff: Math.min(...percentages),
+        maxPercentOff: Math.max(...percentages),
+        endsAt:
+            deadlines.length === reductions.length
+                ? new Date(Math.min(...deadlines))
+                : null,
     };
 }
