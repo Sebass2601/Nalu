@@ -222,25 +222,18 @@ describe("summarizeLivePromos", () => {
         expect(summarizeLivePromos([], NOW)).toBeNull();
     });
 
-    it("reports a single reduction as one figure", () => {
+    // One discounted product among ordinary ones is enough for a sale to be on.
+    it("is not null as soon as one product is cheaper", () => {
         expect(summarizeLivePromos([product(100, 70), product(80, null)], NOW)).toEqual({
-            minPercentOff: 30,
-            maxPercentOff: 30,
             endsAt: null,
         });
-    });
-
-    it("reports the range across several reductions", () => {
-        expect(
-            summarizeLivePromos([product(100, 70), product(200, 100), product(60, 54)], NOW)
-        ).toEqual({ minPercentOff: 10, maxPercentOff: 50, endsAt: null });
     });
 
     // Announcing a sale that ended yesterday is the worst thing this could do.
     it("ignores promotions that have expired", () => {
         expect(
             summarizeLivePromos([product(100, 50, YESTERDAY), product(100, 80, TOMORROW)], NOW)
-        ).toEqual({ minPercentOff: 20, maxPercentOff: 20, endsAt: TOMORROW });
+        ).toEqual({ endsAt: TOMORROW });
     });
 
     it("is null when every promotion has expired", () => {

@@ -4,17 +4,18 @@ import { getPublicPromoPrices } from "../db/products";
 import { summarizeLivePromos } from "../lib/promoOffer";
 import { SamhainPopup } from "./SamhainPopup";
 
-// Decides whether there is a sale to announce, and what to say about it.
+// Decides whether there is a sale to announce, and until when.
 //
 // The server's half of the announcement. It reads the same promotion columns
 // the product cards draw their prices from and puts them through the same
-// "is it live" arithmetic, so the panel cannot promise a discount the catalogue
-// behind its button does not show — and when the last promotion is removed or
-// runs out, the panel stops appearing without anyone having to remember to
-// switch it off.
+// "is it live" arithmetic, so the panel only appears while the catalogue behind
+// its button really has discounted courses in it — and when the last promotion
+// is removed or runs out, the panel stops appearing without anyone having to
+// remember to switch it off.
 //
-// What it hands the browser is two numbers and a date already written out.
-// The offer codes stay here.
+// What it hands the browser is the end date, already written out, and nothing
+// else. The size of the discount is not worked out here: the panel states it as
+// a fixed figure. The offer codes stay here.
 //
 // Rendered inside a <Suspense> by the consumer layout, because of the
 // `connection()` below.
@@ -38,8 +39,6 @@ export async function SamhainAnnouncement() {
 
     return (
         <SamhainPopup
-            minPercentOff={summary.minPercentOff}
-            maxPercentOff={summary.maxPercentOff}
             endsOn={
                 summary.endsAt == null
                     ? null

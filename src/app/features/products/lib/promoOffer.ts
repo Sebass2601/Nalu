@@ -107,14 +107,13 @@ export function priceDependsOnClock(product: PromoPriceFields) {
     );
 }
 
-// What the promotions running right now add up to, for announcing them: how
-// much comes off, and until when.
+// What the announcement needs to know about the promotions running right now:
+// that there is at least one, and until when.
+//
+// How MUCH comes off is deliberately not here. The announcement states the
+// sale as one fixed figure, which is copy in the panel and not something worked
+// out from these prices — see SamhainPopup.
 export type PromoSummary = {
-    // The smallest and the largest reduction, as whole percentages. Equal when
-    // there is one promotion or they all take off the same share, which is how
-    // the announcement tells "30%" from "hasta 30%".
-    minPercentOff: number;
-    maxPercentOff: number;
     // The first deadline among them, or null when any of them has none.
     endsAt: Date | null;
 };
@@ -132,7 +131,8 @@ export function summarizeLivePromos(
     products: PromoPriceFields[],
     now: Date
 ): PromoSummary | null {
-    const reductions = products.flatMap(product => {
+    // The end date of every promotion that counts, null for an open-ended one.
+    const endDates = products.flatMap(product => {
         const { priceInDollars, wasPriceInDollars } = displayPrice(product, now);
 
         if (wasPriceInDollars == null || wasPriceInDollars <= 0) return [];
@@ -141,27 +141,21 @@ export function summarizeLivePromos(
             (1 - priceInDollars / wasPriceInDollars) * 100
         );
 
-        return percentOff >= 1
-            ? [{ percentOff, endsAt: product.promoEndsAt }]
-            : [];
+        return percentOff >= 1 ? [product.promoEndsAt] : [];
     });
 
-    if (reductions.length === 0) return null;
-
-    const percentages = reductions.map(reduction => reduction.percentOff);
+    if (endDates.length === 0) return null;
 
     // The earliest deadline is the one date true of every promotion: none of
     // them stops before it. Any open-ended one makes even that misleading, so
     // then there is no date to give.
-    const deadlines = reductions.flatMap(reduction =>
-        reduction.endsAt == null ? [] : [reduction.endsAt.getTime()]
+    const deadlines = endDates.flatMap(endsAt =>
+        endsAt == null ? [] : [endsAt.getTime()]
     );
 
     return {
-        minPercentOff: Math.min(...percentages),
-        maxPercentOff: Math.max(...percentages),
         endsAt:
-            deadlines.length === reductions.length
+            deadlines.length === endDates.length
                 ? new Date(Math.min(...deadlines))
                 : null,
     };
