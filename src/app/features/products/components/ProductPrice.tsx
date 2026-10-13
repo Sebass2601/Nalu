@@ -111,7 +111,12 @@ function Price({
     }
 
     return (
-        <div className="flex items-baseline gap-2.5">
+        // `data-promo` is how a card finds out it is holding a discounted
+        // price, so it can outline itself to match — see ProductCard. Marked
+        // here, on the one element that exists only when a promotion is being
+        // shown, so there is no second place that has to decide the same
+        // thing and could decide it differently.
+        <div data-promo className="flex items-baseline gap-2.5">
             {/* Pumpkin, not gold: the one figure on the site that is. A price
                 on promotion has to be told apart from every other price at a
                 glance across a grid of cards, and a second shade of gold would

@@ -182,18 +182,19 @@ export function SamhainPopup({
                             className="relative bg-[#0a1628] px-4 pt-9 pb-12 min-[400px]:px-6 sm:px-10"
                             style={{ clipPath: FACE }}
                         >
-                            {/* Candlelight. One source, placed where the lantern
-                                is, so the top of the panel is lit and the
-                                bottom falls away into the navy — the panel is
-                                lit BY the thing drawn on it rather than washed
-                                in a colour. */}
+                            {/* A warm light behind the pumpkin. One source,
+                                placed where it sits, so the top of the panel
+                                glows and the bottom falls away into the navy.
+                                It is also what the pumpkin's dark outline is
+                                read against: on bare navy that outline would
+                                vanish into the panel. */}
                             <span
                                 aria-hidden
                                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,117,24,0.26),rgba(255,117,24,0.07)_45%,transparent_70%)]"
                             />
 
                             <div className="relative flex flex-col items-center text-center">
-                                <Lantern />
+                                <Pumpkin />
 
                                 <DialogTitle
                                     className={cn(
@@ -286,80 +287,47 @@ export function SamhainPopup({
     );
 }
 
-// The carved lantern Samhain is lit by, and the one thing on the panel that
-// moves.
+// The pumpkin the panel is headed by: solid orange, outlined in the site's
+// navy — the same near-black the lettering on a gold or pumpkin plaque is cut
+// in, which is why it reads as black here without being a colour the site does
+// not otherwise use.
 //
-// Drawn as a line drawing on the navy rather than as a filled orange pumpkin:
-// the site's own mark is a pale line drawing on that same navy, and a solid
-// cartoon beside it would be from a different book. The body is five ellipses
-// laid over one another, outer pair first, so each one's outline is drawn over
-// the last and the overlaps become the ribs without a single rib being drawn.
+// The body is five ellipses laid over one another, outer pair first, so each
+// one's outline is drawn over the last and the overlaps become the ribs without
+// a single rib being drawn. The three tones follow that order — deepest at the
+// sides, brightest on the lobe facing the viewer — which is all that keeps a
+// flat orange shape from reading as a disc.
 //
-// Only the face is filled, because the face is where the light comes out — and
-// it is filled with the candle rather than with the pumpkin: gold at the
-// middle, where the flame would be, cooling to orange at the edges of the
-// carving. That is also what lets it be read against an outline that is itself
-// orange.
-//
-// The face is drawn twice from one definition. The copy underneath is blurred
-// and is the only thing that flickers; the copy on top is solid and still. It
-// was one translucent group at first, and the ribs behind it showed through
-// every time the flame dipped — light does not make the thing it shines out of
-// transparent.
-//
-// The two ids are fixed strings rather than `useId()`. There is one of these on
-// a page, and an id React generates carries colons, which `url(#…)` is not
-// obliged to accept.
-function Lantern() {
+// It has no face and nothing on it moves. It began as a carved lantern with a
+// flickering candle behind the eyes; what was asked for instead is the fruit
+// itself, and a plain pumpkin is the harvest where a jack-o'-lantern is only
+// the one night.
+function Pumpkin() {
     return (
-        <svg viewBox="0 0 120 108" aria-hidden className="h-24 w-auto">
-            <defs>
-                <radialGradient
-                    id="samhain-candle"
-                    gradientUnits="userSpaceOnUse"
-                    cx="60"
-                    cy="72"
-                    r="34"
-                >
-                    <stop
-                        offset="0.1"
-                        style={{ stopColor: "var(--color-gold-bright)" }}
-                    />
-                    <stop
-                        offset="1"
-                        style={{ stopColor: "var(--color-pumpkin-bright)" }}
-                    />
-                </radialGradient>
-                <g id="samhain-face">
-                    <path d="M36 59l16 1-8-15z" />
-                    <path d="M84 59l-16 1 8-15z" />
-                    <path d="M60 61l5 8H55z" />
-                    <path d="M34 73l8 5 6-5 6 6 6-5 6 5 6-6 6 5 8-5c-5 15-15 22-26 22s-21-7-26-22z" />
-                </g>
-            </defs>
-
-            <path
-                d="M55 28c0-7 2-12 7-18l7 4c-3 4-4 8-4 14z"
-                className="fill-pumpkin-deep"
-            />
+        <svg
+            viewBox="0 0 120 108"
+            aria-hidden
+            className="h-24 w-auto"
+            // A halo of its own colour, outside the outline. Without it the
+            // dark edge has only the panel's dim glow to stand against.
+            style={{ filter: "drop-shadow(0 0 10px rgba(255,117,24,0.45))" }}
+        >
             <g
-                className="fill-[#0d1a30] stroke-pumpkin"
-                strokeWidth="2.5"
+                className="stroke-[#0a1628]"
+                strokeWidth="3"
                 strokeLinejoin="round"
             >
-                <ellipse cx="33" cy="65" rx="23" ry="31" />
-                <ellipse cx="87" cy="65" rx="23" ry="31" />
-                <ellipse cx="46" cy="65" rx="22" ry="35" />
-                <ellipse cx="74" cy="65" rx="22" ry="35" />
-                <ellipse cx="60" cy="65" rx="17" ry="37" />
+                {/* The stem first, so the body is drawn over its foot. */}
+                <path
+                    d="M55 30c0-8 2-14 7-20l7 4c-3 4-4 9-4 16z"
+                    className="fill-pumpkin-deep"
+                />
+                <ellipse cx="33" cy="65" rx="23" ry="31" className="fill-pumpkin-deep" />
+                <ellipse cx="87" cy="65" rx="23" ry="31" className="fill-pumpkin-deep" />
+                <ellipse cx="46" cy="65" rx="22" ry="35" className="fill-pumpkin" />
+                <ellipse cx="74" cy="65" rx="22" ry="35" className="fill-pumpkin" />
+                <ellipse cx="60" cy="65" rx="17" ry="37" className="fill-pumpkin-bright" />
             </g>
-
-            <use
-                href="#samhain-face"
-                className="animate-lantern-flicker fill-pumpkin-bright motion-reduce:animate-none"
-                style={{ filter: "blur(5px)" }}
-            />
-            <use href="#samhain-face" fill="url(#samhain-candle)" />
         </svg>
     );
 }

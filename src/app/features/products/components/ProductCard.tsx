@@ -26,7 +26,22 @@ export function ProductCard({
     uploadedWeekly: boolean;
 } & PromoPriceFields) {
     return (
-        <div className="rounded-2xl border border-gold/40 bg-[#0a1628]/70 backdrop-blur-md overflow-hidden flex flex-col w-full max-w-125 mx-auto">
+        // A card on promotion is outlined in the promotion's own colour, so
+        // the discounted ones can be picked out of a grid before a single
+        // price has been read.
+        //
+        // The card does not work out for itself whether it is discounted. It
+        // asks, in CSS, whether the price inside it says so: `has-[[data-promo]]`
+        // matches when `ProductPrice` has drawn a struck-through original, and
+        // only then. That keeps the outline and the price from ever
+        // disagreeing — including for a promotion with an end date, whose
+        // price is decided per visit and streams in a moment after the card.
+        // The outline arrives with it, eased by the transition rather than
+        // snapping from gold.
+        //
+        // A browser too old for `:has()` simply keeps the gold edge every card
+        // has. The price still shows the discount; only the outline is lost.
+        <div className="rounded-2xl border border-gold/40 bg-[#0a1628]/70 backdrop-blur-md overflow-hidden flex flex-col w-full max-w-125 mx-auto transition-[border-color,box-shadow] duration-500 has-[[data-promo]]:border-pumpkin has-[[data-promo]]:shadow-[0_0_26px_rgba(255,117,24,0.22)]">
             <div className="relative aspect-video w-full">
                 <Image
                     src={imageUrl}

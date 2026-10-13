@@ -276,38 +276,6 @@
       opacity: 0.3;
     }
   }
-
-  /* The candle inside the Samhain lantern.
-   *
-   * Uneven stops at uneven heights, because a flame that dims and recovers on
-   * a regular beat reads as a loading indicator. It is put on the GLOW around
-   * the carved face and not on the face itself, which stays solid: the light
-   * spilling out of a lantern wavers, the holes it comes through do not. And
-   * it is opacity only, so nothing on the panel moves.
-   */
-  --animate-lantern-flicker: lantern-flicker 3.4s ease-in-out infinite;
-
-  @keyframes lantern-flicker {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    18% {
-      opacity: 0.7;
-    }
-    27% {
-      opacity: 0.95;
-    }
-    44% {
-      opacity: 0.55;
-    }
-    58% {
-      opacity: 0.9;
-    }
-    76% {
-      opacity: 0.65;
-    }
-  }
 }
 
 :root {

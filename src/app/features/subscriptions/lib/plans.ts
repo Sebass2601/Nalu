@@ -36,6 +36,15 @@ import { env } from "@/data/env/server";
 // So the noise is the sound of the feature flag working. Silencing it by
 // hoisting the read to a module constant does not help — that was measured —
 // and silencing it by prerendering would break the switch.
+//
+// While a promotion is live at build time there are SIX, not three. The
+// Samhain announcement in the consumer layout also waits for the request
+// (`connection()`, to know whether a sale has ended), so each of the three
+// routes reports that as well as the navbar's session read. Same routes, same
+// cause, equally harmless: they still answer 404 with the flag off, and the
+// count drops back to three once no product has a promotion. To see which
+// route and which call is behind each notice, `next build --debug-prerender`
+// prints them in full.
 // ---------------------------------------------------------------------------
 
 export type SubscriptionPlans = {
