@@ -107,56 +107,30 @@ export function priceDependsOnClock(product: PromoPriceFields) {
     );
 }
 
-// What the announcement needs to know about the promotions running right now:
-// that there is at least one, and until when.
+// Whether a sale is on: at least one promotion that is live AND actually
+// cheaper. This is the whole of what the Samhain announcement asks before
+// showing itself.
 //
-// How MUCH comes off is deliberately not here. The announcement states the
-// sale as one fixed figure, which is copy in the panel and not something worked
-// out from these prices — see SamhainPopup.
-export type PromoSummary = {
-    // The first deadline among them, or null when any of them has none.
-    endsAt: Date | null;
-};
-
-// Null when there is nothing worth announcing.
+// A promo offer priced at or above the base price does not count. It is still
+// honoured at checkout and still shown on the product — that is what will be
+// charged — but it is not a discount, and neither is one so small it rounds to
+// 0%.
 //
-// A promotion counts here only if it is live AND actually cheaper. A promo
-// offer priced at or above the base price is still honoured at checkout and
-// still shown on the product — that is what will be charged — but it is not a
-// discount, and neither is one so small it rounds to 0%.
+// What the sale takes off, and the date it runs to, are deliberately not worked
+// out here. The announcement states both as fixed copy — see SamhainPopup.
 //
 // `now` is required, unlike above. This always compares against it, and a
-// caller summarising several products has to hold one instant for all of them.
-export function summarizeLivePromos(
-    products: PromoPriceFields[],
-    now: Date
-): PromoSummary | null {
-    // The end date of every promotion that counts, null for an open-ended one.
-    const endDates = products.flatMap(product => {
+// caller asking about several products has to hold one instant for all of them.
+export function hasLiveDiscount(products: PromoPriceFields[], now: Date) {
+    return products.some(product => {
         const { priceInDollars, wasPriceInDollars } = displayPrice(product, now);
 
-        if (wasPriceInDollars == null || wasPriceInDollars <= 0) return [];
+        if (wasPriceInDollars == null || wasPriceInDollars <= 0) return false;
 
         const percentOff = Math.round(
             (1 - priceInDollars / wasPriceInDollars) * 100
         );
 
-        return percentOff >= 1 ? [product.promoEndsAt] : [];
+        return percentOff >= 1;
     });
-
-    if (endDates.length === 0) return null;
-
-    // The earliest deadline is the one date true of every promotion: none of
-    // them stops before it. Any open-ended one makes even that misleading, so
-    // then there is no date to give.
-    const deadlines = endDates.flatMap(endsAt =>
-        endsAt == null ? [] : [endsAt.getTime()]
-    );
-
-    return {
-        endsAt:
-            deadlines.length === endDates.length
-                ? new Date(Math.min(...deadlines))
-                : null,
-    };
 }

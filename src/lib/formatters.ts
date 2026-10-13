@@ -52,22 +52,6 @@ export function formatShortDate(date: Date) {
     }).format(date);
 }
 
-// A day and its month, no year — "31 de octubre". For a deadline close enough
-// that the year is not in question, which is what a promotion's end date is.
-//
-// Read in the site's zone for the same reason the short dates are, and here it
-// is not a nicety. The admin's "Termina el" field stores the last second of the
-// chosen day in Panama, which is already the small hours of the NEXT day in
-// UTC — so a server formatting it in its own zone would announce a sale as
-// running a day longer than it does.
-export function formatDayAndMonth(date: Date) {
-    return new Intl.DateTimeFormat("es", {
-        timeZone: SITE_TIME_ZONE,
-        day: "numeric",
-        month: "long",
-    }).format(date);
-}
-
 export function formatPrice(amount: number, { showZeroAsNumber = false } = {}) {
     const formatter = new Intl.NumberFormat(undefined, {
         style: "currency",

@@ -44,14 +44,21 @@ const curtainIsUp = () => document.querySelector("[data-curtain]") != null;
 // The panel is the site's plaque — the bevelled octagon the doorways and the
 // buttons are cut from — at the size of a notice rather than a control. A
 // rounded rectangle here would be a pop-up from some other website.
-// What the sale takes off, as the school announces it: one figure, the same for
-// every visitor.
+// What the sale takes off and when it ends, as the school announces it: the
+// same line for every visitor.
 //
 // This is copy, like the title — written here, not worked out from the
-// products' prices. Nothing checks it against them, so a promotion set at some
-// other percentage is still announced as this one. If the campaign changes,
-// this is the line to change.
+// products. Nothing checks the figure against their prices or the date against
+// their own end dates, so a promotion set at another percentage, or left
+// running past the 31st, is still announced in these words. What actually stops
+// the panel appearing is the promotions ending — see SamhainAnnouncement — so
+// for this date to be true the products' "Termina el" has to say the same.
+//
+// Kept as two phrases so the line can only break between them. Left to wrap on
+// its own it splits wherever the panel's width happens to fall, which on a
+// phone is in the middle of the date.
 const OFFER = "20% de descuento";
+const OFFER_UNTIL = "hasta el 31 de octubre";
 
 const CUT = 22;
 const FACE = bevelFace(CUT);
@@ -62,16 +69,10 @@ const HAIRLINE = bevelOutline({ cut: CUT, inset: 7, width: 1 });
 // full catalogue, where every discounted course is marked.
 //
 // Rendered only when there is a promotion to announce — `SamhainAnnouncement`
-// decides that on the server and hands down nothing but what the panel says.
-// This component's whole job is WHEN: not twice, and not under the curtain.
-export function SamhainPopup({
-    endsOn,
-}: {
-    // The day the first promotion ends, already written out — "31 de octubre"
-    // — or null when there is no date to give. Formatted on the server so it
-    // is read in the school's time zone rather than the visitor's.
-    endsOn: string | null;
-}) {
+// decides that on the server. What the panel says is fixed, so it takes no
+// props: this component's whole job is WHEN — not twice, and not under the
+// curtain.
+export function SamhainPopup() {
     // Starts closed, and has to: sessionStorage does not exist where this is
     // first rendered, so a server that guessed "open" would hand the browser a
     // panel it then had to take away from everyone who had already seen it.
@@ -217,7 +218,10 @@ export function SamhainPopup({
                                     solid plaque; a third orange thing between
                                     them would leave the eye nowhere to land. */}
                                 <p className="mt-3 text-xl tracking-[0.04em] text-ink-bright">
-                                    {OFFER}
+                                    <span className="inline-block">{OFFER}</span>{" "}
+                                    <span className="inline-block">
+                                        {OFFER_UNTIL}
+                                    </span>
                                 </p>
 
                                 {/* The site's reading face, as every paragraph
@@ -226,8 +230,6 @@ export function SamhainPopup({
                                 <DialogDescription className="mt-4 max-w-[32ch] font-sans text-[0.95rem] leading-relaxed tracking-normal text-ink-body">
                                     Celebramos la temporada con precios
                                     especiales en cursos seleccionados.
-                                    {endsOn != null &&
-                                        ` Disponibles hasta el ${endsOn}.`}
                                 </DialogDescription>
 
                                 {/* Says where it goes, and closes the panel on

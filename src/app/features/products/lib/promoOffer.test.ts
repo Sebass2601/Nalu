@@ -4,7 +4,7 @@ import {
     displayPrice,
     isPromoLive,
     priceDependsOnClock,
-    summarizeLivePromos,
+    hasLiveDiscount,
 } from "./promoOffer";
 
 const base = {
@@ -202,7 +202,7 @@ describe("reading the clock", () => {
     });
 });
 
-describe("summarizeLivePromos", () => {
+describe("hasLiveDiscount", () => {
     const product = (
         priceInDollars: number,
         promoPriceInDollars: number | null,
@@ -214,56 +214,42 @@ describe("summarizeLivePromos", () => {
         promoPriceInDollars,
     });
 
-    it("is null when nothing is on promotion", () => {
-        expect(summarizeLivePromos([product(60, null), product(80, null)], NOW)).toBeNull();
+    it("is false when nothing is on promotion", () => {
+        expect(hasLiveDiscount([product(60, null), product(80, null)], NOW)).toBe(false);
     });
 
-    it("is null for an empty catalogue", () => {
-        expect(summarizeLivePromos([], NOW)).toBeNull();
+    it("is false for an empty catalogue", () => {
+        expect(hasLiveDiscount([], NOW)).toBe(false);
     });
 
     // One discounted product among ordinary ones is enough for a sale to be on.
-    it("is not null as soon as one product is cheaper", () => {
-        expect(summarizeLivePromos([product(100, 70), product(80, null)], NOW)).toEqual({
-            endsAt: null,
-        });
+    it("is true as soon as one product is cheaper", () => {
+        expect(hasLiveDiscount([product(100, 70), product(80, null)], NOW)).toBe(true);
+    });
+
+    it("is true while a promotion's end date is still ahead", () => {
+        expect(hasLiveDiscount([product(100, 80, TOMORROW)], NOW)).toBe(true);
     });
 
     // Announcing a sale that ended yesterday is the worst thing this could do.
-    it("ignores promotions that have expired", () => {
-        expect(
-            summarizeLivePromos([product(100, 50, YESTERDAY), product(100, 80, TOMORROW)], NOW)
-        ).toEqual({ endsAt: TOMORROW });
+    it("is false when every promotion has expired", () => {
+        expect(hasLiveDiscount([product(100, 50, YESTERDAY)], NOW)).toBe(false);
     });
 
-    it("is null when every promotion has expired", () => {
-        expect(summarizeLivePromos([product(100, 50, YESTERDAY)], NOW)).toBeNull();
+    it("is true when one promotion is live among expired ones", () => {
+        expect(
+            hasLiveDiscount([product(100, 50, YESTERDAY), product(100, 80, TOMORROW)], NOW)
+        ).toBe(true);
     });
 
     // A promo offer priced at or above the base price is a different offer, not
     // a discount, and there is nothing to announce about it.
-    it("ignores a promo price that is not lower", () => {
-        expect(summarizeLivePromos([product(100, 100), product(100, 120)], NOW)).toBeNull();
+    it("is false when the promo price is not lower", () => {
+        expect(hasLiveDiscount([product(100, 100), product(100, 120)], NOW)).toBe(false);
     });
 
     // 201 -> 200 is under half a percent. "0% de descuento" is not a sale.
-    it("ignores a reduction that rounds to nothing", () => {
-        expect(summarizeLivePromos([product(201, 200)], NOW)).toBeNull();
-    });
-
-    it("gives the earliest deadline when every promotion has one", () => {
-        const later = new Date("2026-08-20T12:00:00Z");
-
-        expect(
-            summarizeLivePromos([product(100, 70, later), product(100, 70, TOMORROW)], NOW)?.endsAt
-        ).toEqual(TOMORROW);
-    });
-
-    // "Hasta el 13" would be false for the one that carries on past it — and
-    // true of nothing in particular for the one with no end at all.
-    it("gives no deadline when any promotion is open-ended", () => {
-        expect(
-            summarizeLivePromos([product(100, 70, TOMORROW), product(100, 70)], NOW)?.endsAt
-        ).toBeNull();
+    it("is false for a reduction that rounds to nothing", () => {
+        expect(hasLiveDiscount([product(201, 200)], NOW)).toBe(false);
     });
 });

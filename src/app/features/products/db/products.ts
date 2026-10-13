@@ -186,7 +186,7 @@ export async function getCheapestPurchasableProductForCourse(courseId: string) {
 // large it is.
 //
 // "Configured" rather than "live": this filters on the two columns that never
-// change by themselves, and leaves the end date to `summarizeLivePromos`. A
+// change by themselves, and leaves the end date to `hasLiveDiscount`. A
 // cached query that compared `promoEndsAt` against the database's clock would
 // keep answering for the moment it was cached at, and go on announcing a sale
 // after it had ended.

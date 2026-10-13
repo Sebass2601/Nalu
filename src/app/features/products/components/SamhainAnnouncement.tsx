@@ -1,10 +1,9 @@
 import { connection } from "next/server";
-import { formatDayAndMonth } from "@/lib/formatters";
 import { getPublicPromoPrices } from "../db/products";
-import { summarizeLivePromos } from "../lib/promoOffer";
+import { hasLiveDiscount } from "../lib/promoOffer";
 import { SamhainPopup } from "./SamhainPopup";
 
-// Decides whether there is a sale to announce, and until when.
+// Decides whether there is a sale to announce.
 //
 // The server's half of the announcement. It reads the same promotion columns
 // the product cards draw their prices from and puts them through the same
@@ -13,9 +12,9 @@ import { SamhainPopup } from "./SamhainPopup";
 // is removed or runs out, the panel stops appearing without anyone having to
 // remember to switch it off.
 //
-// What it hands the browser is the end date, already written out, and nothing
-// else. The size of the discount is not worked out here: the panel states it as
-// a fixed figure. The offer codes stay here.
+// That yes or no is all it decides. What the panel SAYS — the size of the
+// discount and the date it runs to — is fixed copy inside the panel, so nothing
+// is handed to the browser and the offer codes stay here.
 //
 // Rendered inside a <Suspense> by the consumer layout, because of the
 // `connection()` below.
@@ -33,17 +32,7 @@ export async function SamhainAnnouncement() {
     // Under Cache Components reading the clock any earlier is a build error.
     await connection();
 
-    const summary = summarizeLivePromos(promos, new Date());
+    if (!hasLiveDiscount(promos, new Date())) return null;
 
-    if (summary == null) return null;
-
-    return (
-        <SamhainPopup
-            endsOn={
-                summary.endsAt == null
-                    ? null
-                    : formatDayAndMonth(summary.endsAt)
-            }
-        />
-    );
+    return <SamhainPopup />;
 }
