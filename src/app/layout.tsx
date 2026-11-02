@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Cinzel } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -183,6 +184,12 @@ export default async function RootLayout({
             button covers it and steals the taps meant for it. */}
         <Toaster position="top-center" />
       </body>
+      {/* Production only, so local `pnpm dev` visits are not counted as real
+          traffic. The ID is public by design: it is readable in every page's
+          source, so it needs no secret or environment variable. */}
+      {process.env.NODE_ENV === "production" && (
+        <GoogleAnalytics gaId="G-91VKFH955R" />
+      )}
     </html>
   );
 }
