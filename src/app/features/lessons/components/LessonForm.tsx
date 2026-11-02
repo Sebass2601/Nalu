@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { actionToast } from "@/lib/actionToast";
-import { LessonStatus, lessonStatuses, LessonType, lessonTypes } from "@/drizzle/schema";
+import { LessonStatus, lessonStatuses, LessonType } from "@/drizzle/schema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createLesson, updateLesson } from "../actions/lessons";
 import { lessonSchema } from "../schemas/lessons";
@@ -23,11 +23,15 @@ import {
 } from "../actions/lessonImages";
 
 // Display-only Spanish labels for the DB status enum (values stay in English).
-const lessonStatusLabels: Record<LessonStatus, string> = {
+export const lessonStatusLabels: Record<LessonStatus, string> = {
     public: "Público",
     private: "Privado",
     preview: "Vista previa",
 }
+
+// Text first, since it is the default for a new lesson. Listed here rather than
+// by reordering `lessonTypes`, whose order belongs to the Postgres enum.
+const lessonTypeOptions: LessonType[] = ["text", "video"]
 
 export function LessonForm({
     lesson,
@@ -55,7 +59,7 @@ export function LessonForm({
         defaultValues: {
             name: lesson?.name ?? "",
             status: lesson?.status ?? "public",
-            type: lesson?.type ?? "video",
+            type: lesson?.type ?? "text",
             videoKey: lesson?.videoKey ?? null,
             content: lesson?.content ?? "",
             description: lesson?.description ?? "",
@@ -116,7 +120,7 @@ export function LessonForm({
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {lessonTypes.map(type => (
+                                    {lessonTypeOptions.map(type => (
                                         <SelectItem key={type} value={type}>
                                             {type === "video" ? "Video" : "Texto"}
                                         </SelectItem>

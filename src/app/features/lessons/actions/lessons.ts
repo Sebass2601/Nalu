@@ -1,7 +1,7 @@
 "use server"
 
 import z from "zod";
-import { lessonSchema } from "../schemas/lessons";
+import { lessonSchema, sectionLessonStatusSchema } from "../schemas/lessons";
 import {
     canCreateLessons,
     canDeleteLessons,
@@ -13,6 +13,7 @@ import {
     updateLesson as updateLessonDB,
     deleteLesson as deleteLessonDB,
     updateLessonOrders as updateLessonOrdersDB,
+    updateSectionLessonStatuses as updateSectionLessonStatusesDB,
 } from "../db/lessons";
 import { getCurrentUser } from "../../users/actions/currentUser";
 
@@ -43,6 +44,27 @@ export async function updateLesson(
     await updateLessonDB(id, data);
 
     return { error: false, message: "Sección actualizada exitosamente." };
+}
+
+export async function updateSectionLessonStatuses(
+    unsafeData: z.infer<typeof sectionLessonStatusSchema>
+) {
+    const { success, data } = sectionLessonStatusSchema.safeParse(unsafeData);
+
+    if (!success || !canUpdateLessons(await getCurrentUser())) {
+        return { error: true, message: "Error al actualizar las secciones." };
+    }
+
+    const lessons = await updateSectionLessonStatusesDB(
+        data.sectionId,
+        data.status
+    );
+
+    if (lessons.length === 0) {
+        return { error: true, message: "Esta clase no tiene secciones." };
+    }
+
+    return { error: false, message: "Secciones actualizadas exitosamente." };
 }
 
 export async function deleteLesson(id: string) {

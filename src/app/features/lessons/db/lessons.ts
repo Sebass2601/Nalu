@@ -2,6 +2,7 @@ import { db } from "@/drizzle/db";
 import {
     CourseSectionTable,
     ImageLessonTable,
+    LessonStatus,
     LessonTable,
 } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -80,6 +81,33 @@ export async function updateLesson(
     revalidateLessonCache({ courseId, id: updatedLesson.id });
 
     return updatedLesson;
+}
+
+// Sets every lesson of one section to the same status. A single UPDATE, so the
+// section can never end up half changed. Returns the lessons it touched, which
+// is empty when the section has none or no longer exists.
+export async function updateSectionLessonStatuses(
+    sectionId: string,
+    status: LessonStatus
+) {
+    const section = await db.query.CourseSectionTable.findFirst({
+        columns: { courseId: true },
+        where: eq(CourseSectionTable.id, sectionId),
+    });
+
+    if (section == null) return [];
+
+    const lessons = await db
+        .update(LessonTable)
+        .set({ status })
+        .where(eq(LessonTable.sectionId, sectionId))
+        .returning({ id: LessonTable.id });
+
+    lessons.forEach(({ id }) => {
+        revalidateLessonCache({ courseId: section.courseId, id });
+    });
+
+    return lessons;
 }
 
 export async function deleteLesson(id: string) {

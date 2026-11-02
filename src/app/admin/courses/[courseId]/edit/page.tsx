@@ -19,6 +19,7 @@ import { EyeClosed, PlusIcon } from "lucide-react";
 import { SortableSectionList } from "@/app/features/CourseSections/components/SortableSectionList";
 import { LessonFormDialog } from "@/app/features/lessons/components/LessonFormDialog";
 import { SortableLessonList } from "@/app/features/lessons/components/SortableLessonList";
+import { SectionLessonsStatusControl } from "@/app/features/lessons/components/SectionLessonsStatusControl";
 import { cn } from "@/lib/utils";
 import { requireAdmin } from "@/app/features/users/actions/currentUser";
 
@@ -86,16 +87,21 @@ async function EditCourseContent({
                                 >
                                     {section.status === "private" && <EyeClosed />} {section.name}
                                 </CardTitle>
-                                <LessonFormDialog
-                                    defaultSectionId={section.id}
-                                    sections={course.courseSections}
-                                >
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline">
-                                            <PlusIcon /> Nueva Sección
-                                        </Button>
-                                    </DialogTrigger>
-                                </LessonFormDialog>
+                                <div className="flex flex-wrap items-center justify-end gap-2">
+                                    {section.lessons.length > 0 && (
+                                        <SectionLessonsStatusControl sectionId={section.id} />
+                                    )}
+                                    <LessonFormDialog
+                                        defaultSectionId={section.id}
+                                        sections={course.courseSections}
+                                    >
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline">
+                                                <PlusIcon /> Nueva Sección
+                                            </Button>
+                                        </DialogTrigger>
+                                    </LessonFormDialog>
+                                </div>
                             </CardHeader>
                             <CardContent>
                                 <SortableLessonList

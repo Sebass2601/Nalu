@@ -1,6 +1,11 @@
 import { LessonStatusEnum, LessonTypeEnum } from "@/drizzle/schema";
 import { z } from "zod";
 
+export const sectionLessonStatusSchema = z.object({
+    sectionId: z.uuid(),
+    status: z.enum(LessonStatusEnum.enumValues),
+});
+
 export const lessonSchema = z
     .object({
         name: z.string().min(1, "Required"),
