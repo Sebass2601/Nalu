@@ -1,5 +1,6 @@
 import MultiLayerParallax from "@/components/ui/MultiLayerParallax";
 import { HOTSPOTS, type Entrance } from "@/components/ui/parallaxEntrances";
+import { CastleWelcomePopup } from "@/app/features/categories/components/CastleWelcomePopup";
 import { Cinzel } from "next/font/google";
 import { cacheTag } from "next/cache";
 import { db } from "@/drizzle/db";
@@ -10,9 +11,9 @@ import { asc } from "drizzle-orm";
 const cinzel = Cinzel({ subsets: ["latin"] });
 
 // The castle: the page where a visitor picks what to look at, one plaque per
-// category. It sat at `/` until the salon took that place, and the two are now a
-// door apart in either direction — the salon's arch leads here, and the central
-// entrance below leads back.
+// category. It sat at `/` until the salon took that place. The salon's course
+// doorway now goes straight to the catalogue, so this is reached from the navbar
+// instead; the central entrance below still leads back to the salon.
 //
 // Doorways that are not categories at all: their wording and destination are
 // fixed here, and the category assignment skips straight past them.
@@ -32,6 +33,10 @@ export default async function FetchCourses() {
         foreground="/parallax/layer_2.webp"
         entrances={assignEntrances(categories)}
       />
+      {/* Tells a first-time visitor what the plaques are — a castle covered
+          in signs gives no hint that each one is a category. Once per visit,
+          after the artwork has loaded. */}
+      <CastleWelcomePopup />
     </main>
   );
 }

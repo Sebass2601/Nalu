@@ -407,12 +407,12 @@ function Closing() {
                 ¿Qué puerta deseas abrir primero?
             </p>
 
-            {/* The same words and the same destination as the plaque on the
-                open book in the salon, so a visitor who read to the end lands
-                where the entrance hall would have sent them. Primary, because
-                it is the only call to action on the page and there is nothing
-                for it to compete with. */}
-            <PlaqueButton href="/fetch-courses" className="mt-4">
+            {/* Straight to the catalogue, the same place the salon's way in
+                now opens, so a visitor who read to the end is one tap from a
+                course rather than another hall to walk through. Primary,
+                because it is the only call to action on the page and there is
+                nothing for it to compete with. */}
+            <PlaqueButton href="/products" className="mt-4">
                 Explorar los Cursos
             </PlaqueButton>
         </section>

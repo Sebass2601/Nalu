@@ -74,6 +74,11 @@ export type Entrance = {
     // Absent — and empty, which a description column full of blanks will
     // produce — draws no bar at all rather than an empty one.
     caption?: string;
+    // Draws the doorway as the scene's call to action: the same glass plaque,
+    // but with a gold edge that glows on a loop and a glint crossing its face.
+    // Meant for one doorway per scene at most — two of them would compete, and
+    // the glow only means anything because the rest of the scene is still.
+    featured?: boolean;
     // Fractions of the foreground image, measured exactly as HOTSPOTS is.
     x: number;
     y: number;

@@ -285,7 +285,7 @@ function SignInWall({ returnTo }: { returnTo: string }) {
                     href={`/sign-up?next=${encodeURIComponent(returnTo)}`}
                     className="text-gold underline-offset-4 transition-colors hover:text-gold-bright hover:underline"
                 >
-                    Regístrate aquí
+                    Regístrate aquí gratis
                 </Link>
             </p>
         </div>

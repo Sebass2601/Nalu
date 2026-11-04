@@ -41,6 +41,11 @@ type CategoryButtonProps = Omit<React.ComponentProps<typeof Link>, "children"> &
   // Nothing is drawn without one, so a plaque with no caption is exactly the
   // plaque that existed before there were captions.
   caption?: string
+  // The scene's call to action. The same glass plaque as its neighbours, but
+  // lit: its gold rule throws a glow that breathes on a loop, and a glint
+  // crosses the face every few seconds, so it is the first thing found in a
+  // picture full of plaques.
+  featured?: boolean
 }
 
 // Breaks a label across two lines at the word boundary that leaves both halves
@@ -73,6 +78,7 @@ function twoLines(label: string) {
 export default function CategoryButton({
   children,
   caption,
+  featured = false,
   className,
   ...props
 }: CategoryButtonProps) {
@@ -110,10 +116,18 @@ export default function CategoryButton({
           className="relative bg-[#0a1628]/70 px-5 py-2 backdrop-blur-md transition-colors duration-300 group-hover:bg-[#0a1628]/85 sm:px-7 sm:py-3"
           style={{ clipPath: FACE }}
         >
-          {/* Light sweep that crosses the glass on hover. */}
+          {/* Light sweep that crosses the glass. It waits for the hover on
+              every plaque but the featured one, where it runs by itself every
+              few seconds — a little brighter, so it reads as a glint rather
+              than a smudge. Reduced motion drops the loop. */}
           <span
             aria-hidden
-            className="absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/10 blur-md transition-transform duration-700 ease-out group-hover:translate-x-[400%]"
+            className={cn(
+              "absolute inset-y-0 -left-full w-1/2 -skew-x-12 blur-md",
+              featured
+                ? "animate-beacon-glint bg-white/20 motion-reduce:animate-none"
+                : "bg-white/10 transition-transform duration-700 ease-out group-hover:translate-x-[400%]"
+            )}
           />
           <span
             className="relative block text-center text-base leading-tight tracking-[0.24em] text-gold uppercase transition-colors duration-200 group-hover:text-white"
@@ -132,12 +146,31 @@ export default function CategoryButton({
           </span>
         </div>
 
-        {/* Gold rules sit on top, so the glass underneath stays see-through. */}
+        {/* Gold rules sit on top, so the glass underneath stays see-through.
+
+            On the featured plaque the outer rule is what glows, from a
+            wrapper of its own. A filter cannot go on the rule itself — it
+            would be cut away with everything else outside the clip-path — and
+            it cannot go on the link either, as it once did: a filter on an
+            ancestor stops `backdrop-blur` from seeing the artwork behind, and
+            the glass face would lose its frost. On a sibling of the face it
+            touches neither, and the light spills both ways off the gold line,
+            out over the painting and in across the glass.
+
+            Kept under reduced motion. It changes brightness, not position, so
+            it is not the movement that setting asks to be spared. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-gold transition-colors duration-200 group-hover:bg-white"
-          style={{ clipPath: BORDER }}
-        />
+          className={cn(
+            "pointer-events-none absolute inset-0",
+            featured && "animate-beacon-glow"
+          )}
+        >
+          <span
+            className="absolute inset-0 bg-gold transition-colors duration-200 group-hover:bg-white"
+            style={{ clipPath: BORDER }}
+          />
+        </span>
         <span
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-gold opacity-40"

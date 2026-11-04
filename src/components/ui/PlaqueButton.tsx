@@ -42,6 +42,14 @@ const SHAPES = {
     },
 } as const
 
+// The outer rule for a plaque that has to hold its own beside a solid one.
+// A secondary plaque standing next to the gold buy button reads as an empty
+// gap at 0.5px; three times that is still an edge, not a border.
+const BOLD_RULE = {
+    default: bevelOutline({ cut: 10, inset: 0, width: 1.5 }),
+    sm: bevelOutline({ cut: 8, inset: 0, width: 1.5 }),
+} as const
+
 // What each variant is made of.
 //
 // `primary` is solid gold — the plaque cast rather than glazed. `secondary`
@@ -86,6 +94,7 @@ type PlaqueVariant = keyof typeof VARIANTS
 type PlaqueOwnProps = {
     variant?: PlaqueVariant
     size?: PlaqueSize
+    boldOutline?: boolean
     className?: string
     children: ReactNode
 }
@@ -113,6 +122,7 @@ export function PlaqueButton({
     href,
     variant = "primary",
     size = "default",
+    boldOutline = false,
     className,
     children,
     ...props
@@ -166,7 +176,7 @@ export function PlaqueButton({
                     "pointer-events-none absolute inset-0 transition-colors duration-200",
                     rule
                 )}
-                style={{ clipPath: shape.rule }}
+                style={{ clipPath: boldOutline ? BOLD_RULE[size] : shape.rule }}
             />
             {solid && (
                 <span

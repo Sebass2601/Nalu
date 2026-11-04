@@ -385,7 +385,11 @@ export default function MultiLayerParallax({
                             transform: `translate(-50%, -50%) scale(${cover * buttonScale})`,
                         }}
                     >
-                        <CategoryButton href={entrance.href} caption={entrance.caption}>
+                        <CategoryButton
+                            href={entrance.href}
+                            caption={entrance.caption}
+                            featured={entrance.featured}
+                        >
                             {entrance.label}
                         </CategoryButton>
                     </div>

@@ -68,6 +68,36 @@ async function DeadlinePrice({
     return <Price {...displayPrice(product, new Date())} className={className} />;
 }
 
+// The promotion's mark without the price: nothing a visitor sees, only the
+// `data-promo` attribute a product card outlines itself by. For the listing
+// cards, which stopped showing prices but still pick out what is on sale.
+//
+// Decided exactly as `ProductPrice` decides — the same `displayPrice`, and the
+// same wait for the request when a promotion ends on a date — so a card is
+// outlined in pumpkin precisely when its product page shows a struck-through
+// price. Waiting draws nothing, so the outline eases in when the answer lands.
+export function PromoMarker({ product }: { product: PromoPriceFields }) {
+    if (priceDependsOnClock(product)) {
+        return (
+            <Suspense fallback={null}>
+                <DeadlinePromoMarker product={product} />
+            </Suspense>
+        );
+    }
+
+    return <Marker {...displayPrice(product)} />;
+}
+
+async function DeadlinePromoMarker({ product }: { product: PromoPriceFields }) {
+    await connection();
+
+    return <Marker {...displayPrice(product, new Date())} />;
+}
+
+function Marker({ wasPriceInDollars }: { wasPriceInDollars: number | null }) {
+    return wasPriceInDollars == null ? null : <span data-promo hidden />;
+}
+
 // Holds the price's place until it is known.
 //
 // A block of the price's own colour rather than the full price, which is what
@@ -111,11 +141,9 @@ function Price({
     }
 
     return (
-        // `data-promo` is how a card finds out it is holding a discounted
-        // price, so it can outline itself to match — see ProductCard. Marked
-        // here, on the one element that exists only when a promotion is being
-        // shown, so there is no second place that has to decide the same
-        // thing and could decide it differently.
+        // `data-promo` marks a price on promotion. The listing cards no longer
+        // show a price and carry `PromoMarker` instead, which sets the same
+        // attribute from the same `displayPrice` answer — see ProductCard.
         <div data-promo className="flex items-baseline gap-2.5">
             {/* Pumpkin, not gold: the one figure on the site that is. A price
                 on promotion has to be told apart from every other price at a

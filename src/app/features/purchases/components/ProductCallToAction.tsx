@@ -53,9 +53,13 @@ export async function ProductCallToAction({
         // is for, and two solid plaques side by side leave a reader with no way
         // to tell which one the page is asking for — the same rule CheckoutButton
         // states for the upgrade offer, and the same reason.
+        //
+        // Worded as the offer it is to someone who has not bought the course:
+        // the first class can be watched for free. An owner never reaches this
+        // branch, and gets "Ir al curso" below instead.
         if (courses.length === 1) {
             return (
-                // Reversed while stacked, so on a phone "Ver curso" sits above
+                // Reversed while stacked, so on a phone the free class sits above
                 // the buy button. Beside it from `sm` up, in reading order:
                 // buying first, looking second.
                 //
@@ -68,12 +72,21 @@ export async function ProductCallToAction({
                     <PlaqueButton
                         href={`/courses/${courses[0].id}`}
                         variant="secondary"
+                        boldOutline
                         // Matching the buy button's own width rule, or the two
                         // would be different widths in the stacked layout where
                         // they sit directly on top of one another.
                         className="w-full sm:w-auto"
                     >
-                        Ver curso
+                        {/* Too long for a phone at the plaque's usual spacing:
+                            at 0.2em it needs about 315px and a 360px screen
+                            leaves the label 264. Tighter spacing keeps it on
+                            one line from a 375px phone up, and below that it
+                            is allowed to wrap onto two balanced lines rather
+                            than be cut off by the plaque's edge. */}
+                        <span className="tracking-[0.1em] text-balance whitespace-normal sm:tracking-[0.2em] sm:whitespace-nowrap">
+                            Ver primera clase gratis
+                        </span>
                     </PlaqueButton>
                 </div>
             );

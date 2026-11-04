@@ -155,7 +155,6 @@ function ProductCardSkeleton() {
                     <div className="h-6 w-full rounded bg-gold/20" />
                     <div className="h-6 w-2/3 rounded bg-gold/20" />
                 </div>
-                <div className="h-8 w-24 rounded bg-gold/20" />
                 {/* Three lines, the most the description ever shows before
                     `line-clamp-3` cuts it. */}
                 <div className="flex-1 space-y-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { XIcon } from "lucide-react";
 import {
@@ -14,32 +14,13 @@ import {
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { bevelFace, bevelOutline, Diamond } from "@/components/ui/plaque";
 import { cinzel } from "@/components/ui/fonts";
+import { useOncePerVisit } from "@/components/ui/useOncePerVisit";
 import { cn } from "@/lib/utils";
 
-// Whether this visit has already been told about the sale.
-//
-// sessionStorage, for the reason the parallax hint gives: it is once per visit,
-// not once per device. Someone who closed it this morning and comes back
-// tonight is arriving again, and the sale is still on. Within a visit it is
-// shown exactly once — reloading, or moving between pages, does not bring it
-// back.
+// Whether this visit has already been told about the sale. Once per visit
+// rather than once per device: someone who closed it this morning and comes
+// back tonight is arriving again, and the sale is still on.
 const SEEN = "nalu:samhain-announcement-seen";
-
-// How long the page is left alone before the panel arrives. Long enough that
-// the visitor has seen where they are — a panel that is already there when the
-// page paints reads as part of the page, or as something in its way — and
-// short enough that they have not started doing anything yet.
-const ARRIVAL_DELAY_MS = 700;
-
-// How often to look for the loading curtain while it is still up.
-const CURTAIN_POLL_MS = 150;
-
-// The curtain the two parallax pages hold over themselves while their artwork
-// downloads — see ParallaxCurtain, which carries this attribute for exactly
-// this question. It covers the whole screen and sits above this panel, so a
-// panel opened behind it would spend its entrance where nobody can see it and
-// be found already standing there when the curtain lifts.
-const curtainIsUp = () => document.querySelector("[data-curtain]") != null;
 
 // The panel is the site's plaque — the bevelled octagon the doorways and the
 // buttons are cut from — at the size of a notice rather than a control. A
@@ -71,61 +52,11 @@ const HAIRLINE = bevelOutline({ cut: CUT, inset: 7, width: 1 });
 // Rendered only when there is a promotion to announce — `SamhainAnnouncement`
 // decides that on the server. What the panel says is fixed, so it takes no
 // props: this component's whole job is WHEN — not twice, and not under the
-// curtain.
+// curtain — and `useOncePerVisit` holds all of that.
 export function SamhainPopup() {
-    // Starts closed, and has to: sessionStorage does not exist where this is
-    // first rendered, so a server that guessed "open" would hand the browser a
-    // panel it then had to take away from everyone who had already seen it.
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useOncePerVisit(SEEN);
 
     const panel = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        // Wrapped because sessionStorage throws, rather than returning null,
-        // when a browser has storage switched off. `seen` defaults to true so
-        // that case shows nothing: a panel that cannot remember being closed
-        // would come back on every page, and that is worse than not telling
-        // someone about a sale.
-        let seen = true;
-        try {
-            seen = sessionStorage.getItem(SEEN) != null;
-        } catch {}
-        if (seen) return;
-
-        let arrival: ReturnType<typeof setTimeout> | undefined;
-
-        const arrive = () => {
-            arrival = setTimeout(() => {
-                // Remembered as it opens, not as it closes. "Seen" is what the
-                // key says, and a visitor who reloads with the panel still up
-                // has seen it.
-                try {
-                    sessionStorage.setItem(SEEN, "1");
-                } catch {}
-                setOpen(true);
-            }, ARRIVAL_DELAY_MS);
-        };
-
-        if (!curtainIsUp()) {
-            arrive();
-            return () => clearTimeout(arrival);
-        }
-
-        // Polled rather than observed. The curtain leaves by unmounting, which
-        // a MutationObserver could catch — but only by watching the whole
-        // document while the page is still streaming in, to learn one thing
-        // that is true within a second or two either way.
-        const poll = setInterval(() => {
-            if (curtainIsUp()) return;
-            clearInterval(poll);
-            arrive();
-        }, CURTAIN_POLL_MS);
-
-        return () => {
-            clearInterval(poll);
-            clearTimeout(arrival);
-        };
-    }, []);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>

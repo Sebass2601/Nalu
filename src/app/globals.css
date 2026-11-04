@@ -189,6 +189,53 @@
     }
   }
 
+  /* The featured doorway on the salon — "Explorar los Cursos" — which is lit
+   * rather than merely drawn, so it is found before anything else in the scene.
+   *
+   * `beacon-glow` is a gold halo breathing in and out of the plaque's gold
+   * rule. The same number of drop-shadows in every keyframe, because a filter
+   * list only interpolates smoothly between lists of the same length — see the
+   * keyframes for why there are three. The rgba values are `--color-gold` and
+   * `--color-gold-bright` written out, since a shadow needs an alpha and a
+   * CSS variable cannot be given one inline. Keep them in step with the tokens.
+   *
+   * `beacon-glint` is a sheen crossing the face. It animates `translate`
+   * rather than `transform`, which is where Tailwind puts the skew the sheen
+   * already carries; the long rest at the end is what keeps it a glint every
+   * few seconds rather than a scanner sweeping back and forth.
+   */
+  --animate-beacon-glow: beacon-glow 2.4s ease-in-out infinite;
+  --animate-beacon-glint: beacon-glint 4s ease-in-out infinite;
+
+  /* Three shadows rather than one, and the order matters: each drop-shadow is
+   * cast by everything before it, shadows included. The glow comes off a
+   * 2px rule, which on its own throws too little light to see against the
+   * parchment it sits on — so a tight bright one first thickens the line, and
+   * the two wider ones are cast from that. */
+  @keyframes beacon-glow {
+    0%,
+    100% {
+      filter: drop-shadow(0 0 1px rgba(255, 222, 111, 0.6))
+        drop-shadow(0 0 4px rgba(250, 206, 73, 0.45))
+        drop-shadow(0 0 8px rgba(250, 206, 73, 0.2));
+    }
+    50% {
+      filter: drop-shadow(0 0 3px rgba(255, 222, 111, 1))
+        drop-shadow(0 0 10px rgba(250, 206, 73, 1))
+        drop-shadow(0 0 22px rgba(250, 206, 73, 0.85));
+    }
+  }
+
+  @keyframes beacon-glint {
+    0% {
+      translate: 0 0;
+    }
+    35%,
+    100% {
+      translate: 400% 0;
+    }
+  }
+
   /* The curtain over the two parallax pages while their artwork downloads.
    *
    * Animations rather than transitions, and deliberately: the curtain has to

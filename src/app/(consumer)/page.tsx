@@ -17,7 +17,12 @@ const cinzel = Cinzel({ subsets: ["latin"] });
 // wait on categories the way the castle behind it does.
 // One doorway per object on the table, each sitting on the thing that names it.
 // The arch itself now carries the lettering instead, which is why the way into
-// the castle moved down onto the open book.
+// the courses moved down onto the open book.
+//
+// That way in now opens the catalogue at /products directly rather than the
+// castle: a visitor who has said they want to see the courses is shown the
+// courses, not a second picture to pick through first. The castle is still a
+// click away from the navbar.
 //
 // Sobre Nosotros now opens onto the room it names. It used to lead back here for
 // want of a page — a plaque that goes nowhere at all is one a visitor presses
@@ -31,8 +36,10 @@ const ENTRANCES: Entrance[] = [
   { id: "anuncios", label: "Anuncios", href: "/announcements", x: 0.078, y: 0.529 },
   // The pair of closed books, on their spines.
   { id: "sobre-nosotros", label: "Sobre Nosotros", href: "/sobre-nosotros", x: 0.262, y: 0.588 },
-  // The gutter of the open book, where the two pages meet.
-  { id: "cursos", label: "Explorar los Cursos", href: "/fetch-courses", x: 0.502, y: 0.592 },
+  // The gutter of the open book, where the two pages meet. Featured: it is the
+  // one doorway on the page that leads to something for sale, so its gold edge
+  // glows and a glint crosses it, where the other three stand still.
+  { id: "cursos", label: "Explorar los Cursos", href: "/products", x: 0.502, y: 0.592, featured: true },
   // The crystal cluster. The label is imported rather than written here, so the
   // plaque and the page it opens can never come to disagree about what this
   // thing is called.
