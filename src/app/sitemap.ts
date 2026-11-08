@@ -78,6 +78,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: "weekly",
             priority: 0.5,
         },
+        // Low priority, but listed: it is public, and it is where a visitor
+        // checks who runs the school and how refunds work before paying.
+        {
+            url: `${BASE_URL}/terminos`,
+            lastModified: new Date(),
+            changeFrequency: "yearly",
+            priority: 0.3,
+        },
         ...categories,
         ...products,
     ];

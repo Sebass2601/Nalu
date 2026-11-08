@@ -8,6 +8,7 @@ import { NavBarFrame } from "@/components/ui/NavBarFrame";
 import { NavItem } from "@/components/ui/NavItem";
 import { UserMenu } from "@/components/ui/UserMenu";
 import { ContactWidget } from "@/components/ui/ContactWidget";
+import { LegalFooter } from "@/components/ui/LegalFooter";
 import { SamhainAnnouncement } from "@/app/features/products/components/SamhainAnnouncement";
 
 
@@ -22,7 +23,16 @@ export default function ConsumerLayout({
         <Suspense fallback={<NavbarShell />}>
             <Navbar />
         </Suspense>
-        {children}
+        {/* `relative` is the anchor LegalFooter pins itself to: the bottom of
+            the page, whether that is the end of a long scroll or the bottom
+            edge of the one-screen salon. `flex-1` stretches it to fill a short
+            page, so the link still sits at the bottom of the window there.
+            No z-index — that would make this a stacking context and trap the
+            `-z-10` CarvedBackdrop the pages paint behind themselves. */}
+        <div className="relative flex-1">
+            {children}
+            <LegalFooter />
+        </div>
         {/* Fixed to the corner of every consumer page, so a question never
             depends on the visitor being on the right one. Mounted here rather
             than in the root layout deliberately: the admin side is the school's
