@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/pageMetadata";
 import { cinzel } from "@/components/ui/fonts";
 import { BackLink } from "@/components/ui/BackToHomeLink";
 import { PlaqueButton } from "@/components/ui/PlaqueButton";
@@ -46,11 +46,12 @@ import { AboutVideo } from "./AboutVideo";
 //   uses. That is also the split the eye needs: the two roles now differ by case
 //   and shape, not only by size.
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
+    path: "/sobre-nosotros",
     title: "Sobre Nosotros",
     description:
         "El Reino de Nalu: un castillo del conocimiento donde cada portal es un área de estudio — numerología, tarot, sigilos, magia draconiana, realidad cuántica y más.",
-};
+});
 
 // The seven portals, in the order the copy gives them.
 //

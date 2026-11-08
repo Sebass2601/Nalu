@@ -2,7 +2,14 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Cinzel } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { JsonLd } from "@/components/JsonLd";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/pageMetadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,13 +21,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// The one description every share, search result and AI summary quotes. Kept
-// as a constant because it has to be identical in three places — the plain
-// `description`, Open Graph and Twitter — and three copies of a paragraph drift.
-const DESCRIPTION =
-  "Escuela online de cursos holísticos de numerología, tarot, sigilos, energías, servidores mágicos, arquetipos, magia draconiana, magia de espejos, magia del tiempo y realidad cuántica. Aprende a tu ritmo en el Reino de Nalu de forma inmersiva y dinámica.";
-
-const SITE_NAME = "Nalu Escuela";
+// The one description every share, search result and AI summary quotes when a
+// page has none of its own. It lives in `@/lib/pageMetadata` with the other
+// site-wide values, so the pages that describe themselves and this fallback
+// read the same words.
+const DESCRIPTION = SITE_DESCRIPTION;
 
 export const metadata: Metadata = {
   // Every URL in the tags below has to be absolute — a crawler reading
@@ -32,12 +37,12 @@ export const metadata: Metadata = {
   // whichever machine rendered the page: the Hetzner container knows itself as
   // 0.0.0.0 and Vercel as a preview subdomain, and neither belongs in a link
   // preview.
-  metadataBase: new URL("https://naluescuela.com"),
+  metadataBase: new URL(SITE_URL),
 
   title: {
-    // What a page inherits when it names no title of its own — which is every
-    // page today, so this is the tab title across the site.
-    default: "Nalu · Escuela de Cursos Holísticos Online",
+    // What a page inherits when it names no title of its own — the home page,
+    // and the account and checkout screens nobody arrives at from a search.
+    default: SITE_TITLE,
     // And what a page that *does* name one gets wrapped in, so a lesson reads
     // "Introducción · Nalu Escuela" rather than losing the brand entirely.
     template: `%s · ${SITE_NAME}`,
@@ -47,11 +52,17 @@ export const metadata: Metadata = {
   // The preview card for everything that reads Open Graph — which is most of
   // the web: Facebook, Instagram, WhatsApp, LinkedIn, Telegram, Discord, Slack,
   // iMessage. There is no per-network tag to write; they all read these.
+  //
+  // No `url` here, on purpose. Whatever this layout sets, every page without
+  // its own `openGraph` inherits — and a `url` of the home page would tell
+  // Facebook that a shared course link is really the home page, and draw the
+  // home page's card for it. The public pages set their own through
+  // `pageMetadata`; anything else is left for the reader to take from the
+  // address it actually fetched.
   openGraph: {
     type: "website",
-    url: "https://naluescuela.com",
     siteName: SITE_NAME,
-    title: "Nalu · Escuela de Cursos Holísticos Online",
+    title: SITE_TITLE,
     description: DESCRIPTION,
     locale: "es_ES",
     // Images are deliberately absent here. `app/opengraph-image.png` and
@@ -69,7 +80,7 @@ export const metadata: Metadata = {
   // logo file itself: X crops a square to that ratio, through the logo.
   twitter: {
     card: "summary_large_image",
-    title: "Nalu · Escuela de Cursos Holísticos Online",
+    title: SITE_TITLE,
     description: DESCRIPTION,
   },
 
@@ -94,12 +105,12 @@ export const metadata: Metadata = {
     },
   },
 
-  // Tells every crawler which URL is the real one, so the same page reached
-  // through a Vercel preview domain or a tracking query string is not counted
-  // as a separate, competing copy.
-  alternates: {
-    canonical: "/",
-  },
+  // No `alternates.canonical` here either, for the same reason as `openGraph.url`
+  // above, and with higher stakes: the canonical tag tells Google which URL is
+  // the real copy of a page. Set here to "/", it was inherited by every page —
+  // so every course page told Google it was a duplicate of the home page and
+  // should not be listed in its own right. Each public page now names its own
+  // address through `pageMetadata` in `@/lib/pageMetadata`.
 
   // Icons are file conventions too — `app/icon.png` (tab and bookmarks) and
   // `app/apple-icon.png` (iOS home screen). Both are the gold mark from
@@ -125,17 +136,16 @@ export const metadata: Metadata = {
 // documents JSON-LD as its preferred structured-data format, and the AI
 // crawlers read the same block.
 //
-// Injected as a plain <script> because that is how JSON-LD is specified to
-// travel. `JSON.stringify` on an object literal, never string concatenation:
-// the value is a constant here, but the day any of it comes from the database a
-// stray `</script>` in a course title would end the tag early.
+// Written into the page by `JsonLd`, which every page with structured data uses —
+// including the course pages, whose values do come from the database and so
+// need the escaping it applies.
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "EducationalOrganization",
   name: SITE_NAME,
   alternateName: "Reino de Nalu",
-  url: "https://naluescuela.com",
-  logo: "https://naluescuela.com/nalu_logo.png",
+  url: SITE_URL,
+  logo: `${SITE_URL}/nalu_logo.png`,
   description: DESCRIPTION,
   inLanguage: "es",
   knowsAbout: [
@@ -174,10 +184,7 @@ export default async function RootLayout({
           left while a mobile URL bar animates in or out of `h-dvh`. Set here
           rather than on `--background`, which components also draw with. */}
       <body className="min-h-full flex flex-col bg-[#0a1628]">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
+        <JsonLd data={structuredData} />
         {children}
         {/* Top-centre rather than sonner's bottom-right default, which is
             where the contact mark now lives. A toast landing on top of a fixed

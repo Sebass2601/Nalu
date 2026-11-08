@@ -19,6 +19,8 @@ import {
 } from "@/app/features/products/components/ProductCatalogue";
 import { BackLink } from "@/components/ui/BackToHomeLink";
 import { productHasWeeklyCourse } from "@/app/features/products/db/products";
+import { pageMetadata } from "@/lib/pageMetadata";
+import type { Metadata } from "next";
 
 // One page serving every category: the doorway clicked on the home page decides
 // which id lands in the URL, and the same template renders that category's
@@ -27,6 +29,25 @@ import { productHasWeeklyCourse } from "@/app/features/products/db/products";
 // Under Cache Components `params` is only known at request time, so everything
 // that depends on it lives inside the <Suspense> boundary below. That lets the
 // frame render immediately while the products stream in.
+// The category's own name, description and address. Same cached lookup as the
+// page below, so this costs no extra query.
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ categoryId: string }>;
+}): Promise<Metadata> {
+    const { categoryId } = await params;
+    const category = await getCategory(categoryId);
+
+    if (category == null) return {};
+
+    return pageMetadata({
+        path: `/categories/${category.id}`,
+        title: category.name,
+        description: category.description ?? undefined,
+    });
+}
+
 export default function CategoryPage({
     params,
 }: {

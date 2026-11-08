@@ -36,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     return [
-        // The four doorways a visitor can arrive at without an account.
+        // The doorways a visitor can arrive at without an account.
         // Priorities are relative, not absolute — they say the salon matters
         // more than a category page, nothing more, and Google treats them as a
         // hint at most.
@@ -63,6 +63,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: new Date(),
             changeFrequency: "monthly",
             priority: 0.7,
+        },
+        // The free classes: public to anyone, and the first step from visitor
+        // to student, so the one non-catalogue page most worth being found.
+        {
+            url: `${BASE_URL}/clases-gratuitas`,
+            lastModified: new Date(),
+            changeFrequency: "weekly",
+            priority: 0.8,
         },
         {
             url: `${BASE_URL}/announcements`,

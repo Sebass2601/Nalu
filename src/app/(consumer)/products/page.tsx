@@ -10,6 +10,7 @@ import {
 import { BackLink } from "@/components/ui/BackToHomeLink";
 import { productHasWeeklyCourse } from "@/app/features/products/db/products";
 import { getCourseGlobalTag } from "@/app/features/courses/db/cache/courses";
+import { pageMetadata } from "@/lib/pageMetadata";
 
 // The whole catalogue, reached from the Todos plaque on any category page.
 //
@@ -17,6 +18,13 @@ import { getCourseGlobalTag } from "@/app/features/courses/db/cache/courses";
 // all "use cache" with no request-time input, so it prerenders whole. The one
 // thing that can still stream is the price of a product whose promotion has an
 // end date, and `ProductPrice` draws the boundary for that itself.
+export const metadata = pageMetadata({
+    path: "/products",
+    title: "Todos los cursos",
+    description:
+        "Catálogo completo de cursos online de Nalu Escuela: numerología, tarot, sigilos, energías, arquetipos, magia draconiana, magia de espejos, magia del tiempo y realidad cuántica.",
+});
+
 export default async function ProductsPage() {
     const products = await getPublicProducts();
 

@@ -3,6 +3,7 @@ import { SalonHeading } from "@/components/ui/SalonHeading";
 import { type Entrance } from "@/components/ui/parallaxEntrances";
 import { FREE_COURSE_TITLE } from "@/app/features/courses/lib/freeCourseNames";
 import { Cinzel } from "next/font/google";
+import { pageMetadata } from "@/lib/pageMetadata";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -67,6 +68,11 @@ const INSCRIPTION_AT = { x: 0.5, y: 0.32 };
 // A shade under the castle's 0.86. Four plaques share this scene where Phase 1
 // had one, and the lettering above them is what the eye should reach first.
 const SALON_BUTTON_SCALE = 0.82;
+
+// The site's own title and description, as the root layout's defaults already
+// give it — what this adds is the address. See `pageMetadata` for why every
+// public page has to name its own.
+export const metadata = pageMetadata({ path: "/" });
 
 export default function Home() {
   return (

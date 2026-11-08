@@ -7,6 +7,7 @@ import { db } from "@/drizzle/db";
 import { CategoryTable } from "@/drizzle/schema";
 import { getCategoryGlobalTag } from "@/app/features/categories/db/cache/categories";
 import { asc } from "drizzle-orm";
+import { pageMetadata } from "@/lib/pageMetadata";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -22,6 +23,13 @@ const FIXED_ENTRANCES: Record<string, { label: string; href: string }> = {
   // visitor arrives on, rather than to a category.
   "4": { label: "Gran Salón del Conocimiento", href: "/" },
 };
+
+export const metadata = pageMetadata({
+  path: "/fetch-courses",
+  title: "El Castillo de Nalu",
+  description:
+    "Recorre el castillo del Reino de Nalu: cada portal es un área de estudio holístico, de la numerología y el tarot a la magia draconiana y la realidad cuántica.",
+});
 
 export default async function FetchCourses() {
   const categories = await getCategories();

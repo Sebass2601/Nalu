@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -26,6 +27,11 @@ import { PlaqueButton } from "@/components/ui/PlaqueButton";
 import { BackLink } from "@/components/ui/BackToHomeLink";
 import { formatPlural } from "@/lib/formatters";
 import { CarvedBackdrop } from "@/components/ui/CarvedBackdrop";
+import { pageMetadata } from "@/lib/pageMetadata";
+import { JsonLd } from "@/components/JsonLd";
+import { courseStructuredData } from "@/app/features/products/lib/courseStructuredData";
+import { priceDependsOnClock } from "@/app/features/products/lib/promoOffer";
+import type { Metadata } from "next";
 
 const cinzel = Cinzel({ subsets: ["latin"] });
 
@@ -35,6 +41,32 @@ const cinzel = Cinzel({ subsets: ["latin"] });
 //
 // As on the category page, `params` is only known at request time under Cache
 // Components, so the part that reads it sits inside <Suspense>.
+// The course's own name, description, address and cover image, so a search
+// result reads "Tarot Evolutivo · Nalu Escuela" with the course's own summary
+// beneath it, and a link shared on WhatsApp or Instagram shows the course's
+// cover rather than the generic site card.
+//
+// Reads the same cached lookup the page does — one database query serves both.
+// A product that is missing or private returns nothing here; the page itself
+// answers 404 for it, and a 404 is not indexed whatever its tags say.
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ productId: string }>;
+}): Promise<Metadata> {
+    const { productId } = await params;
+    const product = await getPublicProductWithSyllabus(productId);
+
+    if (product == null) return {};
+
+    return pageMetadata({
+        path: `/products/${product.id}`,
+        title: product.name,
+        description: product.description,
+        image: product.imageUrl,
+    });
+}
+
 export default function ProductPage({
     params,
 }: {
@@ -85,6 +117,7 @@ async function ProductDetails({
 
     return (
         <>
+            <CourseStructuredData product={product} />
             <div className="flex flex-col-reverse gap-10 md:flex-row md:items-center md:gap-16">
                 <div className="flex flex-col items-start gap-6 md:flex-1">
                     <div className="flex flex-col gap-3">
@@ -180,6 +213,38 @@ async function ProductDetails({
             <ContentSummary summary={product.contentSummary} />
         </>
     );
+}
+
+// The page's schema.org description of the course — see `courseStructuredData`.
+//
+// Split the same way as `ProductPrice`, because it states the same price: a
+// product whose promotion has an end date only knows its price once it knows
+// the time, so that one case waits for the request behind its own boundary,
+// and every other product's data is written out with the rest of the page.
+function CourseStructuredData({
+    product,
+}: {
+    product: PublicProduct;
+}) {
+    if (priceDependsOnClock(product)) {
+        return (
+            <Suspense fallback={null}>
+                <DeadlineCourseStructuredData product={product} />
+            </Suspense>
+        );
+    }
+
+    return <JsonLd data={courseStructuredData(product)} />;
+}
+
+async function DeadlineCourseStructuredData({
+    product,
+}: {
+    product: PublicProduct;
+}) {
+    await connection();
+
+    return <JsonLd data={courseStructuredData(product, new Date())} />;
 }
 
 // The long-form account of what the course covers, in a panel matching the
@@ -368,11 +433,13 @@ function sumBy<T>(items: T[], getValue: (item: T) => number) {
     return items.reduce((total, item) => total + getValue(item), 0);
 }
 
-// One course as the query below shapes it, derived from the query itself so the
-// card never drifts from the columns actually selected.
-type ProductCourse = NonNullable<
+// The product and one course as the query below shapes them, derived from the
+// query itself so nothing drifts from the columns actually selected.
+type PublicProduct = NonNullable<
     Awaited<ReturnType<typeof getPublicProductWithSyllabus>>
->["courses"][number];
+>;
+
+type ProductCourse = PublicProduct["courses"][number];
 
 // The product plus its whole syllabus, hiding anything unpublished: private
 // products 404, private sections disappear, and private lessons are omitted

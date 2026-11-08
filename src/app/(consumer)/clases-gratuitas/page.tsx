@@ -7,6 +7,7 @@ import { FreeClassCard } from "@/app/features/courses/components/FreeClassCard";
 import { FREE_COURSE_TITLE } from "@/app/features/courses/lib/freeCourseNames";
 import { getCurrentUser } from "@/app/features/users/actions/currentUser";
 import { FreeClassesSkeleton } from "./FreeClassesSkeleton";
+import { pageMetadata } from "@/lib/pageMetadata";
 
 // The free classes: every course an admin has marked as free content, one card
 // each.
@@ -20,6 +21,13 @@ import { FreeClassesSkeleton } from "./FreeClassesSkeleton";
 // Nothing is awaited out here. The wall and the heading are the same for
 // everybody and are drawn immediately, while the cards — which depend on who is
 // asking, because the order does — arrive behind their own boundary.
+export const metadata = pageMetadata({
+    path: "/clases-gratuitas",
+    title: FREE_COURSE_TITLE,
+    description:
+        "Clases gratuitas de Nalu Escuela: crea tu cuenta y empieza a aprender numerología, tarot y saberes holísticos sin pagar nada.",
+});
+
 export default function FreeClassesPage() {
     return (
         // No background of its own, which is what lets the carved wall show

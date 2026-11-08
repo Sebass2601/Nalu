@@ -4,6 +4,8 @@ import { getPublishedAnnouncement } from "@/app/features/announcements/db/announ
 import { ProseWithImages } from "@/components/prose/ProseWithImages";
 import { formatDate } from "@/lib/formatters";
 import { ReaderSkeleton } from "@/components/ui/ReaderSkeleton";
+import { pageMetadata } from "@/lib/pageMetadata";
+import type { Metadata } from "next";
 
 // One announcement: its heading, the day it went up, and the writing with its
 // pictures set into it.
@@ -17,6 +19,22 @@ import { ReaderSkeleton } from "@/components/ui/ReaderSkeleton";
 //
 // `params` is request-time data, so the part that reads it sits inside <Suspense>
 // while the frame around it comes from the layout.
+// The announcement's own title and address. No description of its own — the
+// body is long-form text with pictures, not a summary — so the site's is used.
+export async function generateMetadata({
+    params,
+}: PageProps<"/announcements/[announcementId]">): Promise<Metadata> {
+    const { announcementId } = await params;
+    const announcement = await getPublishedAnnouncement(announcementId);
+
+    if (announcement == null) return {};
+
+    return pageMetadata({
+        path: `/announcements/${announcement.id}`,
+        title: announcement.name,
+    });
+}
+
 export default function AnnouncementPage({
     params,
 }: PageProps<"/announcements/[announcementId]">) {
