@@ -19,8 +19,14 @@ export const aj = arcjet({
         //    so everything NOT listed here is denied. We permit the three
         //    benign categories requested: search-engine crawlers (Google/Bing),
         //    uptime monitors, and link-preview fetchers (Slack/Discord/etc).
+        //
+        //    TEMPORARILY "DRY_RUN" (since 2026-11-08): every bot is let through
+        //    while the site is being audited and indexed. Arcjet still
+        //    classifies each request and records what it would have blocked,
+        //    but blocks nothing. Set back to "LIVE" to restore the allow-list
+        //    below. Shield and the auth-route rate limit stay LIVE meanwhile.
         detectBot({
-            mode: "LIVE",
+            mode: "DRY_RUN",
             allow: [
                 "CATEGORY:SEARCH_ENGINE",
                 "CATEGORY:MONITOR",
