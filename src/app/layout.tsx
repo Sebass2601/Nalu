@@ -3,7 +3,8 @@ import { Geist, Geist_Mono, Cinzel } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { JsonLd } from "@/components/JsonLd";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { Suspense } from "react";
+import { Analytics } from "@/components/analytics/Analytics";
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -190,13 +191,14 @@ export default async function RootLayout({
             where the contact mark now lives. A toast landing on top of a fixed
             button covers it and steals the taps meant for it. */}
         <Toaster position="top-center" />
+        {/* Google Analytics — straight away for most visitors, behind the
+            cookie notice for those in Europe; see `Analytics`. In its own
+            boundary because it reads the visitor's country from the request,
+            and nothing else on the page should wait for that. */}
+        <Suspense fallback={null}>
+          <Analytics />
+        </Suspense>
       </body>
-      {/* Production only, so local `pnpm dev` visits are not counted as real
-          traffic. The ID is public by design: it is readable in every page's
-          source, so it needs no secret or environment variable. */}
-      {process.env.NODE_ENV === "production" && (
-        <GoogleAnalytics gaId="G-91VKFH955R" />
-      )}
     </html>
   );
 }

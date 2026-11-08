@@ -14,7 +14,8 @@ import { pageMetadata } from "@/lib/pageMetadata";
 //   - payments taken by Hotmart, never by this site — the checkout action
 //   - access withdrawn on refund or chargeback — the Hotmart webhook
 //   - regional prices and dated promotions — userCountryHeader, promoOffer
-//   - Google Analytics in production — the root layout
+//   - Google Analytics in production, behind a consent notice for visitors
+//     from Europe — components/analytics, lib/analytics
 //
 // Set like Sobre Nosotros: Cinzel for the headings, Geist (`font-sans`) for
 // everything read at length, on a reading measure of `max-w-3xl`.
@@ -28,7 +29,7 @@ export const metadata = pageMetadata({
     path: "/terminos",
     title: "Términos y Condiciones",
     description:
-        "Términos y condiciones de uso de Nalu Escuela: cuentas, cursos, pagos con Hotmart, reembolsos, propiedad del contenido y privacidad.",
+        "Términos y condiciones de uso de Nalu Escuela: cuentas, cursos, pagos con Hotmart, reembolsos, propiedad del contenido, privacidad y cookies.",
 });
 
 export default function TermsPage() {
@@ -190,7 +191,7 @@ export default function TermsPage() {
                         </p>
                     </Section>
 
-                    <Section title="10. Datos personales">
+                    <Section id="cookies" title="10. Datos personales y cookies">
                         <p>Para que la plataforma funcione guardamos:</p>
                         <List>
                             <li>
@@ -205,9 +206,32 @@ export default function TermsPage() {
                             </li>
                         </List>
                         <p>
-                            Usamos Google Analytics para saber cuántas personas
-                            visitan el sitio y qué páginas ven. Esta herramienta
-                            usa cookies.
+                            Usamos dos tipos de cookies, pequeños archivos que
+                            el sitio guarda en tu navegador:
+                        </p>
+                        <List>
+                            <li>
+                                <strong className="text-ink-bright">
+                                    Necesarias:
+                                </strong>{" "}
+                                mantienen tu sesión iniciada y protegen los
+                                formularios. Sin ellas el sitio no funciona, así
+                                que no requieren permiso.
+                            </li>
+                            <li>
+                                <strong className="text-ink-bright">
+                                    De medición:
+                                </strong>{" "}
+                                las de Google Analytics, que nos dicen cuántas
+                                personas visitan el sitio y qué páginas ven.
+                            </li>
+                        </List>
+                        <p>
+                            Si nos visitas desde el Espacio Económico Europeo,
+                            el Reino Unido o Suiza, solo activamos Google
+                            Analytics si lo aceptas en el aviso de cookies.
+                            Puedes cambiar tu elección cuando quieras desde el
+                            enlace «Cookies» al pie de cada página.
                         </p>
                         <p>
                             No vendemos tus datos. Puedes pedirnos que borremos
@@ -261,9 +285,20 @@ export default function TermsPage() {
 
 // A numbered clause: the heading in Cinzel, like every heading on the site,
 // over body copy that stays in the Geist set on the panel around it.
-function Section({ title, children }: { title: string; children: ReactNode }) {
+//
+// `id` makes a clause linkable — the cookie notice points at #cookies — and
+// `scroll-mt-32` stops the fixed 96px navbar covering its heading on arrival.
+function Section({
+    id,
+    title,
+    children,
+}: {
+    id?: string;
+    title: string;
+    children: ReactNode;
+}) {
     return (
-        <section className="flex flex-col gap-3">
+        <section id={id} className="flex scroll-mt-32 flex-col gap-3">
             <h2
                 className={`${cinzel.className} text-xl tracking-wide text-ink-bright sm:text-2xl`}
             >
