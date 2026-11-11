@@ -54,3 +54,16 @@ export const updatePasswordSchema = z
         message: "Las contraseñas no coinciden.",
         path: ["confirmPassword"],
     });
+
+// The form behind the link in a password-reset email. The change-password form
+// above minus `currentPassword`: proving the inbox is the proof here, which is
+// the whole point of the email.
+export const resetPasswordSchema = z
+    .object({
+        newPassword: passwordSchema,
+        confirmPassword: z.string().min(1, "Repite la nueva contraseña."),
+    })
+    .refine(data => data.newPassword === data.confirmPassword, {
+        message: "Las contraseñas no coinciden.",
+        path: ["confirmPassword"],
+    });

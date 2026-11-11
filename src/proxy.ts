@@ -17,7 +17,21 @@ import { COUNTRY_HEADER_KEY } from "@/lib/userCountryHeader";
 const ADMIN_PREFIX = "/admin";
 
 // Auth screens a signed-in user has no reason to see again.
-const AUTH_PAGES = ["/login", "/sign-up"];
+const AUTH_PAGES = ["/login", "/sign-up", "/recuperar-contrasena"];
+
+// Routes that get the stricter per-IP rate limit: the auth screens, plus the
+// page a reset email leads to. That one is kept out of AUTH_PAGES on purpose —
+// someone still signed in on this device may open the link, and bouncing them
+// to the home page would leave them no way to finish the reset.
+//
+// A Server Action posts back to the URL of the page it lives on, so listing a
+// page here also limits its form submissions — which is what holds the
+// "send me a reset email" form to a human pace.
+const RATE_LIMITED_PAGES = [...AUTH_PAGES, "/restablecer-contrasena"];
+
+function matchesAny(path: string, prefixes: string[]) {
+    return prefixes.some(p => path === p || path.startsWith(`${p}/`));
+}
 
 // Whether to ask Arcjet for a decision at all.
 //
@@ -50,10 +64,9 @@ export default auth(async req => {
     const { nextUrl } = req;
     const path = nextUrl.pathname;
 
-    // Is this one of the sensitive auth routes? Those get the extra rate limit.
-    const onAuthPage = AUTH_PAGES.some(
-        p => path === p || path.startsWith(`${p}/`)
-    );
+    const onAuthPage = matchesAny(path, AUTH_PAGES);
+    // Is this one of the sensitive routes? Those get the extra rate limit.
+    const rateLimited = matchesAny(path, RATE_LIMITED_PAGES);
 
     // 0. Arcjet runs first: WAF shield + bot detection on every route, plus a
     //    100-req/min sliding-window rate limit on sensitive auth routes only.
@@ -61,7 +74,7 @@ export default auth(async req => {
     //    any auth or routing logic runs. Null when protection is off, which
     //    only happens outside production — see PROTECTION_ENABLED.
     const decision = PROTECTION_ENABLED
-        ? await (onAuthPage ? ajSensitive : aj).protect(req)
+        ? await (rateLimited ? ajSensitive : aj).protect(req)
         : null;
 
     if (decision != null) {

@@ -51,6 +51,31 @@ export const env = createEnv ({
         AUTH_GOOGLE_SECRET: z.string().min(1),
         UPLOADTHING_TOKEN: z.string().min(1),
 
+        // --- Email (Resend) ----------------------------------------------
+        // Sends the password-reset email, from info@naluescuela.com — the
+        // domain is verified in Resend, which is what lets mail claim it.
+        //
+        // Optional on purpose, unlike every credential above. This module
+        // validates when the app boots, so a required variable that the
+        // server's app.env does not carry yet would take the WHOLE site down
+        // on the next deploy, not just password reset. Missing, the site runs
+        // and only the reset email fails — loudly, in the server log, naming
+        // this variable (see src/lib/email.ts).
+        RESEND_API_KEY: z.string().startsWith("re_").optional(),
+
+        // The site's public address, e.g. https://naluescuela.com. Auth.js
+        // already requires it (see the long note in src/auth.ts); declaring it
+        // here lets the reset email reuse the same value for its link.
+        //
+        // The link must come from configuration and never from the request.
+        // Building it from the Host header is the classic "password reset
+        // poisoning" hole: an attacker asks for a reset of YOUR account while
+        // sending `Host: evil.com`, and you receive a genuine email from us
+        // whose link hands your token to them.
+        //
+        // Optional for the same reason as the key above.
+        AUTH_URL: z.url().optional(),
+
         // --- Hotmart -----------------------------------------------------
         // Hotmart is the merchant of record: legally the seller, so it collects
         // and remits VAT and sales tax worldwide and pays the balance out.

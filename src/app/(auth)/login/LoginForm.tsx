@@ -1,12 +1,21 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useForgetOnLeave } from "@/components/ui/useForgetOnLeave";
 import { login } from "./actions";
+import type { AuthErrorNotice } from "./authErrorMessage";
 
-export default function LoginForm({ next }: { next: string }) {
+export default function LoginForm({
+    next,
+    authError,
+}: {
+    next: string;
+    // Why a Google sign-in bounced the person here, if it did.
+    authError: AuthErrorNotice | null;
+}) {
     const [state, action, pending] = useActionState(login, undefined);
     // Leaving the screen clears the box. The password field does this for
     // itself; the address has to ask, and an address half typed and thought
@@ -26,6 +35,26 @@ export default function LoginForm({ next }: { next: string }) {
 
             {state?.error && (
                 <p className="text-sm text-red-400 text-center">{state.error}</p>
+            )}
+
+            {/* The Google bounce explains itself only until the form is used:
+                after a submit, the form's own answer is the current news, and
+                both at once would be two messages about two different tries. */}
+            {state == null && authError != null && (
+                <div
+                    role="alert"
+                    className="flex flex-col gap-1 rounded-md border border-red-400/40 bg-red-400/10 px-3 py-2 text-center font-sans text-sm text-ink-bright"
+                >
+                    <p>{authError.message}</p>
+                    {authError.offerPasswordReset && (
+                        <Link
+                            href="/recuperar-contrasena"
+                            className="text-ink-bright underline hover:text-white"
+                        >
+                            ¿No recuerdas tu contraseña? Recupérala aquí
+                        </Link>
+                    )}
+                </div>
             )}
 
             <div className="flex flex-col gap-1">
@@ -50,6 +79,14 @@ export default function LoginForm({ next }: { next: string }) {
                     name="password"
                     className="font-sans rounded-md border border-gold/40 bg-white/5 px-3 py-2 text-ink-bright placeholder-white/30 outline-none focus:border-gold focus:ring-1 focus:ring-gold/50"
                 />
+                {/* Right under the box it is about, where someone who has
+                    just failed to remember a password is already looking. */}
+                <Link
+                    href="/recuperar-contrasena"
+                    className="mt-1 self-end text-sm text-ink-body underline hover:text-white"
+                >
+                    ¿Olvidaste tu contraseña?
+                </Link>
             </div>
 
             <button

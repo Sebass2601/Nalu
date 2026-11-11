@@ -35,6 +35,8 @@ from it.
 1. Compose a plain env file with the real values (no quotes):
 
    ```env
+   AUTH_URL=https://naluescuela.com
+   RESEND_API_KEY=re_...
    AUTH_GOOGLE_ID=...
    AUTH_GOOGLE_SECRET=...
    UPLOADTHING_TOKEN=...
@@ -70,6 +72,18 @@ These values are never exposed to browsers: Next.js only embeds
 `NEXT_PUBLIC_`-prefixed variables in client code, and this project has none.
 
 ### One-time chores that go with the credentials
+
+- **Resend** (password-reset email): the domain `naluescuela.com` must be
+  verified in the Resend dashboard (it is, since 2026-11-09), and
+  `RESEND_API_KEY` should be a *sending access* key restricted to that domain.
+  Leave click/open tracking off — it would reroute the one-time reset link
+  through Resend's servers.
+
+  A missing key does not stop the site: the variable is optional precisely so
+  that a deploy without it cannot take everything down. Only the reset email
+  fails, logged as `[password-reset] could not send: RESEND_API_KEY is not
+  set`. The visitor is still told to check their inbox, so verify after
+  deploying by requesting a reset for your own account.
 
 - **Google OAuth**: add `https://naluescuela.com` to the authorized origins
   and `https://naluescuela.com/api/auth/callback/google` to the authorized

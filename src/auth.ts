@@ -57,6 +57,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // so every Host header arriving has come through Caddy.
     trustHost: true,
     session: { strategy: "jwt" },
+    // Where Auth.js sends people when sign-in fails, instead of its own
+    // built-in pages — which are in English and look nothing like the site.
+    //
+    // Both point at our /login, which reads the `?error=` code Auth.js appends
+    // and explains it in Spanish (see src/app/(auth)/login/authErrorMessage.ts).
+    // Auth.js picks between the two by the kind of error: sign-in errors such
+    // as OAuthAccountNotLinked — "Continuar con Google" on an account made with
+    // a password — go to `signIn`; the rest, such as AccessDenied for a deleted
+    // account, go to `error`.
+    pages: {
+        signIn: "/login",
+        error: "/login",
+    },
     callbacks: {
         async signIn({ user }) {
             if (user.email == null) return false;

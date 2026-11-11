@@ -5,6 +5,7 @@ import LoginForm from "./LoginForm";
 import GoogleSignInButton from "@/components/ui/GoogleSignInButton";
 import { BackToCastleLink } from "@/components/ui/BackToHomeLink";
 import { safeReturnPath } from "@/lib/returnPath";
+import { authErrorMessage } from "./authErrorMessage";
 
 // `searchParams` is request-time data, so under Cache Components the part that
 // reads it sits inside <Suspense> — the same rule the lesson page follows for
@@ -13,7 +14,7 @@ import { safeReturnPath } from "@/lib/returnPath";
 export default function LoginPage({
     searchParams,
 }: {
-    searchParams: Promise<{ next?: string | string[] }>;
+    searchParams: Promise<{ next?: string | string[]; error?: string | string[] }>;
 }) {
     return (
         // `relative` so the way out below can pin itself to the corner of the
@@ -38,13 +39,17 @@ export default function LoginPage({
 async function LoginCard({
     searchParams,
 }: {
-    searchParams: Promise<{ next?: string | string[] }>;
+    searchParams: Promise<{ next?: string | string[]; error?: string | string[] }>;
 }) {
-    const next = safeReturnPath((await searchParams).next);
+    const params = await searchParams;
+    const next = safeReturnPath(params.next);
+    // Set by Auth.js when a Google sign-in failed and sent the person here
+    // (see `pages` in src/auth.ts).
+    const authError = authErrorMessage(params.error);
 
     return (
         <>
-            <LoginForm next={next} />
+            <LoginForm next={next} authError={authError} />
 
             <div className="flex items-center gap-3 text-ink-faint text-xs tracking-widest">
                 <span className="h-px flex-1 bg-gold/30" />
